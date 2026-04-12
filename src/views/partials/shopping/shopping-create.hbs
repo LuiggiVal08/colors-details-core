@@ -219,7 +219,9 @@
 </div>
 <!-- TEMPLATE PARA DETALLES DE PRODUCTO -->
 <template id='template-detalle-producto'>
-    <div class='detalle-item grid grid-cols-1 gap-2 rounded-md border border-dashed border-blue-500 bg-blue-400/10 p-3 shadow-sm md:grid-cols-[1.9fr_0.8fr_0.9fr_0.9fr_auto] items-center'>
+    <div
+        class='detalle-item grid grid-cols-1 gap-2 rounded-md border border-dashed border-blue-500 bg-blue-400/10 p-3 shadow-sm md:grid-cols-[1.9fr_0.8fr_0.9fr_0.9fr_auto] items-center'
+    >
         <div class='relative'>
             <label class='sr-only'>Código o nombre del producto</label>
             <input
@@ -342,17 +344,6 @@
                         required
                     />
                 </div>
-            </div>
-            <div class='w-full parent comision-container hidden' data-comision-container>
-                <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Monto (Bs.) - Comisión</label>
-                <input
-                    type='text'
-                    name='pagos[][comision]'
-                    class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
-                    placeholder='0,00'
-                    value='0,00'
-                    readonly
-                />
             </div>
 
             <div class='w-full parent referencia-container hidden' data-referencia-container>

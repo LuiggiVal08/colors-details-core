@@ -21,6 +21,32 @@ document.querySelectorAll('[data-btn="agregar-pago"]').forEach((btn) => {
         if (!modalOrder) return;
         // modalOrder.querySelector('[data-id-order]').value = idOrder;
         setupModalLifecycle(modalOrder);
+
+        // Lógica condicional para referencia
+        const methodSelect = modalOrder.querySelector('#metodo_pago_id');
+        const referenciaContainer = modalOrder.querySelector('[data-referencia-container]');
+        const referenciaInput = modalOrder.querySelector('#referencia_pago');
+
+        const toggleReferencia = () => {
+            const metodoSeleccionado = methodSelect.options[methodSelect.selectedIndex];
+            const metodoTexto = metodoSeleccionado?.textContent?.toLowerCase() || '';
+            const requiereReferencia = /pago móvil|transferencia/i.test(metodoTexto);
+
+            if (referenciaContainer) referenciaContainer.classList.toggle('hidden', !requiereReferencia);
+            if (referenciaInput) {
+                referenciaInput.required = requiereReferencia;
+                referenciaInput.readOnly = !requiereReferencia;
+                referenciaInput.value = requiereReferencia
+                    ? referenciaInput.value === 'N/A'
+                        ? ''
+                        : referenciaInput.value
+                    : 'N/A';
+            }
+        };
+
+        methodSelect.addEventListener('change', toggleReferencia);
+        // Inicializar
+        toggleReferencia();
     });
 });
 // Tabla de pedidos con paginación y filtros
@@ -182,7 +208,11 @@ const addOrderPayment = async (id) => {
             if (referenciaInput) {
                 referenciaInput.required = requiereReferencia;
                 referenciaInput.readOnly = !requiereReferencia;
-                referenciaInput.value = requiereReferencia ? (referenciaInput.value === 'N/A' ? '' : referenciaInput.value) : 'N/A';
+                referenciaInput.value = requiereReferencia
+                    ? referenciaInput.value === 'N/A'
+                        ? ''
+                        : referenciaInput.value
+                    : 'N/A';
             }
         };
 

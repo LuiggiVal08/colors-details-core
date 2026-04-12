@@ -304,7 +304,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const agregarLogicaPago = (root) => {
         const montoPaymentInput = root.querySelector('input[name="pagos[][monto_payment]"]'); // Bs.
         const methodPaymentSelect = root.querySelector('select[name="pagos[][metodo_pago_id]"]');
-        const montoComisionInput = root.querySelector('input[name="pagos[][comision]"]');
         const montoUSDInput = root.querySelector('input[name="pagos[][monto]"]'); // $
         const referenciaContainer = root.querySelector('[data-referencia-container]');
         const referenciaInput = root.querySelector('input[name="pagos[][referencia_pago]"]');
@@ -320,20 +319,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (referenciaInput) {
                 referenciaInput.required = requiereReferencia;
                 referenciaInput.readOnly = !requiereReferencia;
-                referenciaInput.value = requiereReferencia ? (referenciaInput.value === 'N/A' ? '' : referenciaInput.value) : 'N/A';
+                referenciaInput.value = requiereReferencia
+                    ? referenciaInput.value === 'N/A'
+                        ? ''
+                        : referenciaInput.value
+                    : 'N/A';
             }
         };
 
         // Limpieza inicial
         montoPaymentInput.value = '0,00';
-        montoComisionInput.value = '0,00';
         montoUSDInput.value = '0,00';
         toggleReferencia();
 
         const calcularValores = (origen = 'bs') => {
-            const metodoSeleccionado = methodPaymentSelect.options[methodPaymentSelect.selectedIndex];
-            const porcentajeComision = parseFloat(metodoSeleccionado?.dataset?.comision || 0);
-
             let montoBS = 0;
             let montoUSD = 0;
 
@@ -349,12 +348,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 montoBS = montoIngresadoUSD * tasa;
             }
 
-            // 💰 Cálculo de comisión
-            const comisionBS = montoBS * (porcentajeComision / 100);
-            const montoBSMenosComision = montoBS - comisionBS;
-
             // 🧾 Actualizamos campos
-            montoComisionInput.value = Format.float(montoBSMenosComision.toFixed(2));
             montoPaymentInput.value = Format.float(montoBS.toFixed(2));
             montoUSDInput.value = Format.float(montoUSD.toFixed(2));
 
