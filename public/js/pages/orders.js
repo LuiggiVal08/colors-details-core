@@ -168,13 +168,29 @@ const addOrderPayment = async (id) => {
         const montoPaymentInput = modalOrder.querySelector('input[name="monto_payment"]'); // Bs
         const montoComisionInput = modalOrder.querySelector('input[name="comision"]');
         const montoUSDInput = modalOrder.querySelector('input[name="monto"]'); // $
+        const referenciaContainer = modalOrder.querySelector('[data-referencia-container]');
+        const referenciaInput = modalOrder.querySelector('input[name="referencia_pago"]');
         const lblPendienteUSD = modalOrder.querySelector('[data-pedido-pendiente]');
         const lblPendienteBS = modalOrder.querySelector('[data-pedido-pendiente-bs]');
+
+        const toggleReferencia = () => {
+            const metodoSeleccionado = methodPaymentSelect.options[methodPaymentSelect.selectedIndex];
+            const metodoTexto = metodoSeleccionado?.textContent?.toLowerCase() || '';
+            const requiereReferencia = /pago móvil|transferencia/i.test(metodoTexto);
+
+            if (referenciaContainer) referenciaContainer.classList.toggle('hidden', !requiereReferencia);
+            if (referenciaInput) {
+                referenciaInput.required = requiereReferencia;
+                referenciaInput.readOnly = !requiereReferencia;
+                referenciaInput.value = requiereReferencia ? (referenciaInput.value === 'N/A' ? '' : referenciaInput.value) : 'N/A';
+            }
+        };
 
         // 🧹 Limpieza inicial
         montoPaymentInput.value = '';
         montoComisionInput.value = '0,00';
         montoUSDInput.value = '0,00';
+        toggleReferencia();
 
         Format.formatEventInput({ elements: modalOrder.querySelectorAll('input, select') });
 
@@ -220,7 +236,10 @@ const addOrderPayment = async (id) => {
         };
 
         // 📌 Eventos sincronizados
-        methodPaymentSelect.addEventListener('change', () => calcularValores('bs'));
+        methodPaymentSelect.addEventListener('change', () => {
+            calcularValores('bs');
+            toggleReferencia();
+        });
         montoPaymentInput.addEventListener('input', () => calcularValores('bs')); // Bs → USD
         montoUSDInput.addEventListener('input', () => calcularValores('usd')); // USD → Bs
 
@@ -653,8 +672,9 @@ const calcularTotales = () => {
         sumaSubTotal += valor;
     });
 
-    const porcentajeIva = parseFloat(inputTotalMasIVA.dataset.value);
-    const valueTasaDolar = parseFloat(inputTotalBS.dataset.value);
+    const inputIvaPorcentaje = form.querySelector('input[name="iva_porcentaje"]');
+    const porcentajeIva = parseFloat(inputIvaPorcentaje?.value) || 0;
+    const valueTasaDolar = parseFloat(inputTotalBS.dataset.value) || 0;
     const totalConIva = sumaSubTotal + (sumaSubTotal * porcentajeIva) / 100;
     const totalBS = totalConIva * valueTasaDolar;
 
