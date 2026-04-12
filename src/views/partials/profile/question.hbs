@@ -1,0 +1,101 @@
+<div class='bg-red-100 shadow-lg rounded-lg p-6 w-full flex flex-col gap-4'>
+    <div class='flex flex-col'>
+        <div class='flex flex-row gap-2 items-center'>
+            <span data-ico='shield_question' class='material-symbols-rounded md-28 text-red-500'></span>
+            <h3 class='text-xl font-medium text-gray-900'>Preguntas de Seguridad</h3>
+        </div>
+        <span class='text-sm text-gray-600'>Valida tu identidad para gestionar tus preguntas de recuperación.</span>
+    </div>
+
+    <form
+        action='/questions/valid-user/{{id_usuario}}'
+        method='post'
+        id='form-valid-user'
+        data-ignore='true'
+        class='flex flex-col gap-4 mt-2'
+    >
+        <div class='bg-white/50 p-4 rounded-lg border border-red-200'>
+            <label class='block mb-2 text-sm font-medium text-gray-900'>Contraseña Actual</label>
+            <input
+                type='password'
+                name='password'
+                required
+                placeholder='••••••••'
+                data-valid='password'
+                class='bg-white border border-gray-300 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2.5 outline-none'
+            />
+        </div>
+        <div class='flex justify-end'>
+            <button
+                type='submit'
+                class='bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md flex items-center gap-2 material-symbols-rounded cursor-pointer'
+                data-ico='shield_lock'
+            >
+                Validar Identidad
+            </button>
+        </div>
+    </form>
+
+    <form
+        action='/questions/valid-questions/{{id_usuario}}'
+        data-ignore='true'
+        method='post'
+        id='form-valid-questions'
+        class='hidden flex flex-col gap-4'
+    >
+        <div id='preguntas-container' class='flex flex-col gap-4'>
+        </div>
+
+        <div class='flex items-center justify-end gap-3 mt-4'>
+            <button type='button' id='btn-cancel-questions' class='text-gray-600 hover:text-gray-800 font-medium'>
+                Cancelar
+            </button>
+            <button
+                type='submit'
+                class='bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md flex items-center gap-2'
+            >
+                <span class='material-symbols-rounded' data-ico='save'></span>
+                Guardar Cambios
+            </button>
+        </div>
+
+        <div class='rounded-lg bg-blue-50 p-4 border border-blue-200 mt-2'>
+            <div class='flex items-center gap-2 mb-1'>
+                <span class='material-symbols-rounded text-blue-500'>lightbulb</span>
+                <span class='font-semibold text-blue-800'>Consejo de seguridad:</span>
+            </div>
+            <ul class='list-disc list-inside text-xs text-blue-700 space-y-1'>
+                <li>No uses información fácil de encontrar en redes sociales.</li>
+                <li>Las respuestas no distinguen entre MAYÚSCULAS y minúsculas.</li>
+            </ul>
+        </div>
+    </form>
+</div>
+<!-- Template para clonar -->
+<template id='template-pregunta'>
+    <div class='flex flex-row gap-4 items-center bg-red-300/20 p-4 rounded-md border border-red-300 relative'>
+        <div class='w-full'>
+            <label class='block mb-1 text-sm font-medium text-gray-900'>Pregunta</label>
+            <select
+                name=''
+                required
+                data-valid='text'
+                class='w-full bg-white border border-gray-300 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 p-2'
+            >
+                <option value='' selected>Selecciona una pregunta</option>
+            </select>
+        </div>
+        <div class='w-full'>
+            <label class='block mb-1 text-sm font-medium text-gray-900'>Respuesta</label>
+            <input
+                type='text'
+                required
+                data-valid='name'
+                placeholder='Tu respuesta'
+                class='w-full bg-white border border-gray-300 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 p-2'
+            />
+        </div>
+    </div>
+</template>
+
+<script type='module' src='/js/pages/profile/questions.js'></script>

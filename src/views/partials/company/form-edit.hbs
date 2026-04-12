@@ -1,0 +1,94 @@
+<div id='modal-edit-company' class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden' inert>
+    <form class='bg-white rounded-lg shadow-lg max-w-lg m-auto' action='/company/{{company.id}}' data-method='PUT'>
+        <div role='heading' class='w-full flex justify-between items-center px-6 py-4 border-b border-gray-200'>
+            <h2 class='text-xl font-medium text-gray-900'>Editar Empresa</h2>
+            <button
+                type='button'
+                data-dismiss='modal'
+                data-ico='cancel'
+                class='material-symbols-rounded cursor-pointer flex hover:text-red-500'
+            ></button>
+        </div>
+
+        <div role='dialog' class='p-6'>
+            <input
+                type='hidden'
+                name='nombre'
+                data-valid='nombre'
+                id='nombre'
+                value='{{company.nombre}}'
+                class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                placeholder='Ingrese RIF'
+                required
+            />
+            <div class=''>
+                <label for='rif' class='block mb-2 text-sm font-medium text-gray-900 text-start'>RIF</label>
+                <input
+                    type='text'
+                    name='rif'
+                    data-valid='rif'
+                    id='rif'
+                    value='{{company.rif}}'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese RIF'
+                    required
+                />
+            </div>
+            <div class='mt-4'>
+                <label for='direccion' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Dirección</label>
+                <input
+                    type='text'
+                    name='direccion'
+                    data-valid='text'
+                    id='direccion'
+                    value='{{company.direccion}}'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese la Dirección'
+                    required
+                />
+            </div>
+            <div class='mt-4'>
+                <label for='telefono' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Telefono</label>
+                <input
+                    type='text'
+                    name='telefono'
+                    data-valid='telefono'
+                    id='telefono'
+                    value='{{company.telefono}}'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese el Telefono'
+                    required
+                />
+            </div>
+            <div class='mt-4'>
+                <label for='email' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Correo</label>
+                <input
+                    type='text'
+                    name='email'
+                    data-valid='email'
+                    id='email'
+                    value='{{company.email}}'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese el Correo'
+                    required
+                />
+            </div>
+        </div>
+        <div role='doc-footnote' class='px-6 py-2 border-t border-gray-200 flex items-center justify-end gap-4'>
+            <button
+                data-dismiss='modal'
+                type='button'
+                class='inline-block bg-transparent text-gray-500 px-4 py-2 rounded-md hover:bg-gray-400/50 border border-gray-400 cursor-pointer'
+            >
+                Cancelar
+            </button>
+            <button
+                data-confirm='modal'
+                type='submit'
+                class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer duration-300'
+            >
+                Editar Información
+            </button>
+        </div>
+    </form>
+</div>

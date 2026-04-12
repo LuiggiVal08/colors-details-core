@@ -1,0 +1,86 @@
+{{> settings/exchange-rate-register}}
+
+<div class='bg-red-100 shadow-lg rounded-lg p-6 w-full flex-col gap-4 flex'>
+    {{! titulo y descripcion }}
+    <div class=''>
+        <div class='flex flex-row gap-4'>
+            <span data-ico='attach_money' class='material-symbols-rounded md-28'></span>
+            <h3 class='text-xl font-medium text-gray-900'>Gestión Tasa del Dólar</h3>
+        </div>
+        <span>Actualiza la tasa de cambio USD/BS</span>
+    </div>
+    {{! Card de tasa actual }}
+    <div class='flex flex-col md:flex-row gap-4 w-full'>
+        <div class='w-full border border-green-500 bg-green-400/10 rounded-md shadow-s min-h-10m'>
+            <div class='flex flex-col p-4'>
+                <h4 class='font-semibold'>Tasa Actual</h4>
+                <span class='font-bold text-2xl my-1 text-green-600'>{{ tasaDolarActual.tasa }} Bs</span>
+                <span class=''>Actualizada: {{ tasaDolarActual.fecha }}</span>
+                <span class=''>Por: {{ tasaDolarActual.usuario.username }}</span>
+                <div class='flex flex-row gap-2 items-center'>
+                    <span
+                        data-ico='{{#if tasaDolarActual.upToDown }}trending_up{{else}}trending_down{{/if}}'       class='material-symbols-rounded md-18 leading-none {{#if tasaDolarActual.upToDown }}text-green-600{{else}}text-red-600{{/if}} font-semibold'>
+                        {{ tasaDolarActual.cambio }}
+                    </span>
+                    <span>vs anterior</span>
+                </div>
+            </div>
+        </div>
+        <div class='w-full flex flex-col gap-4'>
+            <button
+                type='button'
+                data-ico='attach_money'
+                id='update-exchange-rate'
+                class='cursor-pointer flex items-center justify-center gap-2 w-full h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+            >
+                Actualizar Tasa
+            </button>
+            <div
+                class='border border-dashed border-green-500 bg-green-400/10 rounded-md shadow-sm min-h-10 p-4 w-full flex flex-col gap-1'
+            >
+                <div class='flex flex-row items-center gap-1'>
+                    <span data-ico='info' class='material-symbols-rounded md-18 text-green-500 leading-none'></span>
+                    <span class='font-semibold'>Nota:</span>
+                </div>
+                <ul class='list-disc list-inside text-sm text-gray-700'>
+                    <li>La actualización afectará todos los pagos con precios en USD </li>
+                    <li>Se mantendrá un historial completo de cambios</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    {{! historial de cambios }}
+    <div class='flex-col gap-4 flex'>
+        <div class='overflow-x-auto scrollbar rounded-md border border-red-400/50'>
+            <table class='w-full border-collapse table caption-bottom'>
+                <thead class='[&_tr]:border-b border-red-400/50'>
+                    <tr class='border-b border-red-400/50'>
+                        <th align='start' align='start' class='text-gray-900 font-medium p-3'>Fecha/hora</th>
+                        <th align='center' class='text-gray-900 font-medium p-3'>Tasa</th>
+                        <th align='center' class='text-gray-900 font-medium p-3'>Cambio</th>
+                        <th align='end' class='text-gray-900 font-medium p-3'>Usuario</th>
+                    </tr>
+                </thead>
+                <tbody id='table-exchange-rate' class='[&_tr:last-child]:border-0'>
+                    <tr class='border-b transition-colors'>
+                        <td colspan='4' class='text-center p-3'>Cargando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class='w-full flex justify-end items-center gap-2' id='paginador-tabla-exchange-rate'>
+            <button data-ico="arrow_back" class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent  px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400' disabled>Anterior</button>
+
+            <button data-ico="arrow_forward" class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent  px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400' disabled>Siguiente</button>
+        </div>
+    </div>
+</div>
+<template id='fila-ejemplo-exchange-rate'>
+    <tr class='hover:bg-pink-400/10 transition-all duration-300 border-b border-red-400/50'>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='fecha'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='tasa'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='cambio' data-tipo="html"></td>
+        <td align='end' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='usuario'></td>
+    </tr>
+</template>
+<script type='module' src='/js/pages/settings/exchange-rate.js'></script>

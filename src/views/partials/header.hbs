@@ -1,0 +1,21 @@
+{{> aside}}
+<div
+    class='min-h-[60px] w-full sticky top-0 z-10 bg-primary shadow-md transition-all duration-300 ease-in-out content-center'
+>
+    <div class='container mx-auto flex items-center justify-between h-full'>
+        <div class='flex items-center'>
+                <button type='button' data-ico='menu' id="btn-aside" class='flex items-center focus:outline-none material-symbols-rounded mr-4 cursor-pointer leading-0'>
+                </button>
+            <a href='/' class='flex items-center'>
+                <img src='/img/logo.png' alt='Logo' class='h-10 mr-3' />
+                <span class='text-xl font-semibold tracking-tight text-pink-500/80'>Colores y Detalles</span>
+            </a>
+        </div>
+        <div class='flex items-center md:order-2'>
+            {{#if userValid}}
+                {{> dropdown-profile}}
+            {{/if}}
+
+        </div>
+    </div>
+</div>

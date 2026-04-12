@@ -1,0 +1,30 @@
+<template id='template-modal-confirm'>
+    {{! Modal for confirmation actions }}
+    <div class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden' tabindex='-1' inert>
+        <div class='bg-white rounded-lg shadow-lg max-w-lg m-auto'>
+            <div role='heading' class='w-full flex justify-between items-center px-6 py-4 border-b border-gray-200'>
+                <h2 class='text-xl font-medium text-gray-900'>Confirmación</h2>
+                <button
+                    data-dismiss='modal'
+                    data-ico='cancel'
+                    class='material-symbols-rounded cursor-pointer flex hover:text-red-500'
+                ></button>
+            </div>
+            <div role='dialog' class='p-6'></div>
+            <div role='doc-footnote' class='px-6 py-2 border-t border-gray-200 flex items-center justify-end gap-4'>
+                <button
+                    data-dismiss='modal'
+                    class='inline-block bg-transparent text-gray-500 px-4 py-2 rounded-md hover:bg-gray-400/50 border border-gray-400 cursor-pointer'
+                >
+                    Cancelar
+                </button>
+                <button
+                    data-confirm='modal'
+                    class='inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 cursor-pointer'
+                >
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+</template>

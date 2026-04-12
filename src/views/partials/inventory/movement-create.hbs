@@ -1,0 +1,110 @@
+<div id='modal-create-movement' class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden' inert>
+    <form
+        class='bg-white rounded-lg shadow-lg max-w-lg m-auto overflow-auto max-h-[100vh] relative'
+        action='/product-movement'
+        data-method='POST'
+    >
+        <div
+            role='heading'
+            class='w-full flex justify-between items-center px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10'
+        >
+            <h2 class='text-xl font-medium text-gray-900'>Regsitrar Movimiento de Producto</h2>
+            <button
+                type='button'
+                data-dismiss='modal'
+                data-ico='cancel'
+                class='material-symbols-rounded cursor-pointer flex hover:text-red-500'
+            ></button>
+        </div>
+
+        <div role='dialog' class='p-6 space-y-4'>
+            <input type='hidden' name='usuario_id' value='{{user.id}}' />
+            <div class='flex gap-4 flex-row w-full'>
+                <div class='w-full'>
+                    <label
+                        for='producto_id'
+                        class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                    >Producto</label>
+                    <select
+                        type='text'
+                        name='producto_id'
+                        data-valid='text'
+                        id='producto_id'
+                        class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        required
+                    >
+                        <option value='' disabled selected>Seleccione un Producto</option>
+                        {{#each productos}}
+                            <option value='{{id}}'>{{nombre}}</option>
+                        {{/each}}
+                        {{#unless productos.length}}
+                            <option value=''>No hay Productos disponibles</option>
+                        {{/unless}}
+                    </select>
+                </div>
+                <div class='w-full'>
+                    <label for='tipo' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Tipo de Movimiento</label>
+                    <select
+                        type='text'
+                        name='tipo'
+                        data-valid='text'
+                        id='tipo'
+                        class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        placeholder='Ingrese la Categoria'
+                        required
+                    >
+                        <option value='' disabled selected>Seleccione un Producto</option>
+                        <option value='entrada'>Entrada</option>
+                        <option value='salida'>Salida</option>
+                    </select>
+                </div>
+            </div>
+            <div class='w-full'>
+                <label for='stock' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Cantidad</label>
+                <input
+                    type='number'
+                    name='cantidad'
+                    data-valid='number'
+                    id='stock'
+                    placeholder='0'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    {{! placeholder='Ingrese el Precio' }}
+                    required
+                />
+            </div>
+
+            <div class=''>
+                <label
+                    for='observacion'
+                    class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                >Observacion</label>
+                <textarea
+                    type='text'
+                    name='observacion'
+                    data-valid='text'
+                    id='observacion'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese la Observacion'
+                    required
+                ></textarea>
+            </div>
+
+        </div>
+        <div role='doc-footnote' class='px-6 py-2 border-t border-gray-200 flex items-center justify-end gap-4'>
+            <button
+                data-dismiss='modal'
+                type='button'
+                class='inline-block bg-transparent text-gray-500 px-4 py-2 rounded-md hover:bg-gray-400/50 border border-gray-400 cursor-pointer'
+            >
+                Cancelar
+            </button>
+            <button
+                data-confirm='modal'
+                type='submit'
+                class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer'
+            >
+                Registrar Movimiento
+            </button>
+        </div>
+    </form>
+</div>

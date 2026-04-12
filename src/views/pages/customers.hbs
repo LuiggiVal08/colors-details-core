@@ -1,0 +1,77 @@
+{{> customers/create-form}}
+{{> customers/edit}}
+<div class='container mx-auto space-y-4 pt-4'>
+    <div class='flex justify-center items-center'>
+        <div class='bg-primary shadow-lg rounded-lg p-4 w-full flex flex-col gap-4 '>
+            <div class='flex justify-between items-center'>
+                <div class='flex items-center gap-2'>
+                    <h2 class='text-xl font-medium text-gray-900'>Clientes</h2>
+                    <span class='material-symbols-rounded fill-solid wght-normal md-28 ico-group text-gray-900'></span>
+                </div>
+                <div class='flex items-center justify-end gap-4'>
+                    <input
+                        type='text'
+                        name='code'
+                        id='inputSearch'
+                        placeholder='Buscar por nombre o cedula'
+                        class='bg-red-300/30 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    />
+                    <button
+                        type='button'
+                        id='btn-add-customer'
+                        data-ico='person_add'
+                        class='bg-red-400 hover:bg-red-500 duration-300 text-white px-4 py-2 rounded-md text-nowrap cursor-pointer material-symbols-rounded flex items-center justify-center gap-2'
+                    >Agregar Cliente</button>
+                </div>
+            </div>
+            <div class='overflow-x-auto scrollbar rounded-md border border-red-400/50'>
+        <table class='w-full border-collapse table caption-bottom'>
+            <thead class="[&_tr]:border-b border-red-400/50">
+                <tr class="border-b border-red-400/50">
+                            <th align='start' class='text-gray-900 font-medium p-3 text-nowrap'>Cedula</th>
+                            <th align='center' class='text-gray-900 font-medium p-3 text-nowrap'>Nombre y Apellido</th>
+                            <th align='center' class='text-gray-900 font-medium p-3 text-nowrap'>Telefono</th>
+                            <th align='center' class='text-gray-900 font-medium p-3 text-nowrap'>Correo</th>
+                            <th align='center' class='text-gray-900 font-medium p-3 text-nowrap'>Dirección</th>
+                            <th align='center' class='text-gray-900 font-medium p-3 text-nowrap'>Estado</th>
+                            <th align='center' class='text-gray-900 font-medium p-3 text-nowrap'>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id='table-customers' class="[&_tr:last-child]:border-0">
+                        <tr>
+                            <td colspan='7' class='text-center p-3'>Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+                <div class='w-full flex justify-end items-center gap-2' id='paginador-tabla'>
+                    <button data-ico="arrow_back" class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent  px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400' disabled>Anterior</button>
+                    <button data-ico="arrow_forward" class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent  px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400' disabled>Siguiente</button>
+                </div>
+        </div>
+    </div>
+</div>
+
+<template id='fila-ejemplo'>
+    <tr class='hover:bg-pink-400/10 transition-all duration-300 border-b border-red-400/50'>
+        <td align='start' class="p-4 align-middle max-w-xs truncate text-nowrap" data-key='cedula' ></td>
+        <td align='center' class="p-4 align-middle max-w-xs truncate text-nowrap" data-key='nombre'></td>
+        <td align='center' class="p-4 align-middle max-w-xs truncate text-nowrap" data-key='telefono'></td>
+        <td align='center' class="p-4 align-middle max-w-xs truncate text-nowrap" data-key='email'></td>
+        <td align='center' class="p-4 align-middle max-w-xs truncate text-nowrap" data-key='direccion'></td>
+        <td align='center' class="p-4 align-middle max-w-xs truncate text-nowrap" data-key='activo'></td>
+        <td align='center' class="p-4 align-middle max-w-xs truncate text-nowrap" >
+            <div class='flex gap-2 flex-row items-center justify-center'>
+                <button data-btn='editar' data-idfield='id' class='cursor-pointer'>
+                    <span
+                        class='material-symbols-rounded fill-solid wght-normal md-28 text-gray-700 hover:text-gray-500'
+                        data-ico='edit'
+                    ></span>
+                </button>
+
+            </div>
+        </td>
+    </tr>
+</template>
+
+<script type='module' src='/js/pages/customers.js'></script>

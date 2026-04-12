@@ -1,0 +1,173 @@
+import { models } from '../models/index.js';
+import handleErrorsController from '../helpers/handdleErrorsController.js';
+
+class ControlCajaController {
+    // =======================
+    //     CONTROL — LISTAR
+    // =======================
+
+    static async getAll(req, res) {
+        try {
+            const controles = await models.ControlCaja.findAll({
+                include: [
+                    { model: models.Caja, as: 'caja' },
+                    { model: models.Usuario, as: 'usuario' },
+                ],
+                order: [['id', 'DESC']],
+            });
+
+            res.json(controles);
+        } catch (error) {
+            handleErrorsController(error, res, req);
+        }
+    }
+
+    static async getById(req, res) {
+        try {
+            const { id } = req.params;
+
+            const control = await models.ControlCaja.findByPk(id, {
+                include: [
+                    { model: models.Caja, as: 'caja' },
+                    { model: models.Usuario, as: 'usuario' },
+                ],
+            });
+
+            if (!control) {
+                return res.status(404).json({ message: 'Control no encontrado' });
+            }
+
+            res.json(control);
+        } catch (error) {
+            handleErrorsController(error, res, req);
+        }
+    }
+
+    static async getByCaja(req, res) {
+        try {
+            const { caja_id } = req.params;
+
+            const controles = await models.ControlCaja.findAll({
+                where: { caja_id },
+                include: [
+                    { model: models.Caja, as: 'caja' },
+                    { model: models.Usuario, as: 'usuario' },
+                ],
+                order: [['id', 'DESC']],
+            });
+
+            res.json(controles);
+        } catch (error) {
+            handleErrorsController(error, res, req);
+        }
+    }
+
+    static async getActualByCaja(req, res) {
+        try {
+            const { caja_id } = req.params;
+
+            // 1️⃣ Intentar encontrar un control ABIERTO
+            let control = await models.ControlCaja.findOne({
+                where: { caja_id, fecha_cierre: null },
+                include: [
+                    { model: models.Caja, as: 'caja' },
+                    { model: models.Usuario, as: 'usuario' },
+                ],
+                order: [['id', 'DESC']],
+            });
+
+            // 2️⃣ Si no hay control abierto, buscar el ÚLTIMO control creado
+            if (!control) {
+                control = await models.ControlCaja.findOne({
+                    where: { caja_id },
+                    include: [
+                        { model: models.Caja, as: 'caja' },
+                        { model: models.Usuario, as: 'usuario' },
+                    ],
+                    order: [['id', 'DESC']], // último registro
+                });
+            }
+
+            return res.json({
+                error: false,
+                message: control ? 'Estado de la caja obtenido' : 'Esta caja aún no tiene controles creados',
+                data: control,
+            });
+        } catch (error) {
+            handleErrorsController(error, res, req);
+        }
+    }
+
+    // =======================
+    //     CONTROL — APERTURA
+    // =======================
+
+    static async apertura(req, res) {
+        try {
+            const { caja_id } = req.params;
+            const usuario_id = res.locals.user.id;
+
+            const caja = await models.Caja.findByPk(caja_id);
+            if (!caja) return res.status(404).json({ message: 'Caja no encontrada' });
+
+            const controlAbierto = await models.ControlCaja.findOne({
+                where: { caja_id, fecha_cierre: null },
+            });
+
+            if (controlAbierto) {
+                return res.status(400).json({ message: 'La caja ya tiene una apertura activa' });
+            }
+
+            const control = await models.ControlCaja.create({
+                caja_id,
+                usuario_id,
+                fecha_apertura: new Date(),
+                monto_apertura: caja.monto,
+                estado: 'abierto',
+            });
+
+            res.status(201).json({ control });
+        } catch (error) {
+            handleErrorsController(error, res, req);
+        }
+    }
+
+    // =======================
+    //     CONTROL — CIERRE
+    // =======================
+
+    static async cierre(req, res) {
+        try {
+            const { caja_id } = req.params;
+            const usuario_id = res.locals.user.id;
+
+            const caja = await models.Caja.findByPk(caja_id);
+            if (!caja) return res.status(404).json({ message: 'Caja no encontrada' });
+
+            const controlAbierto = await models.ControlCaja.findOne({
+                where: { caja_id, fecha_cierre: null },
+                order: [['id', 'DESC']],
+            });
+
+            if (!controlAbierto) {
+                return res.status(400).json({ message: 'La caja no tiene una apertura activa' });
+            }
+
+            await controlAbierto.update({
+                fecha_cierre: new Date(),
+                monto_cierre: caja.monto,
+                estado: 'cerrado',
+                usuario_id,
+            });
+
+            res.json({
+                message: 'Caja cerrada correctamente',
+                control: controlAbierto,
+            });
+        } catch (error) {
+            handleErrorsController(error, res, req);
+        }
+    }
+}
+
+export default ControlCajaController;

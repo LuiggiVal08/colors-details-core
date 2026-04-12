@@ -1,0 +1,166 @@
+<div class='bg-red-100 shadow-lg rounded-lg p-6 w-full flex-col gap-4 flex'>
+    <div class='flex flex-row items-center justify-between'>
+        <div class=''>
+            <div class='flex flex-row gap-2'>
+                <span data-ico='person' class='material-symbols-rounded md-28'></span>
+                <h3 class='text-xl font-medium text-gray-900'>Información Personal</h3>
+            </div>
+            <span>Datos básicos del empleado</span>
+        </div>
+    </div>
+    <form class='rounded-lg overflow-auto relative' action='/employe/{{usuario.empleado.id}}' data-method='PUT'>
+        <div role='dialog' class=''>
+            <div class='flex flex-row gap-4 w-full'>
+                <input type='hidden' name='fecha_ingreso' value="{{usuario.empleado.fecha_ingreso}}" />
+                <div class='w-full'>
+                    <label
+                        for='nombre_employee_edit'
+                        class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                    >Nombre</label>
+                    <input
+                        type='text'
+                        name='nombre'
+                        value='{{usuario.empleado.nombre}}'
+                        data-valid='name'
+                        id='nombre_employee_edit'
+                        class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        placeholder='Ingrese el Nombre'
+                        required
+                    />
+                </div>
+                <div class='w-full'>
+                    <label
+                        for='apellido_employee_edit'
+                        class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                    >Apellido</label>
+                    <input
+                        type='text'
+                        name='apellido'
+                        data-valid='name'
+                        value='{{usuario.empleado.apellido}}'
+                        id='apellido_employee_edit'
+                        class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        placeholder='Ingrese el Apellido'
+                        required
+                    />
+                </div>
+            </div>
+            <div class='mt-4'>
+                <label
+                    for='cedula_employee_edit'
+                    class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                >Cedula</label>
+                <input
+                    type='text'
+                    name='cedula'
+                    data-valid='dni'
+                    value='{{usuario.empleado.cedula}}'
+                    id='cedula_employee_edit'
+                    class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese la Dirección'
+                    required
+                />
+            </div>
+            <div class='flex flex-row gap-4 w-full'>
+                <div class='mt-4 w-full'>
+                    <label
+                        for='telefono_employee_edit'
+                        class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                    >Telefono</label>
+                    <input
+                        type='text'
+                        name='telefono'
+                        data-valid='phone'
+                        value='{{usuario.empleado.telefono}}'
+                        id='telefono_employee_edit'
+                        class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        placeholder='Ingrese el Telefono'
+                        required
+                    />
+                </div>
+                <div class='mt-4 w-full'>
+                    <label
+                        for='email_employee_edit'
+                        class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                    >Correo</label>
+                    <input
+                        type='text'
+                        name='email'
+                        data-valid='email'
+                        value='{{usuario.empleado.email}}'
+                        id='email_employee_edit'
+                        class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        placeholder='Ingrese el Correo'
+                        required
+                    />
+                </div>
+            </div>
+            <div class='mt-4'>
+                <label
+                    for='direccion_employee_edit'
+                    class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                >Dirección</label>
+                <textarea
+                    type='text'
+                    name='direccion'
+                    data-valid='text'
+                    id='direccion_employee_edit'
+                    class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese la Dirección'
+                    required
+                >{{usuario.empleado.direccion}}</textarea>
+            </div>
+
+                <input
+                    type='hidden'
+                    name='salario_base'
+                    data-valid='float'
+                    id='salario_employee_edit'
+                    value='{{sueldoBase}}'
+                    class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none text-right'
+                    placeholder='0,00'
+                    required
+                />
+
+            <div class='mt-4 px-1 sr-only'>
+                <label for='activo_employee_edit' class='block mb-2 text-sm font-medium text-gray-900'>
+                    Empleado activo
+                </label>
+                <label class='inline-flex items-center cursor-pointer relative'>
+                    <!-- input invisible -->
+                    <input
+                        type='checkbox'
+                        data-valid='boolean'
+                        id='activo_employee_edit'
+                        name='activo'
+                        {{#if user.empleado.activo}}checked{{/if}}
+
+                        class='sr-only peer'
+                    />
+
+                    <!-- fondo del switch -->
+                    <div
+                        class='w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-green-500 relative transition-colors duration-300'
+                    >
+                        <!-- pelotica -->
+                    </div>
+                    <div
+                        class='absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5'
+                    ></div>
+
+                    <!-- texto al lado -->
+                    <span class='ml-3 text-sm text-gray-700'>Activo</span>
+                </label>
+            </div>
+        </div>
+        <div role='doc-footnote' class='flex items-center justify-end gap-4 mt-4'>
+            <button
+                data-confirm='modal'
+                type='submit'
+                class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer duration-300 w-full'
+            >
+                Editar Empleado
+            </button>
+        </div>
+    </form>
+</div>

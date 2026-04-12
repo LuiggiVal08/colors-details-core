@@ -1,0 +1,29 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "frontend-dev",
+            "type": "shell",
+            "command": "npm run dev",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "css-build",
+            "type": "shell",
+            "command": "npm run build:css",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "start-project",
+            "dependsOn": [
+                "frontend-dev",
+                "css-build"
+            ],
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        }
+    ]
+}

@@ -1,0 +1,362 @@
+{{> inventory/category-create}}
+{{> inventory/product-create}}
+{{> inventory/movement-create}}
+{{> inventory/category-edit}}
+{{> inventory/product-edit}}
+<div class='p-4'>
+    {{! Stats }}
+    <div class='container mx-auto'>
+        <div class='grid grid-cols-1 md:grid-cols-3 gap-4'>
+            <div class='bg-red-100 rounded-md px-4 min-h-28 flex flex-col justify-center'>
+                <div class='w-full flex flex-row items-center gap-2 justify-between'>
+                    <h4 class='text-lg md:text-xl font-semibold'>Total productos</h4>
+                    <span data-ico='inventory' class='material-symbols-rounded md-28'></span>
+                </div>
+                <div class='mt-2'>
+                    <p class='text-2xl font-bold text-gray-900' id='total-products'>{{countProducts}}</p>
+                </div>
+            </div>
+            <div class='bg-red-100 rounded-md px-4 min-h-28 flex flex-col justify-center'>
+                <div class='w-full flex flex-row items-center gap-2 justify-between'>
+                    <h4 class='text-lg md:text-xl font-semibold'>Categorias</h4>
+                    <span data-ico='sell' class='material-symbols-rounded md-28'></span>
+                </div>
+                <div class='mt-2'>
+                    <p class='text-2xl font-bold text-gray-900' id='total-products'>{{countCategorias}}</p>
+                </div>
+            </div>
+            <div class='bg-red-100 rounded-md px-4 min-h-28 flex flex-col justify-center'>
+                <div class='w-full flex flex-row items-center gap-2 justify-between'>
+                    <h4 class='text-lg md:text-xl font-semibold'>Stock total</h4>
+                    <span data-ico='analytics' class='material-symbols-rounded md-28'></span>
+                </div>
+                <div class='mt-2'>
+                    <p class='text-2xl font-bold text-gray-900' id='total-products'>{{stockTotal}}</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    {{! Tabs }}
+    <div
+        class='container mx-auto mt-4 flex flex-row items-center justify-center w-full h-10 bg-red-100 p-1 rounded-md'
+        id='tabs-products'
+    >
+        <button
+            type='button'
+            data-tab='movement'
+            data-ico='inventory'
+            class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded material-symbols-rounded leading-0'
+        >
+            Inventario
+        </button>
+        <button
+            type='button'
+            data-tab='product'
+            data-ico='shopping_bag'
+            class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded material-symbols-rounded leading-0'
+        >
+            Productos
+        </button>
+        <button
+            type='button'
+            data-tab='category'
+            data-ico='sell'
+            class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded material-symbols-rounded leading-0'
+        >
+            Categorias
+        </button>
+    </div>
+    {{! Tab content }}
+    <div class='container mx-auto space-y-4 pt-4'>
+        <div id='tab-movement' class='tab-content w-full hidden space-y-4 bg-red-100 shadow-lg rounded-lg p-4'>
+            <div class='flex justify-between items-center'>
+                <div class='flex items-center gap-4'>
+                    <div class=''>
+                        <h2 class='text-2xl font-medium text-gray-900'>Movimientos de Inventario</h2>
+                        <span class='text-gray-500 text-sm'>Registra entradas y salidas de productos</span>
+                    </div>
+                    <span
+                        class='material-symbols-rounded fill-solid wght-normal md-40 text-gray-900'
+                        data-ico='inventory'
+                    ></span>
+                </div>
+                <div class='flex items-center justify-end gap-4'>
+
+                    <select
+                        type='text'
+                        data-valid='text'
+                        id='searchTypeMovement'
+                        class='bg-red-300/30 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        required
+                    >
+                        <option value='' selected>Seleccione un tipo de Movimiento</option>
+                        <option value='entrada'>Entrada</option>
+                        <option value='salida'>Salida</option>
+                    </select>
+                    <button
+                        type='button'
+                        id='btnAddMovement'
+                        class='material-symbols-rounded bg-red-400 hover:bg-red-500 duration-300 text-white px-4 py-2 rounded-md text-nowrap cursor-pointer flex items-center gap-2'
+                        data-ico='add'
+                    >Registrar movimiento</button>
+                </div>
+            </div>
+            <div class='overflow-x-auto scrollbar rounded-md border border-red-400/50'>
+                <table class='w-full border-collapse table caption-bottom'>
+                    <thead class='[&_tr]:border-b border-red-400/50'>
+                        <tr class='border-b border-red-400/50'>
+                            <th align='start' class='text-gray-900 font-medium p-3'>Fecha </th>
+                            <th align='start' class='text-gray-900 font-medium p-3'>Producto</th>
+                            <th class='text-gray-900 font-medium p-3'>Tipo</th>
+                            <th class='text-gray-900 font-medium p-3'>Cantidad</th>
+                            <th class='text-gray-900 font-medium p-3'>Motivo</th>
+                            {{!-- <th class='text-gray-900 font-medium p-3'>Stock Antes</th> --}}
+                            <th class='text-gray-900 font-medium p-3'>Stock Actual</th>
+                        </tr>
+                    </thead>
+                    <tbody id='productMovementTable' class='[&_tr:last-child]:border-0'>
+                        <tr>
+                            <td colspan='8' class='text-center p-3'>Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class='w-full flex justify-end items-center gap-2' id='paginador-tabla-movimiento'>
+                <button
+                    data-ico='arrow_back'
+                    class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
+                >Anterior</button>
+                <button
+                    data-ico='arrow_forward'
+                    class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
+                >Siguiente</button>
+            </div>
+        </div>
+        <div id='tab-product' class='tab-content w-full hidden space-y-4 bg-red-100 shadow-lg rounded-lg p-4'>
+            <div class='flex justify-between items-center'>
+                <div class='flex items-center gap-4'>
+                    <div class=''>
+                        <h2 class='text-2xl font-medium text-gray-900'>Productos</h2>
+                        <span class='text-gray-500 text-sm'>Administra el inventario de productos</span>
+                    </div>
+                    <span
+                        class='material-symbols-rounded fill-solid wght-normal md-40 text-gray-900'
+                        data-ico='shopping_bag'
+                    ></span>
+                </div>
+                <div class='flex items-center justify-end gap-4'>
+                    <input
+                        type='text'
+                        name='code'
+                        id='searchProduct'
+                        placeholder='Buscar producto'
+                        class='bg-red-300/30 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    />
+                    <select
+                        type='text'
+                        data-valid='text'
+                        id='categoriaSearchProduct'
+                        class='bg-red-300/30 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        placeholder='Ingrese la Categoria'
+                        required
+                    >
+                        <option value='' selected>Seleccione una categoría</option>
+                        {{#each categorias}}
+                            <option value='{{id}}'>{{nombre}}</option>
+                        {{/each}}
+                        {{#unless categorias.length}}
+                            <option value=''>No hay categorías disponibles</option>
+                        {{/unless}}
+                    </select>
+                    <label
+                        for='checkboxLowStock'
+                        class='text-gray-700 hover:text-gray-900 text-sm font-medium select-none flex items-center gap-3 min-w-32 justify-center'
+                    >
+                        Stock Bajo
+                        <div class='relative inline-block w-11 h-6'>
+                            <input type='checkbox' id='checkboxLowStock' class='peer sr-only' />
+                            <div
+                                class='w-full h-full bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors duration-300'
+                            ></div>
+                            <div
+                                class='absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5 shadow-md'
+                            ></div>
+                        </div>
+                    </label>
+                    {{!-- <a href="/api/product/report/get-all" class='material-symbols-rounded bg-red-500 hover:bg-red-600 duration-300 text-white px-4 py-2 rounded-md text-nowrap cursor-pointer flex items-center gap-2' data-ico="picture_as_pdf">Reporte de Inventario</a> --}}
+                    <form action="/product/report/get-all" data-noreload="true" method="POST" class="inline-block">
+    <button type="submit" class="material-symbols-rounded bg-red-500 hover:bg-red-600 duration-300 text-white px-4 py-2 rounded-md text-nowrap cursor-pointer flex items-center gap-2" data-ico="picture_as_pdf">
+        Reporte de Inventario
+    </button>
+</form>
+                    <button
+                        type='button'
+                        id='btnAddProduct'
+                        class='material-symbols-rounded bg-red-400 hover:bg-red-500 duration-300 text-white px-4 py-2 rounded-md text-nowrap cursor-pointer flex items-center gap-2'
+                        data-ico='add'
+                    >Nuevo Producto</button>
+                </div>
+            </div>
+            <div class='overflow-x-auto scrollbar rounded-md border border-red-400/50'>
+                <table class='w-full border-collapse table caption-bottom'>
+                    <thead class='[&_tr]:border-b border-red-400/50'>
+                        <tr class='border-b border-red-400/50'>
+                            <th align='start' class='text-gray-900 font-medium p-3'>Codigo</th>
+                            <th align='start' class='text-gray-900 font-medium p-3'>Producto</th>
+                            <th align='start' class='text-gray-900 font-medium p-3'>Categoria</th>
+                            <th class='text-gray-900 font-medium p-3 text-nowrap'>Precio ($) USD</th>
+                            <th class='text-gray-900 font-medium p-3'>Precio Bs.s</th>
+                            <th class='text-gray-900 font-medium p-3'>Precio + IVA (USD)</th>
+                            <th class='text-gray-900 font-medium p-3'>Precio + IVA (Bs.s)</th>
+                            <th class='text-gray-900 font-medium p-3'>Stock</th>
+                            <th class='text-gray-900 font-medium p-3'>Estado</th>
+                            <th class='text-gray-900 font-medium p-3'>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id='productTable' class='[&_tr:last-child]:border-0'>
+                        <tr>
+                            <td colspan='8' class='text-center p-3'>Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class='w-full flex justify-end items-center gap-2'>
+                <button
+                    data-ico='arrow_back'
+                    class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
+                    id='btnAnteriorProducts'
+                >Anterior</button>
+                <button
+                    data-ico='arrow_forward'
+                    class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
+                    id='btnSiguienteProducts'
+                >Siguiente</button>
+            </div>
+        </div>
+        <div id='tab-category' class='tab-content w-full hidden space-y-4 bg-red-100 shadow-lg rounded-lg p-4'>
+            <div class='flex justify-between items-center'>
+                <div class='flex items-center gap-4'>
+                    <div class=''>
+                        <h2 class='text-2xl font-medium text-gray-900'>Gestionar Categorias</h2>
+                        <span class='text-gray-500 text-sm'>Administra las categorias de productos</span>
+                    </div>
+                    <span
+                        class='material-symbols-rounded fill-solid wght-normal md-40 text-gray-900'
+                        data-ico='sell'
+                    ></span>
+                </div>
+                <div class='flex items-center justify-end gap-4'>
+                    <input
+                        type='text'
+                        id='searchCategory'
+                        placeholder='Buscar producto'
+                        class='bg-red-300/30 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    />
+                    <button
+                        type='button'
+                        id='btnAddCategory'
+                        class='material-symbols-rounded bg-red-400 hover:bg-red-500 duration-300 text-white px-4 py-2 rounded-md text-nowrap cursor-pointer flex items-center gap-2'
+                        data-ico='add'
+                    >Nueva Categoria</button>
+                </div>
+            </div>
+            <div class='overflow-x-auto scrollbar rounded-md border border-red-400/50'>
+                <table class='w-full border-collapse table caption-bottom'>
+                    <thead class='[&_tr]:border-b border-red-400/50'>
+                        <tr class='border-b border-red-400/50'>
+                            <th align='start' class='text-gray-900 font-medium p-3'>Nombre</th>
+                            <th align='center' class='text-gray-900 font-medium p-3'>Descripción</th>
+                            <th align='center' class='text-gray-900 font-medium p-3'>Productos</th>
+                            <th align='center' class='text-gray-900 font-medium p-3'>Fecha Creación</th>
+                            <th class='text-gray-900 font-medium p-3'>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id='categoryTable' class='[&_tr:last-child]:border-0'>
+                        <tr>
+                            <td colspan='8' class='text-center p-3'>Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class='w-full flex justify-end items-center gap-2'>
+                <button
+                    data-ico='arrow_back'
+                    class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
+                    id='btnAnteriorCategory'
+                    disabled
+                >Anterior</button>
+                <button
+                    data-ico='arrow_forward'
+                    class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
+                    id='btnSiguienteCategory'
+                    disabled
+                >Siguiente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id='fila-ejemplo-category'>
+    <tr class='hover:bg-pink-400/10 transition-all duration-300 border-b border-red-400/50'>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='nombre'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='descripcion'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='productos'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='creado_en'></td>
+
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap'>
+            <div class='flex gap-2 flex-row items-center justify-center'>
+                <button data-btn='editar' data-idfield='id' class='cursor-pointer'>
+                    <span
+                        class='material-symbols-rounded fill-solid wght-normal md-28 text-gray-700 hover:text-gray-500'
+                        data-ico='edit'
+                    ></span>
+                </button>
+
+            </div>
+        </td>
+    </tr>
+</template>
+<template id='fila-ejemplo-movement'>
+    <tr class='hover:bg-pink-400/10 transition-all duration-300 border-b border-red-400/50'>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='fecha'></td>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='producto'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='tipo'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='cantidad'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='observacion'></td>
+        {{!-- <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='stock_antes'></td> --}}
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='stock_despues'></td>
+    </tr>
+</template>
+<template id='fila-ejemplo-product'>
+    <tr class='hover:bg-pink-400/10 transition-all duration-300 border-b border-red-400/50'>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='codigo'></td>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='nombre'></td>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='categoria'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='precio'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='precio_bs'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='precio_iva_dollar'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='precio_iva_bs'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='stock'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='estado'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap'>
+            <div class='flex gap-2 flex-row items-center justify-center'>
+                {{!-- <button
+                    data-ico='visibility'
+                    data-btn='view'
+                    data-idfield='id'
+                    class='cursor-pointer material-symbols-rounded fill-solid wght-normal md-28 text-blue-500 hover:text-blue-700 duration-300'
+                ></button> --}}
+                <button
+                    data-btn='editar'
+                    data-ico='edit'
+                    data-idfield='id'
+                    class='cursor-pointer material-symbols-rounded fill-solid wght-normal md-28 text-gray-700 hover:text-gray-500'
+                >
+                </button>
+
+            </div>
+        </td>
+    </tr>
+</template>
+<script src='/js/pages/inventory.js' type='module'></script>

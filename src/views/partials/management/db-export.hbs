@@ -1,0 +1,81 @@
+<div class='bg-red-100 shadow-lg rounded-lg p-6 w-full flex-col gap-4 flex space-y-4'>
+    <div class=''>
+        <div class='flex flex-row gap-4'>
+            <span data-ico='cloud_download' class='material-symbols-rounded md-28'></span>
+            <h3 class='text-xl font-medium text-gray-900'>Exportar Base de Datos</h3>
+        </div>
+        <span>Exporta la base de datos de tu empresa</span>
+    </div>
+    <div class='grid grid-cols-1 md:grid-cols-2 gap-4' id='tabs-db-export'>
+        <button
+            data-tab='export-json'
+            type='button'
+            class='rounded-lg border border-gray-400 shadow-sm cursor-pointer transition-all hover:bg-red-200'
+        >
+            <div class='p-6 pt-6 text-center'>
+                <span data-ico='data_object' class='material-symbols-rounded md-28'></span>
+                <h4 class='font-semibold'>Formato JSON</h4>
+                <p class='text-sm'>Exporta tu base de datos en formato JSON</p>
+            </div>
+        </button>
+        <button
+            type='button'
+            data-tab='export-sql'
+            class='rounded-lg border border-gray-400 shadow-sm cursor-pointer transition-all hover:bg-red-200'
+        >
+            <div class='p-6 pt-6 text-center'>
+                <span data-ico='database' class='material-symbols-rounded md-28'></span>
+                <h4 class='font-semibold'>Formato SQL</h4>
+                <p class='text-sm'>Exporta tu base de datos en formato SQL</p>
+            </div>
+        </button>
+    </div>
+    <a
+        type='button'
+        data-ico='data_object'
+        href='/api/setup/db/dump'
+        class='w-full rounded-md h-10 bg-red-400 hover:bg-red-500 text-white cursor-pointer duration-300 material-symbols-rounded flex-row gap-2 items-center leading-0 justify-center tab-db-content hidden'
+        id='tab-db-export-json'
+    >
+        Exportar en JSON
+    </a>
+    <a
+        type='button'
+        data-ico='database'
+        href='/api/setup/db/dump'
+        class='w-full rounded-md h-10 bg-red-400 hover:bg-red-500 text-white cursor-pointer duration-300 material-symbols-rounded flex-row gap-2 items-center leading-0 justify-center tab-db-content hidden'
+        id='tab-db-export-sql'
+    >
+        Exportar en SQL
+    </a>
+    <div
+        class='relative w-full rounded-lg border p-4 [&amp;>svg]:text-yellow-600 bg-yellow-600/10 text-yellow-600'
+        role='alert'
+    >
+        <div class='flex items-center justify-start gap-4'>
+            <svg
+                xmlns='http://www.w3.org/2000/svg'
+                width='24'
+                height='24'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                stroke-width='2'
+                stroke-linecap='round'
+                stroke-linejoin='round'
+                class='lucide lucide-shield h-4 w-4'
+            ><path
+                    d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'
+                ></path>
+            </svg>
+            <h5 class='mb-1 font-medium leading-none tracking-tight'>
+                <span class='text-yellow-600'>Advertencia</span>
+            </h5>
+        </div>
+        <div class='text-sm [&amp;_p]:leading-relaxed'>
+            Los archivos exportados contienen información confidencial. Guárdelos de forma segura y elimínelos cuando ya
+            no los necesite.
+        </div>
+    </div>
+
+</div>

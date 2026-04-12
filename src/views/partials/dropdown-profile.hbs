@@ -1,0 +1,47 @@
+<div class='relative'>
+    <button
+        type='button'
+        class='flex items-center focus:outline-none cursor-pointer leading-0 rounded-full overflow-hidden size-8'
+        id='btn-profile'
+    >
+        <img src='/img/profile-default.png' alt='Profile' class='w-full h-full object-cover' />
+    </button>
+    <div
+        class='absolute right-0 mt-2 top-full w-52 bg-white rounded-md shadow-lg z-20 py-2 hidden'
+        id='profile-dropdown'
+    >
+        <a
+            href='/profile'
+            class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300'
+        >Perfil</a>
+        {{#with user}}
+            {{#if this.superadmin}}
+                <a
+                    href='/management'
+                    class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300'
+                >Mantenimiento</a>
+            {{/if}}
+            {{#if this.admin}}
+                <a
+                    href='/settings'
+                    class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300'
+                >Configuración</a>
+            {{/if}}
+        {{/with}}
+        <button
+            id='logout-btn-aside'
+            class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300 cursor-pointer'
+        >Cerrar Sesion</button>
+
+        <script type='module'>
+            import { httpClient } from '/js/index.js'; const logoutBtn = document.getElementById('logout-btn-aside');
+            logoutBtn.addEventListener('click', async () => { await httpClient.delete('/user/logout');
+            location.reload(); });
+        </script>
+    </div>
+    <script type='module'>
+        import handleDropdown from '/js/helpers/handleDropdown.js'; const btnProfile =
+        document.getElementById('btn-profile'); const profileDropdown = document.getElementById('profile-dropdown');
+        handleDropdown(btnProfile, profileDropdown);
+    </script>
+</div>

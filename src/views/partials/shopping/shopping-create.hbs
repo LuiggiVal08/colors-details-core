@@ -1,0 +1,404 @@
+<div id='modal-create-shopping' class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden' inert>
+    <form
+        class='bg-white rounded-lg shadow-lg max-w-lg m-auto overflow-auto max-h-[100vh] relative'
+        action='/shopping'
+        data-method='POST'
+        id='shopping-form'
+    >
+        <div
+            role='heading'
+            class='w-full flex justify-between items-center px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10'
+        >
+            <h2
+                class='text-xl font-medium text-gray-900 flex items-center gap-2 material-symbols-rounded'
+                data-ico='add_shopping_cart'
+            >Registrar Nueva Venta</h2>
+            <button
+                type='button'
+                data-dismiss='modal'
+                data-ico='cancel'
+                class='material-symbols-rounded cursor-pointer flex hover:text-red-500'
+            ></button>
+        </div>
+
+        <div role='dialog' class='p-6 space-y-4'>
+            <input type='hidden' name='iva_id' value='{{iva.id}}' data-valid='text' />
+            <input type='hidden' name='usuario_id' value='{{user.id}}' data-valid='text' />
+            <div class='flex flex-col gap-4'>
+
+                <div class='w-full'>
+                    <label for='input_busqueda' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                        Buscar cliente
+                    </label>
+                    <input
+                        type='text'
+                        id='input_busqueda'
+                        data-valid='text'
+                        class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        placeholder='Ingrese nombre, apellido o cédula'
+                        autocomplete='off'
+                        required
+                    />
+
+                    <!-- Resultados dinámicos -->
+                    <div
+                        id='resultados_cliente'
+                        class='mt-2 bg-white border border-gray-300 rounded-md shadow-sm hidden max-h-56 overflow-y-auto divide-y divide-gray-200'
+                    ></div>
+
+                    <!-- Aviso de cliente no encontrado -->
+                    <div
+                        id='sin-resultados-cliente'
+                        class='border border-dashed border-blue-500 bg-blue-400/10 rounded-md shadow-sm min-h-10 p-4 w-full flex-col gap-1 flex mt-2'
+                    >
+                        <div class='flex flex-row items-center gap-1'>
+                            <span
+                                data-ico='info'
+                                class='material-symbols-rounded md-18 text-blue-500 leading-none'
+                            ></span>
+                            <span class='font-semibold'>Sin resultados del cliente:</span>
+                        </div>
+                        <span class='text-sm text-gray-700'>
+                            El cliente no tiene resultados registrados. Por favor, registre el cliente primero.
+                        </span>
+                        <a
+                            href='/customers?open-create=true'
+                            class='text-blue-500 text-center m-auto hover:text-blue-700 duration-300'
+                        >
+                            Registrar Cliente
+                        </a>
+                    </div>
+
+                    <!-- Campo oculto para guardar el ID del cliente seleccionado -->
+                    <input type='hidden' name='cliente_id' id='cliente_id' />
+                </div>
+
+                <div id='detalles-venta' class='space-y-4'>
+                </div>
+                <button
+                    type='button'
+                    id='btn-add-producto'
+                    data-ico='add'
+                    class='text-sm text-white bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg material-symbols-rounded cursor-pointer flex items-center gap-2 justify-center'
+                >
+                    Agregar producto
+                </button>
+                <div class='flex flex-row gap-2 items-center'>
+                    <div class='w-full'>
+                        <label for='total' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                            Total $ (sin IVA)
+                        </label>
+                        <input
+                            type='text'
+                            name='total'
+                            id='total'
+                            class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
+                            placeholder='Total'
+                            data-valid='float'
+                            value='0,00'
+                            readonly
+                        />
+                    </div>
+                    <span data-ico='arrow_forward' class='material-symbols-rounded text-blue-500 leading-none'></span>
+                    {{iva.porcentaje}}%
+                    <span data-ico='arrow_forward' class='material-symbols-rounded text-blue-500 leading-none'></span>
+
+                    <div class='w-full'>
+                        <label for='totalMasIVA' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                            Total ($) + IVA (%)
+                        </label>
+                        <input
+                            type='text'
+                            name='totalMasIVA'
+                            id='totalMasIVA'
+                            class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none text-right'
+                            placeholder='0,00'
+                            data-valid='float'
+                            data-value='{{iva.porcentaje}}'
+                            value='0,00'
+                            readonly
+                        />
+                    </div>
+                </div>
+                <div class='w-full'>
+                    <label for='total_bs' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                        Total en Bs.
+                    </label>
+                    <input
+                        type='text'
+                        name='total_bs'
+                        id='total_bs'
+                        data-value='{{tasaDolar.tasa}}'
+                        class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
+                        placeholder='Total'
+                        data-valid='float'
+                        value='0,00'
+                        readonly
+                    />
+
+                </div>
+
+                <div class='w-full space-y-4' id='pagos-venta'></div>
+                <button
+                    type='button'
+                    id='btn-add-pago'
+                    data-ico='add'
+                    class='text-sm text-white bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg material-symbols-rounded cursor-pointer flex items-center gap-2 justify-center'
+                >
+                    Agregar pago
+                </button>
+                <div class='flex flex-row gap-2 items-center w-full'>
+                    <div class='w-full'>
+                        <label for='total_faltante' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                            Monto faltante ($)
+                        </label>
+                        <input
+                            type='text'
+                            name='total_faltante'
+                            id='total_faltante'
+                            class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
+                            placeholder='Monto faltante'
+                            data-valid='float'
+                            value='0,00'
+                            readonly
+                        />
+                    </div>
+                    <div class='w-full'>
+                        <label for='total_faltante_bs' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                            Monto faltante (Bs.)
+                        </label>
+                        <input
+                            type='text'
+                            name='total_faltante_bs'
+                            id='total_faltante_bs'
+                            class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
+                            placeholder='Monto faltante en bolivares'
+                            data-valid='float'
+                            value='0,00'
+                            readonly
+                        />
+                    </div>
+                </div>
+
+                <div class='w-full'>
+                    <label for='total_pago' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                        Total Pago
+                    </label>
+                    <input
+                        type='text'
+                        name='total_pago'
+                        id='total_pago'
+                        class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
+                        placeholder='Total Pago'
+                        data-valid='float'
+                        value='0,00'
+                        readonly
+                    />
+                </div>
+            </div>
+
+        </div>
+        <div role='doc-footnote' class='px-6 py-2 border-t border-gray-200 flex items-center justify-end gap-4'>
+            <button
+                data-dismiss='modal'
+                type='button'
+                class='inline-block bg-transparent text-gray-500 px-4 py-2 rounded-md hover:bg-gray-400/50 border border-gray-400 cursor-pointer'
+            >
+                Cancelar
+            </button>
+            <button
+                data-confirm='modal'
+                type='submit'
+                data-ico='shopping_bag_speed'
+                class='bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer material-symbols-rounded flex items-center gap-2 justify-center'
+            >
+                Crear Venta
+            </button>
+        </div>
+    </form>
+</div>
+<!-- TEMPLATE PARA DETALLES DE PRODUCTO -->
+<template id='template-detalle-producto'>
+    <div
+        class='flex flex-row gap-4 items-center detalle-item border border-dashed border-blue-500 bg-blue-400/10 rounded-md shadow-sm min-h-10 p-4 divide-x-1 divide-blue-500/50'
+    >
+        <div class='flex flex-col gap-4 w-full pr-4'>
+            <div class='flex flex-row gap-4 w-full'>
+                <!-- 🧩 Código del producto con búsqueda dinámica -->
+                <div class='w-full parent relative'>
+                    <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                        Código o nombre del producto
+                    </label>
+                    <input
+                        type='text'
+                        name='detalles[][codigo]'
+                        class='w-full bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 p-2 outline-none codigo-input'
+                        placeholder='Buscar producto por nombre o código'
+                        data-valid='text'
+                        required
+                    />
+                    <!-- Contenedor dinámico para los resultados -->
+                    <div
+                        class='resultados-productos absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg hidden max-h-64 overflow-y-auto'
+                    ></div>
+                </div>
+
+                <!-- Input oculto con el ID del producto seleccionado -->
+                <input type='hidden' name='detalles[][producto_id]' class='producto-id-hidden' />
+            </div>
+
+            <!-- 🔹 Información del producto (oculta hasta seleccionar uno) -->
+            <div class='flex-col gap-4 w-full hidden' data-producto>
+                <div class='flex flex-row gap-4 w-full'>
+                    <div class='w-full parent'>
+                        <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                            Cantidad
+                        </label>
+                        <input
+                            type='number'
+                            name='detalles[][cantidad]'
+                            class='w-full bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 p-2 outline-none'
+                            placeholder='Cantidad'
+                            data-valid='number'
+                            min='1'
+                            required
+                        />
+                    </div>
+                    <div class='w-full parent'>
+                        <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                            Precio Unitario ($)
+                        </label>
+                        <input
+                            type='text'
+                            name='detalles[][precio_unitario]'
+                            step='0.01'
+                            class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
+                            placeholder='Precio Unitario ($)'
+                            data-valid='float'
+                            readonly
+                            required
+                        />
+                    </div>
+                </div>
+
+                <div class='w-full parent'>
+                    <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                        Subtotal ($)
+                    </label>
+                    <input
+                        type='text'
+                        name='detalles[][subtotal]'
+                        class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
+                        placeholder='Subtotal ($)'
+                        data-valid='float'
+                        readonly
+                    />
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón de eliminar -->
+        <button
+            data-ico='delete'
+            type='button'
+            class='remove-detalle text-red-500 text-lg material-symbols-rounded cursor-pointer'
+            title='Eliminar'
+        ></button>
+    </div>
+</template>
+
+<template id='template-pago'>
+    <div
+        class='flex flex-row gap-4 items-center pago-item border border-dashed border-blue-500 bg-blue-400/10 rounded-md shadow-sm min-h-10 p-4 divide-x-1 divide-blue-500/50'
+    >
+        <input type='hidden' name='pagos[][tasa_id]' value='{{tasaDolar.id}}' data-valid='text' />
+        <div class='space-y-4 pr-4'>
+
+            <div class='w-full parent'>
+                <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                    Método de Pago
+                </label>
+                <select
+                    type='text'
+                    name='pagos[][metodo_pago_id]'
+                    data-valid='text'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    required=''
+                >
+                    <option value='' selected=''>Seleccione un método de pago</option>
+                    {{#each methodsPayment}}
+                        <option value='{{id}}' data-comision='{{comision}}'>
+                            {{tipo}}
+                            -
+                            {{nombre}}
+                            ({{comision}}%)
+                        </option>
+                    {{/each}}
+                    {{#unless methodsPayment.length}}
+                        <option value=''>No hay métodos de pago disponibles</option>
+                    {{/unless}}
+                </select>
+            </div>
+
+            <div class='flex flex-row gap-4 items-center w-full'>
+                <div class='w-full parent'>
+                    <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Pago ($)</label>
+                    <input
+                        type='text'
+                        name='pagos[][monto]'
+                        data-valid='float'
+                        class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none inputError'
+                        placeholder='0,00'
+                        value='0,00'
+                        required=''
+                        {{! readonly='' }}
+                    />
+                </div>
+                <div class='w-full parent'>
+                    <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Monto (Bs.)</label>
+                    <input
+                        type='text'
+                        name='pagos[][monto_payment]'
+                        data-valid='float'
+                        class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none inputError'
+                        placeholder='0,00'
+                        required
+                    />
+                </div>
+            </div>
+            <div class='w-full parent'>
+                <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Monto (Bs.) - Comisión</label>
+                <input
+                    type='text'
+                    name='pagos[][comision]'
+                    data-valid='float'
+                    class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
+                    placeholder='0,00'
+                    value='0,00'
+                    required=''
+                    readonly=''
+                />
+            </div>
+
+            <div class='w-full parent'>
+                <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                    Referencia
+                </label>
+                <input
+                    type='text'
+                    name='pagos[][referencia_pago]'
+                    data-valid='text'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese la referencia'
+                    required=''
+                />
+            </div>
+        </div>
+        <button
+            data-ico='delete'
+            type='button'
+            class='remove-pago text-red-500 text-lg material-symbols-rounded cursor-pointer'
+            title='Eliminar'
+        ></button>
+    </div>
+</template>

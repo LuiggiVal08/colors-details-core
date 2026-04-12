@@ -1,0 +1,223 @@
+{{> services/payment }}
+{{> services/price_form }}
+{{> services/periods }}
+{{> services/payment_history }}
+
+<div class='container mx-auto flex justify-center items-center min-h-[calc(100vh-90px)]'>
+    <div
+        class='bg-red-100 rounded-lg shadow-lg max-w-4xl w-full m-auto overflow-auto max-h-[100vh] relative p-4 space-y-4'
+    >
+        {{! header section }}
+        <div class='flex justify-between items-center'>
+            <div class='flex items-center gap-4'>
+                <a href='/settings'>
+                    <span class='material-symbols-rounded' data-ico='arrow_back'></span>
+                </a>
+                <div class=''>
+                    <h2 class='text-2xl font-medium text-gray-900'>Servicio:
+                        {{service.nombre}}
+                        -
+                        {{service.proveedor}}
+                    </h2>
+                    <span class='text-gray-500 text-sm'>Detalles del servicio y historial de pagos</span>
+                </div>
+            </div>
+            <div class='flex items-center justify-end gap-4'>
+            </div>
+        </div>
+        {{! Tabs }}
+        <div
+            class='container mx-auto mt-4 flex flex-row items-center justify-center w-full h-10 p-1 rounded-md border border-red-400/50'
+            id='tabs-service'
+        >
+            <button
+                type='button'
+                data-tab='details'
+                class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+            >Detalles</button>
+            <button
+                type='button'
+                data-tab='factura'
+                class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+            >Facturación</button>
+            <button
+                type='button'
+                data-tab='pagos'
+                class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+            >Pagos</button>
+        </div>
+        {{! Tab content }}
+        <div
+            id='tab-details'
+            class='tab-content hidden p-4 border border-red-400/50 rounded-md flex-col gap-4 justify-baseline space-y-4'
+        >
+            <h4 class='font-semibold tracking-tight text-lg'>Información del Servicio</h4>
+            <div class='flex flex-row gap-4'>
+                <div class='space-y-2 w-full'>
+                    <div class='flex flex-col items-start'>
+                        <span class='text-sm font-medium'>Nombre</span>
+                        <span>{{service.nombre}}</span>
+                    </div>
+                    <div class='flex flex-col items-start'>
+                        <span class='text-sm font-medium'>Proveedor</span>
+                        <span>{{service.proveedor}}</span>
+                    </div>
+                </div>
+                <div class='space-y-2 w-full'>
+                    <div>
+                        <label class='text-sm font-medium'>
+                            Descripción
+                        </label>
+                        <p class='text-sm text-gray-700'>{{service.descripcion}}</p>
+                    </div>
+                    <div>
+                        <label class='text-sm font-medium'>
+                            Costo Mensual
+                        </label>
+                        <p class='text-lg font-bold'>
+                            {{service.coste}}
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div
+            id='tab-factura'
+            class='tab-content hidden p-4 border border-red-400/50 rounded-md flex-col gap-4 justify-baseline space-y-4'
+        >
+            <h4 class='font-semibold tracking-tight text-lg'>Facturación
+
+            </h4>
+            <div class='p-6 pt-0 space-y-4'>
+                <div class='flex items-center justify-end gap-2 mb-2'>
+                    <button
+                        type='button'
+                        id='btn-open-price-history'
+                        data-idfield='{{service.id}}'
+                        class='inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50'
+                    >Historial de Precios</button>
+                    <button
+                        type='button'
+                        id='btn-open-price-modal'
+                        data-idfield='{{service.id}}'
+                        class='inline-flex items-center gap-2 px-4 py-2 bg-red-400 text-white rounded-md hover:bg-red-500'
+                    >Nuevo Precio</button>
+                </div>
+                <div id="price-history-container" class="mt-4 hidden border border-red-400/50 rounded-md p-4 overflow-auto">
+                    <h5 class="font-semibold mb-2">Historial de Precios</h5>
+                    <div id="price-history-table-wrap">
+                        <!-- Se cargará la tabla mediante JS -->
+                    </div>
+                </div>
+                <div class='grid grid-cols-2 gap-4'>
+                    <div>
+                        <label class='text-sm font-medium'>
+                            Día de Corte
+                        </label>
+                        <p class='text-lg'>Día {{service.dia_corte}} de cada mes </p>
+                    </div>
+                    <div>
+                        <label class='text-sm font-medium'>
+                            Próximo Corte
+                        </label>
+                        <p class='text-lg'>{{service.fecha_corte}} </p>
+                    </div>
+                </div>
+                <div>
+                    <label class='text-sm font-medium'>
+                        Fecha de Creación
+                    </label>
+                    <p>{{service.creado_en}}</p>
+                </div>
+            </div>
+        </div>
+        <div id='tab-pagos' class='tab-content hidden space-y-4'>
+            <div class='flex flex-row justify-between items-center'>
+                <h4 class='font-semibold tracking-tight text-lg'>Pagos del Servicio</h4>
+                <div class="flex items-center gap-2">
+                <button
+                    type='button'
+                    class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
+                    id='btn-registrar-pago-servicio'
+                    data-idfield='{{service.id}}'
+                >
+                    Registrar Pago
+                </button>
+
+                    <button
+                        type='button'
+                        id='btn-open-period-modal'
+                        data-idfield='{{service.id}}'
+                        class='ml-3 cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-blue-500 hover:bg-blue-600 rounded-md transition-colors duration-200 material-symbols-rounded px-4'
+                    >Crear Periodo</button>
+                <button
+                    type='button'
+                    id='btn-open-payment-history'
+                    data-idfield='{{service.id}}'
+                    class='ml-3 cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 px-4'
+                >Historial Pagos</button>
+                </div>
+
+            </div>
+            <div class='border border-red-400/50 rounded-md flex-col gap-4 justify-baseline w-full overflow-x-auto scrollbar'>
+                <div id="periods-container" class="mt-4 hidden">
+                    <!-- Lista de periodos se cargará aquí -->
+                </div>
+
+                <table class='w-full border-collapse table caption-bottom'>
+                    <thead class='[&_tr]:border-b border-red-400/50'>
+                        <tr class='border-b border-red-400/50'>
+                            <th align='start' class='text-gray-900 font-medium p-3'>Periodo</th>
+                            <th align='center' class='text-gray-900 font-medium p-3'>Fecha Pago</th>
+                            <th align='center' class='text-gray-900 font-medium p-3'>Fecha Corte</th>
+                            <th class='text-gray-900 font-medium p-3'>Monto </th>
+                            <th class='text-gray-900 font-medium p-3'>Pago Tardio</th>
+                            <th class='text-gray-900 font-medium p-3'>Pagado</th>
+                            <th class='text-gray-900 font-medium p-3'>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id='table-service-pagos' class='[&_tr:last-child]:border-0'>
+                        <tr>
+                            <td colspan='8' class='text-center p-3'>Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class='w-full flex justify-end items-center gap-2' id='paginador-tabla-pagos'>
+                <button
+                    data-ico='arrow_back'
+                    disabled
+                    class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
+                >Anterior</button>
+                <button
+                    data-ico='arrow_forward'
+                    disabled
+                    class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
+                >Siguiente</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type='module' src='/js/pages/service.js'></script>
+<script type='module' src='/js/pages/services/index.js'></script>
+<template id='fila-ejemplo-pago-servicio'>
+    <tr class='hover:bg-pink-400/10 transition-all duration-300 border-b border-red-400/50'>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='periodo'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='fecha_pago'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='fecha_corte'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='monto'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='pago_tardio'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='pagado'></td>
+        <td align='center' class='px-3 py-1 text-nowrap'>
+            <div class='flex gap-2 flex-row items-center justify-center'>
+                <button
+                    data-ico='edit'
+                    data-btn='editar'
+                    data-idfield='id'
+                    class='cursor-pointer material-symbols-rounded fill-solid wght-normal md-28 text-gray-700 hover:text-gray-500 duration-300'
+                ></button>
+            </div>
+        </td>
+    </tr>
+</template>

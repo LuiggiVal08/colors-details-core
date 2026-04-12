@@ -1,0 +1,138 @@
+{{> settings/employe/employee-payroll-register}}
+
+<div class='p-4'>
+    <div
+        class='container mx-auto max-w-4xl bg-red-100 rounded-md p-4 md:p-6 min-h-32 flex flex-col justify-center gap-6'
+    >
+        <div class='w-full flex flex-row items-center gap-2 justify-between'>
+            <div class="flex gap-4 items-center">
+                <a href="/settings">
+                <span
+                class="material-symbols-rounded"
+                data-ico="arrow_back"></span>
+                </a>
+                <div class='w-full flex flex-row items-center gap-2'>
+                    <span
+                        data-ico='group'
+                        class='material-symbols-rounded fill-solid wght-normal md-28 text-gray-900 leading-0'
+                    ></span>
+                    <h4 class='text-lg md:text-xl font-semibold'>Empleado: {{employe.nombre}} {{employe.apellido}}</h4>
+                </div>
+            </div>
+            {{#if employe.activo}}
+                <span class='px-3 py-1 h-fit text-xs text-white rounded-full bg-green-500 w-fit'>Activo</span>
+            {{else}}
+                <span class='px-3 py-1 h-fit text-xs text-white rounded-full w-fit bg-red-400/10'>Desactivado</span>
+            {{/if}}
+        </div>
+
+        <div class='flex flex-row gap-4 w-full justify-between'>
+
+            <div class='w-full flex flex-col gap-4'>
+                <span
+                    data-ico='badge'
+                    class='material-symbols-rounded wght-normal md-18 leading-0 flex items-center gap-2 before:text-gray-600'
+                >Cédula: {{employe.cedula}}</span>
+                <span
+                    data-ico='phone'
+                    class='material-symbols-rounded wght-normal md-18 leading-0 flex items-center gap-2 before:text-gray-600'
+                >Teléfono: {{employe.telefono}}</span>
+                <span
+                    data-ico='email'
+                    class='material-symbols-rounded wght-normal md-18 leading-0 flex items-center gap-2 before:text-gray-600'
+                >Email: {{employe.email}}</span>
+            </div>
+            <div class='w-full flex flex-col gap-4'>
+                <span
+                    data-ico='location_on'
+                    class='material-symbols-rounded wght-normal md-18 leading-0 flex items-center gap-2 before:text-gray-600'
+                >Dirección: {{employe.direccion}}</span>
+                <span
+                    data-ico='calendar_month'
+                    class='material-symbols-rounded wght-normal md-18 leading-0 flex items-center gap-2 before:text-gray-600'
+                >Fecha de Ingreso: {{employe.fecha_ingreso}}</span>
+                <span
+                    data-ico='payments'
+                    class='material-symbols-rounded wght-normal md-18 leading-0 flex items-center gap-2 before:text-gray-600'
+                >Salario Base: {{employe.salario_base}}</span>
+            </div>
+        </div>
+
+        <div class='flex flex-row gap-4 justify-between items-center'>
+            <div class='flex flex-row gap-4'>
+                <h3
+                    data-ico='calculate'
+                    class='text-xl font-medium text-gray-900 material-symbols-rounded md-28 flex gap-2 items-center'
+                >Historial de Nóminas</h3>
+            </div>
+            <div class='flex items-center justify-end gap-4'>
+                <input
+                    type='date'
+                    id='searchStartPeriod'
+                    placeholder='Inicio período'
+                    class='bg-red-300/30 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                />
+                <input
+                    type='date'
+                    id='searchEndPeriod'
+                    placeholder='Fin período'
+                    class='bg-red-300/30 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                />
+
+                <button
+                    type='button'
+                    id='btnAddPayroll'
+                    class='material-symbols-rounded bg-red-400 hover:bg-red-500 duration-300 text-white px-4 py-2 rounded-md text-nowrap cursor-pointer flex items-center gap-2'
+                    data-ico='add'
+                >Regsitras Pago Nomina</button>
+            </div>
+        </div>
+        <div class='flex-col gap-4 flex'>
+            <div class='overflow-x-auto scrollbar rounded-md border border-red-400/50'>
+                <table class='w-full border-collapse table caption-bottom'>
+                    <thead class='[&_tr]:border-b border-red-400/50'>
+                        <tr class='border-b border-red-400/50'>
+                            <th align='start' class='text-gray-900 font-medium p-3 text-nowrap'>Fecha de pago</th>
+                            <th align='start' class='text-gray-900 font-medium p-3'>Periodo</th>
+                            <th align='start' class='text-gray-900 font-medium p-3'>Descripción</th>
+                            <th align='center' align='start' class='text-gray-900 font-medium p-3 text-nowrap'>Monto (BS)</th>
+                            <th align='center' class='text-gray-900 font-medium p-3 text-nowrap'>Tasa USD/BS</th>
+                            <th align='center' class='text-gray-900 font-medium p-3 text-nowrap'>Monto (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody id='table-employee-nomina' class='[&_tr:last-child]:border-0'>
+                        <tr class='border-b transition-colors'>
+                            <td colspan='4' class='text-center p-3'>Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class='w-full flex justify-end items-center gap-2' id='paginador-tabla-iva'>
+                <button
+                    data-ico='arrow_back'
+                    class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
+                    disabled
+                >Anterior</button>
+                <button
+                    data-ico='arrow_forward'
+                    class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
+                    disabled
+                >Siguiente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id='fila-ejemplo-nomina'>
+    <tr class='hover:bg-pink-400/10 transition-all duration-300 border-b border-red-400/50'>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='date'></td>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='periodo'></td>
+        <td align='end' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='descripcion'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='monto'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='tasa'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='monto_usd'></td>
+
+    </tr>
+</template>
+
+<script type='module' src='/js/pages/employe.js'></script>

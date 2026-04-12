@@ -1,0 +1,77 @@
+<div class='bg-red-100 shadow-lg rounded-lg p-6 w-full flex-col gap-4 flex'>
+    <div class='flex flex-row items-center justify-between'>
+        <div class=''>
+            <div class='flex flex-row gap-2'>
+                <span data-ico='shield' class='material-symbols-rounded md-28'></span>
+                <h3 class='text-xl font-medium text-gray-900'>Cambiar Contraseña</h3>
+            </div>
+            <span>Actualiza tu contraseña para mantener tu cuenta segura</span>
+        </div>
+    </div>
+    <div class='flex flex-row gap-4 w-full'>
+        <form action='/user/change-password/{{id_usuario}}' method='POST' class='w-full'>
+            <div class='w-full'>
+                <label for='pass_actual' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Contraseña
+                    Actual</label>
+                <input
+                    type='password'
+                    name='passwordActual'
+                    data-valid='password'
+                    id='pass_actual'
+                    class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese Contraseña Actual'
+                    required
+                />
+            </div>
+            <div class='mt-4 w-full'>
+                <label for='pass_new' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Nueva Contraseña</label>
+                <input
+                    type='password'
+                    name='passwordNueva'
+                    data-valid='password'
+                    id='pass_new'
+                    class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese Nueva Contraseña'
+                    required
+                />
+                <span class='text-xs text-gray-500'>Debe contener al menos 8 caracteres, incluyendo mayúsculas,
+                    minúsculas, números y símbolos</span>
+            </div>
+            <div class='mt-4 w-full'>
+                <label for='pass_confirm' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Confirmar
+                    Nueva Contraseña</label>
+                <input
+                    type='password'
+                    name='passwordConfirmacion'
+                    data-valid='password'
+                    id='pass_confirm'
+                    class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Confirmar Nueva Contraseña'
+                    required
+                />
+            </div>
+            <div class='mt-4 flex items-center'>
+                <button
+                    type='submit'
+                    data-ico='lock_reset'
+                    class='bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer material-symbols-rounded flex items-center gap-2 w-full justify-center'
+                >
+                    Cambiar Contraseña
+                </button>
+            </div>
+        </form>
+        <div class='rounded-lg h-fit bg-red-400/20 w-full p-4 border border-red-400 border-dashed'>
+            <div class='flex flex-row items-center gap-1'>
+                <span data-ico='info' class='material-symbols-rounded md-18 text-red-500 leading-none'></span>
+                <span class='font-semibold'>Recomendaciones de seguridad:</span>
+            </div>
+            <ul class='list-disc list-inside text-sm text-gray-700'>
+                <li>Usa al menos 8 caracteres</li>
+                <li>Incluye mayúsculas, minúsculas y números</li>
+                <li>No uses información personal</li>
+                <li>Cambia tu contraseña regularmente</li>
+            </ul>
+        </div>
+    </div>
+
+</div>

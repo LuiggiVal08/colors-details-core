@@ -1,0 +1,30 @@
+<div id='modal-payment-history' class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden' inert>
+    <div class='bg-white rounded-lg shadow-lg max-w-2xl m-auto overflow-auto max-h-[90vh] relative'>
+        <div
+            role='heading'
+            class='w-full flex justify-between items-center px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10'
+        >
+            <h2 class='text-xl font-medium text-gray-900'>Historial de Pagos</h2>
+            <button
+                type='button'
+                data-dismiss='modal'
+                data-ico='cancel'
+                class='material-symbols-rounded cursor-pointer flex hover:text-red-500'
+            ></button>
+        </div>
+
+        <div role='dialog' class='p-6 space-y-4'>
+            <div id='payment-history-table-wrap'>
+                <div class='text-sm text-gray-600'>Cargando historial...</div>
+            </div>
+        </div>
+
+        <div role='doc-footnote' class='px-6 py-2 border-t border-gray-200 flex items-center justify-end gap-4'>
+            <button
+                data-dismiss='modal'
+                type='button'
+                class='inline-block bg-transparent text-gray-500 px-4 py-2 rounded-md hover:bg-gray-400/50 border border-gray-400 cursor-pointer'
+            >Cerrar</button>
+        </div>
+    </div>
+</div>

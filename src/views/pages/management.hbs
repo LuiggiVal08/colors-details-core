@@ -1,0 +1,41 @@
+<div class='container mx-auto py-4'>
+    <div class='flex flex-col items-center justify-center gap-4'>
+        <div id="tabs-settings" class='flex flex-row items-center justify-center w-full h-10 bg-red-100 p-1 rounded-md'>
+            <button
+            data-tab='report-sales'
+            type='button'
+            data-ico='heap_snapshot_multiple'
+            class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+        >
+            Reportes de Venta
+        </button>
+            <button data-tab="db-export"
+                type='button'
+                data-ico='cloud_download'
+                class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+            >
+                Exportar DB
+            </button>
+            <button data-tab="db-import"
+                type='button'
+                data-ico='backup'
+                class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+            >
+                Importar DB
+            </button>
+
+        </div>
+
+        <div id="tab-report-sales" class="tab-content hidden w-full">
+            {{> management/report-sales}}
+        </div>
+        <div id="tab-db-export" class="tab-content hidden w-full">
+            {{> management/db-export}}
+        </div>
+        <div id="tab-db-import" class="tab-content hidden w-full">
+            {{> management/db-import}}
+        </div>
+
+    </div>
+</div>
+<script type="module" src="/js/pages/management/index.js"></script>

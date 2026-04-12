@@ -1,0 +1,79 @@
+<div id='modal-period-service' class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden' inert>
+    <form
+        class='bg-white rounded-lg shadow-lg max-w-lg m-auto overflow-auto max-h-[100vh] relative'
+        action='/service-period'
+        data-method='POST'
+    >
+        <div
+            role='heading'
+            class='w-full flex justify-between items-center px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10'
+        >
+            <h2 class='text-xl font-medium text-gray-900'>Crear Periodo Manual</h2>
+            <button
+                type='button'
+                data-dismiss='modal'
+                data-ico='cancel'
+                class='material-symbols-rounded cursor-pointer flex hover:text-red-500'
+            ></button>
+        </div>
+
+        <div role='dialog' class='p-6 space-y-4'>
+            <input type='hidden' name='servicio_id' id='periodo_servicio_id' />
+
+            <div>
+                <label
+                    for='periodo_fecha_generada'
+                    class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                >Fecha Generada</label>
+                <input
+                    type='date'
+                    data-valid='date'
+                    name='fecha_generada'
+                    id='periodo_fecha_generada'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 outline-none'
+                    required
+                />
+            </div>
+
+            <div>
+                <label for='periodo_fecha_corte' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Fecha
+                    de Corte</label>
+                <input
+                    type='date'
+                    data-valid='date'
+                    name='fecha_corte'
+                    id='periodo_fecha_corte'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 outline-none'
+                    required
+                />
+            </div>
+
+            <div>
+                <label for='periodo_amount_due' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Importe
+                    (USD)</label>
+                <input
+                    type='text'
+                    name='amount_due'
+                    id='periodo_amount_due'
+                    data-valid='float'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 outline-none text-right'
+                    placeholder='0,00'
+                    required
+                />
+            </div>
+        </div>
+
+        <div role='doc-footnote' class='px-6 py-2 border-t border-gray-200 flex items-center justify-end gap-4'>
+            <button
+                data-dismiss='modal'
+                type='button'
+                class='inline-block bg-transparent text-gray-500 px-4 py-2 rounded-md hover:bg-gray-400/50 border border-gray-400 cursor-pointer'
+            >Cancelar</button>
+            <button
+                data-confirm='modal'
+                type='submit'
+                class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md'
+            >Crear Periodo</button>
+        </div>
+    </form>
+</div>

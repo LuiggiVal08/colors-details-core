@@ -1,0 +1,258 @@
+{{> shopping/box-register-edit}}
+{{> controller-box/cotroller}}
+{{> controller-box/cash-movement}}
+<div class='p-4'>
+    <div class='max-w-5xl mx-auto flex flex-col gap-10'>
+
+        <!-- TARJETA PRINCIPAL -->
+        <div class='bg-white rounded-xl shadow-lg border border-blue-100 p-8 flex flex-col gap-6'>
+
+            <!-- HEADER -->
+            <div class='flex flex-col md:flex-row justify-between gap-4'>
+
+                <!-- Identidad de la Caja -->
+                <div class='flex items-center gap-4'>
+                    <div class='bg-blue-100 text-blue-600 p-4 rounded-full shadow-inner'>
+                        <span data-ico='payments' class='material-symbols-rounded md-36'></span>
+                    </div>
+
+                    <div>
+                        <h1 class='text-2xl font-bold text-gray-800 tracking-tight'>
+                            {{caja.nombre}}
+                        </h1>
+
+                        {{#if caja.activo}}
+                            <span class='px-4 py-1 text-sm bg-green-100 text-green-700 font-medium rounded-full'>
+                                Caja Activa
+                            </span>
+                        {{else}}
+                            <span class='px-4 py-1 text-sm bg-gray-200 text-gray-600 font-medium rounded-full'>
+                                Caja Inactiva
+                            </span>
+                        {{/if}}
+                    </div>
+                </div>
+
+                <!-- Acciones -->
+                <div class='flex items-center justify-start md:justify-end gap-4'>
+
+                    <button
+                        id='btnControlCaja'
+                        data-idmodel='{{caja.id}}'
+                        type='button'
+                        class='material-symbols-rounded flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg shadow transition cursor-pointer'
+                        data-ico='power_settings_new'
+                    >
+                        {{#if caja.ultimo_control}}
+                            {{#if caja.ultimo_control.fecha_cierre}}
+                                Abrir Caja
+                            {{else}}
+                                Cerrar Caja
+                            {{/if}}
+                        {{else}}
+                            Abrir Caja
+                        {{/if}}
+                    </button>
+                    <button
+                        id='btnEditCaja'
+                        data-idmodel='{{caja.id}}'
+                        type='button'
+                        class='material-symbols-rounded flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition cursor-pointer'
+                        data-ico='edit'
+                    >
+                        Editar Caja
+                    </button>
+                </div>
+            </div>
+
+            <!-- INFORMACIÓN DE LA CAJA -->
+            <div class='grid grid-cols-1 md:grid-cols-3 gap-6'>
+
+                <!-- Datos Principales -->
+                <div class='flex flex-col gap-2 p-4 bg-blue-50 rounded-lg border border-blue-200'>
+                    <h3 class='text-sm font-bold text-blue-800 flex items-center gap-2'>
+                        <span class='material-symbols-rounded md-20' data-ico='info'></span>
+                        Información General
+                    </h3>
+
+                    <p class='text-gray-700'><strong>ID:</strong> {{caja.id}}</p>
+                    <p class='text-gray-700'><strong>Nombre:</strong> {{caja.nombre}}</p>
+                    <p class='text-gray-700'><strong>Ubicación:</strong> {{caja.ubicacion}}</p>
+                    <p class='text-gray-700'><strong>Monto Actual:</strong> {{caja.monto}} Bs.</p>
+                </div>
+
+                <!-- Empresa -->
+                <div class='flex flex-col gap-2 p-4 bg-blue-50 rounded-lg border border-blue-200'>
+                    <h3 class='text-sm font-bold text-blue-800 flex items-center gap-2'>
+                        <span class='material-symbols-rounded md-20' data-ico='business'></span>
+                        Empresa Asociada
+                    </h3>
+
+                    <p class='text-gray-700'><strong>ID Empresa:</strong> {{caja.empresa.id}}</p>
+                    <p class='text-gray-700'><strong>Nombre:</strong> {{caja.empresa.nombre}}</p>
+                </div>
+
+                <!-- Estado -->
+                <div class='flex flex-col gap-2 p-4 bg-blue-50 rounded-lg border border-blue-200'>
+                    <h3 class='text-sm font-bold text-blue-800 flex items-center gap-2'>
+                        <span class='material-symbols-rounded md-20' data-ico='lock_open_right'></span>
+                        Estado Actual
+                    </h3>
+
+                    {{#if caja.ultimo_control}}
+                        <p class='text-gray-700'><strong>Última Apertura:</strong>
+                            {{caja.ultimo_control.fecha_apertura}}</p>
+                        <p class='text-gray-700'><strong>Último Cierre:</strong>
+                            {{caja.ultimo_control.fecha_cierre}}</p>
+                        <p class='text-gray-700'><strong>Estado:</strong> {{caja.ultimo_control.estado}}</p>
+                    {{else}}
+                        <p class='text-gray-700'><strong>Última Apertura:</strong> Sin Controles</p>
+                        <p class='text-gray-700'><strong>Último Cierre:</strong> Sin Controles</p>
+                        <p class='text-gray-700'><strong>Estado:</strong> Sin Controles</p>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN CONTROLES DE CAJA -->
+        <div class='bg-white rounded-xl shadow-lg border border-blue-100'>
+
+            <!-- Barra superior -->
+            <div
+                class='border-b border-blue-200 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4'
+            >
+                <h2 class='text-xl font-bold text-gray-800 flex items-center gap-2'>
+                    <span class='material-symbols-rounded text-blue-600 md-28' data-ico='monitor_heart'></span>
+                    Controles de Caja
+                </h2>
+            </div>
+
+            <!-- Tabla -->
+            <div class='overflow-x-auto scrollbar p-6'>
+                <table class='w-full border-collapse rounded-lg overflow-hidden'>
+                    <thead class='bg-blue-50'>
+                        <tr class='border-b border-blue-200'>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Apertura</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Cierre</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto Apertura</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto Cierre</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Usuario</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Estado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id='table-control-caja'>
+                        <tr>
+                            <td colspan='6' class='text-center p-4 text-gray-600'>Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginador -->
+            <div class='p-6 pt-0 flex justify-end gap-2' id='paginador-control-caja'>
+                <button
+                    data-ico='arrow_back'
+                    class='material-symbols-rounded flex bg-blue-600 text-white px-4 py-2 rounded-md shadow disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-700 transition btn-paginar'
+                    disabled
+                >
+                    Anterior
+                </button>
+
+                <button
+                    data-ico='arrow_forward'
+                    class='material-symbols-rounded flex bg-blue-600 text-white px-4 py-2 rounded-md shadow disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-700 transition btn-paginar'
+                    disabled
+                >
+                    Siguiente
+                </button>
+            </div>
+        </div>
+
+        <!-- MOVIMIENTOS -->
+        <div class='bg-white rounded-xl shadow-lg border border-blue-100'>
+
+            <div class='border-b border-blue-200 p-6  items-center gap-2 flex flex-row justify-between'>
+                <h2 class='text-xl font-bold text-gray-800 flex items-center gap-2'>
+                    <span class='material-symbols-rounded text-blue-600 md-28' data-ico='receipt_long'></span>
+                    Movimientos de Caja del día
+                </h2>
+                <div class="flex flex-row gap-2">
+                    <button
+                        id='btnAgregarMovimientoCaja'
+                        data-idmodel='{{caja.id}}'
+                        type='button'
+                        class='material-symbols-rounded flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg shadow transition cursor-pointer'
+                        data-ico='add'
+                    >
+                        Agregar Movimiento
+                    </button>
+                </div>
+            </div>
+
+            <div class='overflow-x-auto scrollbar p-6'>
+                <table class='w-full border-collapse rounded-lg overflow-hidden'>
+                    <thead class='bg-blue-50'>
+                        <tr class='border-b border-blue-200'>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium' align="start">Descripción</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium' align="center">Usuario</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium' >Fecha</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Tipo</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id='table-movimientos-caja'>
+                        <tr>
+                            <td colspan='4' class='text-center p-4 text-gray-600'>Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Paginador -->
+            <div class='p-6 pt-0 flex justify-end gap-2' id='paginador-movimientos-caja'>
+                <button
+                    data-ico='arrow_back'
+                    class='material-symbols-rounded flex bg-blue-600 text-white px-4 py-2 rounded-md shadow disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-700 transition btn-paginar'
+                    disabled
+                >
+                    Anterior
+                </button>
+
+                <button
+                    data-ico='arrow_forward'
+                    class='material-symbols-rounded flex bg-blue-600 text-white px-4 py-2 rounded-md shadow disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-700 transition btn-paginar'
+                    disabled
+                >
+                    Siguiente
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Templates -->
+<template id='fila-control-caja'>
+    <tr class='hover:bg-blue-50 transition border-b border-blue-200'>
+        <td class='p-4 text-nowrap text-gray-700' data-key='fecha_apertura'></td>
+        <td class='p-4 text-nowrap text-gray-700' data-key='fecha_cierre'></td>
+        <td class='p-4 text-nowrap text-gray-700 text-center' data-key='monto_apertura'></td>
+        <td class='p-4 text-nowrap text-gray-700 text-center' data-key='monto_cierre'></td>
+        <td class='p-4 text-nowrap text-gray-700' data-key='usuario'></td>
+        <td class='p-4 text-nowrap text-gray-700' data-key='estado'></td>
+    </tr>
+</template>
+
+<template id='fila-movimiento-caja'>
+    <tr class='hover:bg-blue-50 transition border-b border-blue-200'>
+        <td class='p-4 text-nowrap text-gray-700' data-key='descripcion'></td>
+        <td class='p-4 text-nowrap text-gray-700' data-key='usuario' align="center"></td>
+        <td class='p-4 text-nowrap text-gray-700' data-key='fecha' align="center"></td>
+        <td class='p-4 text-nowrap text-gray-700 text-center' data-key='monto'></td>
+        <td class='p-4 text-nowrap text-gray-700 text-center' data-key='tipo'></td>
+    </tr>
+</template>
+
+<script type='module' src='/js/pages/box-register/index.js'></script>
+<script type='module' src='/js/pages/box-register/movement.js'></script>

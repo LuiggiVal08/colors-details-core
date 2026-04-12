@@ -1,0 +1,248 @@
+{{> orders/create-order}}
+{{> orders/view}}
+<div class='p-4'>
+    {{! Cards }}
+    <div class='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8'>
+        <div class='rounded-md bg-red-100 text-card-foreground shadow-2xs'>
+            <div class='p-6 flex flex-row items-center justify-between space-y-0 pb-2'>
+                <h3 class='tracking-tight text-lg font-medium'>Total Pedidos</h3>
+                <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    width='24'
+                    height='24'
+                    viewBox='0 0 24 24'
+                    fill='none'
+                    stroke='currentColor'
+                    stroke-width='2'
+                    stroke-linecap='round'
+                    stroke-linejoin='round'
+                    class='lucide lucide-package h-4 w-4'
+                >
+                    <path d='m7.5 4.27 9 5.15'>
+
+                    </path>
+                    <path
+                        d='M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z'
+                    >
+                    </path>
+                    <path d='m3.3 7 8.7 5 8.7-5'>
+
+                    </path>
+                    <path d='M12 22V12'>
+
+                    </path>
+                </svg>
+            </div>
+            <div class='p-6 pt-0'>
+                <div class='text-2xl font-bold'>{{countOrders.coutOrdersTotal}}</div>
+            </div>
+        </div>
+        <div class='rounded-md bg-red-100 text-card-foreground shadow-2xs'>
+            <div class='p-6 flex flex-row items-center justify-between space-y-0 pb-2'>
+                <h3 class='tracking-tight text-lg font-medium'>Pendientes</h3>
+                <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    width='24'
+                    height='24'
+                    viewBox='0 0 24 24'
+                    fill='none'
+                    stroke='currentColor'
+                    stroke-width='2'
+                    stroke-linecap='round'
+                    stroke-linejoin='round'
+                    class='lucide lucide-clock h-4 w-4 text-yellow-600'
+                >
+                    <circle cx='12' cy='12' r='10'>
+
+                    </circle>
+                    <polyline points='12 6 12 12 16 14'>
+
+                    </polyline>
+                </svg>
+            </div>
+            <div class='p-6 pt-0'>
+                <div class='text-2xl font-bold text-yellow-600'>{{countOrders.countOrdersPending}}</div>
+            </div>
+        </div>
+        <div class='rounded-md bg-red-100 text-card-foreground shadow-2xs'>
+            <div class='p-6 flex flex-row items-center justify-between space-y-0 pb-2'>
+                <h3 class='tracking-tight text-lg font-medium'>En Proceso</h3>
+                <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    width='24'
+                    height='24'
+                    viewBox='0 0 24 24'
+                    fill='none'
+                    stroke='currentColor'
+                    stroke-width='2'
+                    stroke-linecap='round'
+                    stroke-linejoin='round'
+                    class='lucide lucide-circle-alert h-4 w-4 text-blue-600'
+                >
+                    <circle cx='12' cy='12' r='10'>
+
+                    </circle>
+                    <line x1='12' x2='12' y1='8' y2='12'>
+
+                    </line>
+                    <line x1='12' x2='12.01' y1='16' y2='16'>
+                    </line>
+                </svg>
+            </div>
+            <div class='p-6 pt-0'>
+                <div class='text-2xl font-bold text-blue-600'>{{countOrders.countOrdersProcessed}}</div>
+            </div>
+        </div>
+        <div class='rounded-md bg-red-100 text-card-foreground shadow-2xs'>
+            <div class='p-6 flex flex-row items-center justify-between space-y-0 pb-2'>
+                <h3 class='tracking-tight text-lg font-medium'>Completados</h3>
+                <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    width='24'
+                    height='24'
+                    viewBox='0 0 24 24'
+                    fill='none'
+                    stroke='currentColor'
+                    stroke-width='2'
+                    stroke-linecap='round'
+                    stroke-linejoin='round'
+                    class='lucide lucide-circle-check-big h-4 w-4 text-green-600'
+                >
+                    <path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'>
+
+                    </path>
+                    <path d='m9 11 3 3L22 4'>
+
+                    </path>
+                </svg>
+            </div>
+            <div class='p-6 pt-0'>
+                <div class='text-2xl font-bold text-green-600'>{{countOrders.countOrdersComplit}}</div>
+            </div>
+        </div>
+    </div>
+
+    {{! Tab content }}
+    <div class='rounded-md bg-red-100 text-card-foreground shadow-2xs p-4 space-y-4'>
+        {{!-- Advertencia --}}
+         <div
+            class='border border-dashed border-blue-500 bg-blue-400/10 rounded-md shadow-sm min-h-10 p-4 w-full flex flex-col gap-1'
+        >
+            <div class='flex flex-row items-center gap-1'>
+                <span data-ico='info' class='material-symbols-rounded md-18 text-blue-500 leading-none'></span>
+                <span class='font-semibold'>Nota:</span>
+            </div>
+            <ul class='list-disc list-inside text-sm text-gray-700'>
+                <li>Cuando registra un pedido, se coloca en estado pendiente</li>
+                <li>Cuando se cancela su totalidad, se coloca en estado completado</li>
+                <li>Al momento de estar en estado completado, no se puede modificar</li>
+            </ul>
+        </div>
+        {{!-- Cabecera --}}
+        <div class='flex items-center justify-between'>
+            <div>
+                <h3 class='text-2xl font-semibold leading-none tracking-tight'>Lista de Pedidos</h3>
+                <p class='text-sm text-gray-600'>Gestiona todos los pedidos de sublimación</p>
+            </div>
+            <div class='flex gap-4'>
+                <div class='flex items-center space-x-2'>
+                    <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        width='24'
+                        height='24'
+                        viewBox='0 0 24 24'
+                        fill='none'
+                        stroke='currentColor'
+                        stroke-width='2'
+                        stroke-linecap='round'
+                        stroke-linejoin='round'
+                        class='lucide lucide-search h-4 w-4 text-gray-400'
+                    >
+                        <circle cx='11' cy='11' r='8'>
+                        </circle>
+                        <path d='m21 21-4.3-4.3'>
+                        </path>
+                    </svg>
+                    <input
+                        class='bg-red-300/30 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        placeholder='Buscar pedidos...'
+                        value=''
+                    />
+                </div>
+                <button
+                    class='material-symbols-rounded bg-red-400 hover:bg-red-500 duration-300 text-white px-4 py-2 rounded-md text-nowrap cursor-pointer flex items-center gap-2'
+                    data-ico='add'
+                    id='btnAddOrder'
+                    type='button'
+                >
+                    Nuevo Pedido</button>
+            </div>
+        </div>
+        {{!-- Tabla --}}
+        <div class='rounded-md border overflow-x-auto scrollbar border-red-400/50'>
+            <div class='relative w-full overflow-auto'>
+                <table class='w-full caption-bottom text-sm'>
+                    <thead class='[&amp;_tr]:border-b border-red-400/50'>
+                        <tr class='border-b border-red-400/50 transition-colors'>
+                            <th align='start' class='h-12 px-4 align-middle font-medium'>Cliente</th>
+                            <th align='center' class='h-12 px-4 align-middle font-medium'>Fecha</th>
+                            <th align='center' class='h-12 px-4 align-middle font-medium'>Días para Entrega</th>
+                            <th align='center' class='h-12 px-4 align-middle font-medium'>Fecha Entrega</th>
+                            <th align='center' class='h-12 px-4 align-middle font-medium'>Estado</th>
+                            <th align='center' class='h-12 px-4 align-middle font-medium'>Total (USD)</th>
+                            <th align='center' class='h-12 px-4 align-middle font-medium'>Estado Pago</th>
+                            <th align='center' class='h-12 px-4 align-middle font-medium'>Observaciones</th>
+                            <th align='center' class='h-12 px-4 align-middle font-medium'>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class='[&amp;_tr:last-child]:border-0' id='pedidos-tabla-body'>
+                        <tr>
+                            <td colspan='8' class='text-center p-3'>Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {{!-- Paginador --}}
+        <div class='w-full flex justify-end items-center gap-2' id='paginador-tabla-pedidos'>
+            <button
+                data-ico='arrow_back'
+                class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
+                disabled
+            >Anterior</button>
+            <button
+                data-ico='arrow_forward'
+                class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
+                disabled
+            >Siguiente</button>
+        </div>
+
+    </div>
+
+</div>
+<script type='module' src='/js/pages/orders.js'></script>
+
+<template id='fila-ejemplo-pedidos'>
+    <tr class='hover:bg-pink-400/10 transition-all duration-300 border-b border-red-400/50'>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='cliente'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='fecha'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='dias_para_entrega'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='fecha_entrega'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='estado'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='total'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='estado_pago'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='observaciones'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap'>
+            <div class='flex gap-2 flex-row items-center justify-center'>
+                <button
+                    data-ico='visibility'
+                    data-btn='view'
+                    data-idfield='id'
+                    class='cursor-pointer material-symbols-rounded fill-solid wght-normal md-28 text-blue-500 hover:text-blue-700 duration-300'
+                ></button>
+                {{! <button data-ico='edit' data-btn='editar' data-idfield='id' class='cursor-pointer material-symbols-rounded fill-solid wght-normal md-28  text-gray-700 hover:text-gray-500'>
+                </button> }}
+            </div>
+        </td>
+    </tr>
+</template>

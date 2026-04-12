@@ -1,0 +1,62 @@
+<div class='container mx-auto py-4'>
+    <div class='flex flex-col items-center justify-center gap-4'>
+        <div id="tabs-management" class='flex flex-row items-center justify-center w-full h-10 bg-red-100 p-1 rounded-md'>
+            <button data-tab="company-info"
+                type='button'
+                data-ico='business'
+                class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+            >
+                Empresa
+
+            </button>
+            <button data-tab="employee-management"
+                type='button'
+                data-ico='badge'
+                class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+            >
+                Empleados
+            </button>
+            <button data-tab="user-management"
+                type='button'
+                data-ico='group'
+                class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+            >
+                Usuarios
+            </button>
+            <button data-tab="exchange-rate-management"
+                type='button'
+                data-ico='receipt_long'
+                class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+            >
+                Tasa del Dólar
+            </button>
+            <button data-tab="iva-management"
+                type='button'
+                data-ico='payment'
+                class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+            >
+                IVA
+            </button>
+
+
+        </div>
+        <div id="tab-company-info" class="tab-content hidden space-y-4 w-full" >
+            {{> settings/company-info}}
+            {{> settings/services}}
+        </div>
+        <div id="tab-user-management" class="tab-content hidden w-full">
+            {{> settings/user}}
+        </div>
+        <div id="tab-employee-management" class="tab-content hidden w-full">
+            {{> settings/employes}}
+        </div>
+        <div id="tab-exchange-rate-management" class="tab-content hidden w-full">
+            {{> settings/exchange-rate}}
+        </div>
+        <div id="tab-iva-management" class="tab-content hidden w-full">
+            {{> settings/iva}}
+        </div>
+
+    </div>
+</div>
+<script type="module" src="/js/pages/settings/index.js"></script>

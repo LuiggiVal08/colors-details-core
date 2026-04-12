@@ -1,0 +1,70 @@
+{{> settings/services-create}}
+{{> settings/services-edit}}
+<div class='bg-red-100 shadow-lg rounded-lg p-6 w-full flex-col gap-4 flex'>
+    <div class='flex flex-row items-center justify-between'>
+        <div class=''>
+            <div class='flex flex-row gap-4'>
+                <span data-ico='business' class='material-symbols-rounded md-28'></span>
+                <h3 class='text-xl font-medium text-gray-900'>Servicios de la Empresa</h3>
+            </div>
+            <span>Gestiona los servicios de la empresa</span>
+        </div>
+        <div class='flex flex-row items-center gap-2'>
+            <input
+                type='text'
+                name='code'
+                id='searchServices'
+                placeholder='Buscar Servicio'
+                class='bg-red-300/30 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+            />
+            <button
+                type='button'
+                data-ico='add'
+                id='btn-add-service'
+                class='material-symbols-rounded bg-red-400 hover:bg-red-500 duration-300 text-white px-4 py-2 rounded-md text-nowrap cursor-pointer flex items-center gap-2'
+            >
+                Agregar Servicio
+            </button>
+        </div>
+    </div>
+    <div class='overflow-x-auto scrollbar rounded-md border border-red-400/50'>
+        <table class='w-full border-collapse table caption-bottom'>
+            <thead class="[&_tr]:border-b border-red-400/50">
+                <tr class="border-b border-red-400/50">
+                    <th align='start' align='start' class='text-gray-900 font-medium p-3'>Nombre</th>
+                    <th align='start' class='text-gray-900 font-medium p-3'>Descripción</th>
+                    <th align='center' class='text-gray-900 font-medium p-3'>Coste</th>
+                    <th align='center' class='text-gray-900 font-medium p-3'>Dia de corte</th>
+                    <th align='center' class='text-gray-900 font-medium p-3'>Proveedor</th>
+                    <th align='center' class='text-gray-900 font-medium p-3'>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id='table-service' class="[&_tr:last-child]:border-0">
+                {{! Aquí se insertarán las filas dinámicamente }}
+                <tr class="border-b transition-colors">
+                    <td colspan='6' class='text-center p-3'>Cargando...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+        <div class='w-full flex justify-end items-center gap-2' id='paginador-tabla-service'>
+            <button data-ico="arrow_back" class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent  px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400' disabled>Anterior</button>
+            <button data-ico="arrow_forward" class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent  px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400' disabled>Siguiente</button>
+        </div>
+</div>
+<template id='template-service'>
+    <tr class='hover:bg-pink-400/10 transition-all duration-300 border-b border-red-400/50'>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='nombre'></td>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='descripcion'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='coste'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='dia_corte'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-tipo="html" data-key='proveedor'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap'>
+            <div class='flex gap-2 flex-row items-center justify-center'>
+                <button data-ico='visibility' data-btn='view' data-idfield='id' class='cursor-pointer material-symbols-rounded fill-solid wght-normal md-28 text-blue-500 hover:text-blue-700 duration-300' ></button>
+                <button data-ico='edit' data-btn='editar' data-idfield='id' class='cursor-pointer material-symbols-rounded fill-solid wght-normal md-28 text-gray-700 hover:text-gray-500 duration-300' ></button>
+            </div>
+        </td>
+    </tr>
+</template>
+<script type='module' src='/js/pages/settings/service.js'></script>

@@ -1,0 +1,214 @@
+<div class='bg-red-100 shadow-lg rounded-lg p-6 w-full flex flex-col gap-6'>
+    <div>
+        <div class='flex flex-row gap-4 items-center'>
+            <span data-ico='business' class='material-symbols-rounded md-28'></span>
+            <h3 class='text-xl font-medium text-gray-900'>Información de la Empresa</h3>
+        </div>
+        <span class='block mt-1 text-gray-700'>Configura los datos básicos de tu empresa</span>
+    </div>
+
+    {{#if company}}
+        {{#with company}}
+            <form action='/company/{{this.id}}' data-method='PUT' id='company-form' class='space-y-6'>
+                <!-- Sección: Logo y Subir archivo -->
+
+                <!-- Sección: Datos principales divididos en dos columnas -->
+                <section class='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <!-- Columna izquierda -->
+                    <div class='flex flex-col gap-4'>
+                        <div class=''>
+                            <label for='logo_company' class='block mb-1 text-sm font-medium text-gray-900'>
+                                Logo de la Empresa
+                            </label>
+                            <div
+                                class='grid grid-cols-1 md:grid-cols-2 gap-4 items-start w-full border border-dashed border-blue-500 bg-blue-400/10 rounded-md shadow-sm min-h-10 p-4'
+                            >
+                                <div class='size-40 border border-pink-300 rounded-md bg-gray-600/20 overflow-hidden'>
+                                    <img
+                                        src='/img/logo.png'
+                                        data-img-default='/img/logo.png'
+                                        alt='logo'
+                                        class='w-full h-full object-cover'
+                                    />
+                                </div>
+                                <div>
+                                    <div class='flex'>
+                                        <label
+                                            for='logo_company'
+                                            class='cursor-pointer items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition w-fit'
+                                        >
+                                            Seleccionar archivo
+                                        </label>
+                                        <input
+                                            type='file'
+                                            name='logo'
+                                            accept='image/*'
+                                            data-valid='img'
+                                            id='logo_company'
+                                            class='sr-only'
+                                        />
+                                    </div>
+                                    <div id='infoArchivo' class='mt-2 text-sm text-gray-700'></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label for='nombre_company' class='block mb-1 text-sm font-medium text-gray-900'>El Nombre
+                                de la Empresa</label>
+                            <input
+                                type='text'
+                                name='nombre'
+                                data-valid='name'
+                                id='nombre_company'
+                                value='{{this.nombre}}'
+                                placeholder='Ingrese el nombre de la Empresa'
+                                required
+                                class='w-full p-2 text-gray-900 text-sm rounded-lg border border-pink-300 bg-red-300/30 focus:ring-red-400 focus:border-red-400 outline-none'
+                            />
+                        </div>
+                        <div>
+                            <label for='rif_company' class='block mb-1 text-sm font-medium text-gray-900'>RIF</label>
+                            <input
+                                type='text'
+                                name='rif'
+                                data-valid='rif'
+                                id='rif_company'
+                                value='{{this.rif}}'
+                                placeholder='Ingrese RIF'
+                                required
+                                class='w-full p-2 text-gray-900 text-sm rounded-lg border border-gray-300 bg-red-300/30 focus:ring-red-400 focus:border-red-400 outline-none'
+                            />
+                        </div>
+                        <div>
+                            <label
+                                for='descripcion_company'
+                                class='block mb-1 text-sm font-medium text-gray-900'
+                            >Descripción</label>
+                            <textarea
+                                name='descripcion'
+                                data-valid='text'
+                                id='descripcion_company'
+                                placeholder='Ingrese la Descripción'
+                                required
+                                class='w-full p-2 text-gray-900 text-sm rounded-lg border border-gray-300 bg-red-300/30 focus:ring-red-400 focus:border-red-400 outline-none'
+                            >{{this.descripcion}}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Columna derecha -->
+                    <div class='flex flex-col gap-4'>
+                        <div>
+                            <label
+                                for='direccion_company'
+                                class='block mb-1 text-sm font-medium text-gray-900'
+                            >Dirección</label>
+                            <input
+                                type='text'
+                                name='direccion'
+                                data-valid='text'
+                                id='direccion_company'
+                                value='{{this.direccion}}'
+                                placeholder='Ingrese la Dirección'
+                                required
+                                class='w-full p-2 text-gray-900 text-sm rounded-lg border border-gray-300 bg-red-300/30 focus:ring-red-400 focus:border-red-400 outline-none'
+                            />
+                        </div>
+                        <div>
+                            <label
+                                for='ciudad_company'
+                                class='block mb-1 text-sm font-medium text-gray-900'
+                            >Ciudad</label>
+                            <input
+                                type='text'
+                                name='ciudad'
+                                data-valid='text'
+                                id='ciudad_company'
+                                value='{{this.ciudad}}'
+                                placeholder='Ingrese la Ciudad'
+                                required
+                                class='w-full p-2 text-gray-900 text-sm rounded-lg border border-gray-300 bg-red-300/30 focus:ring-red-400 focus:border-red-400 outline-none'
+                            />
+                        </div>
+                        <div>
+                            <label
+                                for='telefono_company'
+                                class='block mb-1 text-sm font-medium text-gray-900'
+                            >Teléfono</label>
+                            <input
+                                type='text'
+                                name='telefono'
+                                data-valid='telefono'
+                                id='telefono_company'
+                                value='{{this.telefono}}'
+                                placeholder='Ingrese el Teléfono'
+                                required
+                                class='w-full p-2 text-gray-900 text-sm rounded-lg border border-gray-300 bg-red-300/30 focus:ring-red-400 focus:border-red-400 outline-none'
+                            />
+                        </div>
+                        <div>
+                            <label
+                                for='email_company'
+                                class='block mb-1 text-sm font-medium text-gray-900'
+                            >Correo</label>
+                            <input
+                                type='text'
+                                name='email'
+                                data-valid='email'
+                                id='email_company'
+                                value='{{this.email}}'
+                                placeholder='Ingrese el Correo'
+                                required
+                                class='w-full p-2 text-gray-900 text-sm rounded-lg border border-gray-300 bg-red-300/30 focus:ring-red-400 focus:border-red-400 outline-none'
+                            />
+                        </div>
+                        <div>
+                            <label for='sitio_web_company' class='block mb-1 text-sm font-medium text-gray-900'>Sitio
+                                web</label>
+                            <input
+                                type='text'
+                                name='sitio_web'
+                                data-valid='text'
+                                id='sitio_web_company'
+                                value='{{this.sitio_web}}'
+                                placeholder='Ingrese el Sitio web'
+                                required
+                                class='w-full p-2 text-gray-900 text-sm rounded-lg border border-pink-300 bg-red-300/30 focus:ring-red-400 focus:border-red-400 outline-none'
+                            />
+                        </div>
+                        <div>
+                            <label
+                                for='slogan_company'
+                                class='block mb-1 text-sm font-medium text-gray-900'
+                            >Slogan</label>
+                            <input
+                                type='text'
+                                name='slogan'
+                                data-valid='text'
+                                id='slogan_company'
+                                value='{{this.slogan}}'
+                                placeholder='Ingrese el Slogan'
+                                required
+                                class='w-full p-2 text-gray-900 text-sm rounded-lg border border-pink-300 bg-red-300/30 focus:ring-red-400 focus:border-red-400 outline-none'
+                            />
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Sección: Botón Guardar -->
+                <section>
+                    <button
+                        type='submit'
+                        form='company-form'
+                        data-ico='save'
+                        class='w-full h-10 flex items-center justify-center gap-2 bg-red-400 hover:bg-red-500 text-white font-semibold rounded-md transition-colors duration-200 material-symbols-rounded cursor-pointer'
+                    >
+                        Guardar Cambios
+                    </button>
+                </section>
+            </form>
+        {{/with}}
+    {{else}}
+    {{/if}}
+</div>
+
+<script type='module' src='/js/pages/settings/company.js'></script>

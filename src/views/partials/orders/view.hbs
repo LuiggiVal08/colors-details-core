@@ -1,0 +1,172 @@
+<div id='modal-view-order' class='fixed top-0 left-0 h-screen w-full bg-[rgba(0,0,0,0.5)] z-20 content-center hidden' inert>
+    <div class='bg-[rgb(255,255,255)] rounded-lg shadow-lg max-w-2xl m-auto overflow-auto max-h-[100vh] relative'>
+        <div
+            role='heading'
+            class='w-full flex justify-between items-center px-6 py-4 border-b border-[rgb(229,231,235)] sticky top-0 bg-[rgb(255,255,255)] z-10'
+        >
+            <h2 class='text-xl font-medium text-[rgb(17,24,39)]'>Pedido</h2>
+            <button
+                type='button'
+                data-dismiss='modal'
+                data-ico='cancel'
+                class='material-symbols-rounded cursor-pointer flex hover:text-[rgb(239,68,68)]'
+            ></button>
+        </div>
+        <div class='p-2' id='order-general-info'>
+            <div class='grid grid-cols-1 md:grid-cols-2 gap-4 p-4 pb-0'>
+                <div class='space-y-4'>
+                    <h4
+                        class='material-symbols-rounded font-semibold flex flex-row gap-2 items-center text-base md:text-left text-center justify-center md:justify-start'
+                        data-ico='person'
+                    >
+                        Información del Cliente
+                    </h4>
+                    <ul class='flex flex-col gap-1 text-sm'>
+                        <li><span class='font-semibold'>Nombre:</span> <span data-client-name></span></li>
+                        <li><span class='font-semibold'>Email:</span> <span data-client-email></span></li>
+                        <li><span class='font-semibold'>Telefono:</span> <span data-client-phone></span></li>
+                        <li><span class='font-semibold'>Dirección:</span> <span data-client-address></span></li>
+                    </ul>
+                </div>
+                <div class='space-y-4'>
+                    <h4
+                        class='material-symbols-rounded font-semibold flex flex-row gap-2 items-center text-base md:text-left text-center justify-center md:justify-start'
+                        data-ico='order_play'
+                    >
+                        Información del Pedido
+                    </h4>
+                    <ul class='flex flex-col gap-1 text-sm'>
+                        <li><span class='font-semibold'>Fecha:</span> <span data-pedido-date>2023-01-01</span></li>
+                        <li class="flex flex-row gap-2 items-center">
+                            <span class='font-semibold'>Estado:</span> <span data-pedido-status>Pendiente</span>
+                            <button
+                                class="material-symbols-rounded flex flex-row gap-2 items-center cursor-pointer text-blue-500 hover:text-blue-700"
+                                data-ico="edit"
+                                title="Editar Estado del Pedido"
+                                id="edit_status_order">
+                            </button>
+                        </li>
+                        <li><span class='font-semibold'>Total:</span> <span data-pedido-total>$ 1,00</span></li>
+                        <li><span class='font-semibold'>Atendido por:</span> <span data-pedido-user>Luis Valencia</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class='space-y-4 p-4 pb-0'>
+                <h4
+                    class='material-symbols-rounded font-semibold flex flex-row gap-2 items-center text-base md:text-left text-center justify-center md:justify-start'
+                    data-ico='data_info_alert'
+                >
+                    Observaciones de Pedido
+                </h4>
+                <p class='text-sm text-[rgb(31,41,55)] bg-[rgb(243,244,246)] p-3 w-full rounded-md' data-pedido-observaciones></p>
+            </div>
+
+            <div class='space-y-4 p-4 pb-0'>
+                <h4
+                    class='material-symbols-rounded font-semibold flex flex-row gap-2 items-center text-base md:text-left text-center justify-center md:justify-start'
+                    data-ico='orders'
+                >
+                    Detalles de Pedido
+                </h4>
+                <div class='border border-[rgba(156,163,175,0.5)] text-[rgb(31,41,55)] bg-[rgb(243,244,246)] rounded-md w-full scrollbar overflow-x-auto'>
+                    <table class='w-full border-collapse table caption-bottom text-sm'>
+                        <thead class='[&_tr]:border-b border-[rgba(156,163,175,0.5)]'>
+                            <tr class='border-b border-[rgba(156,163,175,0.5)] transition-colors'>
+                                <th align='start' class='h-12 px-4 align-middle font-medium'>Producto</th>
+                                <th align='center' class='h-12 px-4 align-middle font-medium'>Detalle Pedido</th>
+                                <th align='center' class='h-12 px-4 align-middle font-medium'>Cantidad</th>
+                                <th align='center' class='h-12 px-4 align-middle font-medium'>Precio Pedido</th>
+                                <th align='center' class='h-12 px-4 align-middle font-medium'>Precio Unitario</th>
+                                <th align='end' class='h-12 px-4 align-middle font-medium'>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody class='[&_tr:last-child]:border-0' id='pedido-detalles'>
+                            <tr><td colspan='5' class='text-center p-3'>Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class='flex flex-col items-center justify-between text-sm text-[rgb(31,41,55)] bg-[rgb(243,244,246)] p-3 rounded-md'>
+                    <p class='w-full flex justify-between'><span class='font-semibold'>SubTotal:</span><span data-pedido-subtotal>$ 1,00</span></p>
+                    <p class='w-full flex justify-between'><span class='font-semibold'>Iva G (<span data-pedido-iva-porcentaje>10%</span>):</span><span data-pedido-iva>$ 1,00</span></p>
+                    <p class='w-full flex justify-between'><span class='font-semibold'>Total:</span><span data-pedido-detalle-total>$ 1,00</span></p>
+                </div>
+            </div>
+
+            <div class='space-y-4 p-4 pb-0'>
+                <h4
+                    class='material-symbols-rounded font-semibold flex flex-row gap-2 items-center text-base md:text-left text-center justify-center md:justify-start'
+                    data-ico='receipt'
+                >
+                    Información de Pago
+                </h4>
+                <div class='border border-[rgba(156,163,175,0.5)] text-[rgb(31,41,55)] bg-[rgb(243,244,246)] rounded-md w-full scrollbar overflow-x-auto'>
+                    <table class='w-full border-collapse table caption-bottom text-sm'>
+                        <thead class='[&_tr]:border-b border-[rgba(156,163,175,0.5)]'>
+                            <tr class='border-b border-[rgba(156,163,175,0.5)] transition-colors'>
+                                <th align='start' class='h-12 px-4 align-middle font-medium'>Fecha</th>
+                                <th align='center' class='h-12 px-4 align-middle font-medium'>Tipo</th>
+                                <th align='center' class='h-12 px-4 align-middle font-medium'>Comisión</th>
+                                <th align='center' class='h-12 px-4 align-middle font-medium'>Referencia</th>
+                                <th align='end' class='h-12 px-4 align-middle font-medium'>Monto ($)</th>
+                                <th align='end' class='h-12 px-4 align-middle font-medium'>Monto (Bs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody class='[&_tr:last-child]:border-0' id='pedido-pagos'>
+                            <tr><td colspan='5' class='text-center p-3'>Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class='text-sm text-[rgb(31,41,55)] bg-[rgb(243,244,246)] p-3 rounded-md w-full flex justify-between'>
+                    <span class='font-semibold'>Total:</span>
+                    <span data-pedido-pago-total>$ 1,00</span>
+                </p>
+            </div>
+        </div>
+
+        <div class='flex flex-row gap-2 items-center justify-end p-6 pt-2'>
+            <button
+                type='button'
+                data-ico='picture_as_pdf'
+                data-btn='descargar-pdf'
+                id="generate_pdf_order"
+                class='material-symbols-rounded bg-[rgb(248,113,113)] hover:bg-[rgb(239,68,68)] text-[rgb(255,255,255)] px-4 py-2 rounded-md cursor-pointer flex flex-row gap-2 items-center'
+            >
+                Descargar PDF
+            </button>
+            <button
+                type='button'
+                data-ico='point_of_sale'
+                data-btn='agregar-pago'
+                class='material-symbols-rounded bg-[rgb(96,165,250)] hover:bg-[rgb(59,130,246)] text-[rgb(255,255,255)] px-4 py-2 rounded-md cursor-pointer flex flex-row gap-2 items-center'
+            >
+                Agregar Pago
+            </button>
+        </div>
+        {{> orders/create-payment}}
+        {{> orders/edit-order-status}}
+
+    </div>
+</div>
+
+<template id='fila-ejemplo-detalles-pedido'>
+    <tr class='hover:bg-[rgba(249,168,212,0.1)] transition-all duration-300 border-b border-[rgba(248,113,113,0.5)]'>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='producto'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='detalle_pedido_producto'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='cantidad'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='precio_pedido_producto'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='precio_unitario'></td>
+        <td align='end' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='subtotal'></td>
+    </tr>
+</template>
+
+<template id='fila-ejemplo-pago'>
+    <tr class='hover:bg-[rgba(249,168,212,0.1)] transition-all duration-300 border-b border-[rgba(248,113,113,0.5)]'>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='fecha'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='tipo'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='comision'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='referencia'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='monto'></td>
+        <td align='end' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='monto_bs'></td>
+    </tr>
+</template>

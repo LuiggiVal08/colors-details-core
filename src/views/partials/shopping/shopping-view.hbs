@@ -1,0 +1,172 @@
+<div
+    id='modal-view-purchase'
+    class='fixed top-0 left-0 h-screen w-full bg-[rgb(0,0,0,0.5)] z-20 content-center hidden'
+    inert
+>
+    <div class='bg-[rgb(255,255,255)] rounded-lg shadow-lg max-w-2xl m-auto overflow-auto max-h-[100vh] relative'>
+        <!-- Cabecera -->
+        <div
+            role='heading'
+            class='w-full flex justify-between items-center px-6 py-4 border-b border-[rgb(229,231,235)] sticky top-0 bg-[rgb(255,255,255)] z-10'
+        >
+            <h2 class='text-xl font-medium text-[rgb(17,24,39)]'>Compra</h2>
+            <button
+                type='button'
+                data-dismiss='modal'
+                data-ico='cancel'
+                class='material-symbols-rounded cursor-pointer flex hover:text-[rgb(239,68,68)]'
+            ></button>
+        </div>
+
+        <!-- Información General -->
+        <div class='p-2' id='purchase-info-container'>
+            <!-- Cliente -->
+            <div class='grid grid-cols-1 md:grid-cols-2 gap-4 p-4 pb-0'>
+                <div class='space-y-4'>
+                    <h4
+                        class='material-symbols-rounded font-semibold flex flex-row gap-2 items-center text-base md:text-left text-center justify-center md:justify-start'
+                        data-ico='person'
+                    >
+                        Información del Cliente
+                    </h4>
+                    <ul class='flex flex-col gap-1 text-sm'>
+                        <li><span class='font-semibold'>Nombre:</span> <span data-client-name></span></li>
+                        <li><span class='font-semibold'>Email:</span> <span data-client-email></span></li>
+                        <li><span class='font-semibold'>Teléfono:</span> <span data-client-phone></span></li>
+                        <li><span class='font-semibold'>Dirección:</span> <span data-client-address></span></li>
+                    </ul>
+                </div>
+
+                <!-- Información de la Compra -->
+                <div class='space-y-4'>
+                    <h4
+                        class='material-symbols-rounded font-semibold flex flex-row gap-2 items-center text-base md:text-left text-center justify-center md:justify-start'
+                        data-ico='order_play'
+                    >
+                        Información de la Compra
+                    </h4>
+                    <ul class='flex flex-col gap-1 text-sm'>
+                        <li><span class='font-semibold'>Fecha:</span> <span data-purchase-date></span></li>
+                        <li><span class='font-semibold'>Estado:</span> <span data-purchase-status>Completada</span></li>
+                        <li><span class='font-semibold'>Total:</span> <span data-purchase-total>$0.00</span></li>
+                        <li><span class='font-semibold'>Registrado por:</span> <span data-purchase-user></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Detalles de Compra -->
+            <div class='space-y-4 p-4 pb-0'>
+                <h4
+                    class='material-symbols-rounded font-semibold flex flex-row gap-2 items-center text-base md:text-left text-center justify-center md:justify-start'
+                    data-ico='orders'
+                >
+                    Detalles de la Compra
+                </h4>
+                <div
+                    class='border border-[rgb(156,163,175,0.5)] text-[rgb(31,41,55)] bg-[rgb(243,244,246)] rounded-md w-full scrollbar overflow-x-auto'
+                >
+                    <table class='w-full border-collapse table caption-bottom text-sm'>
+                        <thead class='[&_tr]:border-b border-[rgb(156,163,175,0.5)]'>
+                            <tr class='border-b border-[rgb(156,163,175,0.5)] transition-colors'>
+                                <th align='start' class='h-12 px-4 align-middle font-medium'>Producto</th>
+                                <th align='center' class='h-12 px-4 align-middle font-medium'>Cantidad</th>
+                                <th align='center' class='h-12 px-4 align-middle font-medium'>Precio Unitario</th>
+                                <th align='end' class='h-12 px-4 align-middle font-medium'>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody class='[&_tr:last-child]:border-0' id='purchase-detalles'>
+                            <tr><td colspan='4' class='text-center p-3'>Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Totales -->
+                <div
+                    class='flex flex-col items-center justify-between text-sm text-[rgb(31,41,55)] bg-[rgb(243,244,246)] p-3 rounded-md'
+                >
+                    <p class='w-full flex justify-between'>
+                        <span class='font-semibold'>SubTotal:</span>
+                        <span data-purchase-subtotal>$0.00</span>
+                    </p>
+                    <p class='w-full flex justify-between'>
+                        <span class='font-semibold'>IVA (<span data-purchase-iva-porcentaje>0%</span>):</span>
+                        <span data-purchase-iva>$0.00</span>
+                    </p>
+                    <p class='w-full flex justify-between'>
+                        <span class='font-semibold'>Total:</span>
+                        <span data-purchase-detalle-total>$0.00</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Pagos -->
+            <div class='space-y-4 p-4 pb-0'>
+                <h4
+                    class='material-symbols-rounded font-semibold flex flex-row gap-2 items-center text-base md:text-left text-center justify-center md:justify-start'
+                    data-ico='receipt'
+                >
+                    Información de Pago
+                </h4>
+                <div
+                    class='border border-[rgb(156,163,175,0.5)] text-[rgb(31,41,55)] bg-[rgb(243,244,246)] rounded-md w-full scrollbar overflow-x-auto'
+                >
+                    <table class='w-full border-collapse table caption-bottom text-sm'>
+                        <thead class='[&_tr]:border-b border-[rgb(156,163,175,0.5)]'>
+                            <tr class='border-b border-[rgb(156,163,175,0.5)] transition-colors'>
+                                <th align='start' class='h-12 px-4 align-middle font-medium'>Fecha</th>
+                                <th align='center' class='h-12 px-4 align-middle font-medium'>Tipo</th>
+                                <th align='center' class='h-12 px-4 align-middle font-medium'>Comisión</th>
+                                <th align='center' class='h-12 px-4 align-middle font-medium'>Referencia</th>
+                                <th align='end' class='h-12 px-4 align-middle font-medium'>Monto ($)</th>
+                                <th align='end' class='h-12 px-4 align-middle font-medium'>Monto (Bs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody class='[&_tr:last-child]:border-0' id='purchase-pagos'>
+                            <tr><td colspan='6' class='text-center p-3'>Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p
+                    class='text-sm text-[rgb(31,41,55)] bg-[rgb(243,244,246)] p-3 rounded-md w-full flex justify-between'
+                >
+                    <span class='font-semibold'>Total:</span>
+                    <span data-purchase-pago-total>$0.00</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Botones -->
+        <div class='flex flex-row gap-2 items-center justify-end p-6 pt-2'>
+            <button
+                type='button'
+                data-ico='picture_as_pdf'
+                data-btn='descargar-pdf'
+                id='generate_pdf_shopping'
+                class='material-symbols-rounded bg-[rgb(248,113,113)] hover:bg-[rgb(239,68,68)] text-[rgb(255,255,255)] px-4 py-2 rounded-md cursor-pointer flex flex-row gap-2 items-center'
+            >
+                Descargar PDF
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Templates -->
+<template id='fila-ejemplo-detalles-purchase'>
+    <tr class='hover:bg-[rgb(249,168,212,0.1)] transition-all duration-300 border-b border-[rgb(248,113,113,0.5)]'>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='producto'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='cantidad'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='precio_unitario'></td>
+        <td align='end' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='subtotal'></td>
+    </tr>
+</template>
+
+<template id='fila-ejemplo-pago-purchase'>
+    <tr class='hover:bg-[rgb(249,168,212,0.1)] transition-all duration-300 border-b border-[rgb(248,113,113,0.5)]'>
+        <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='fecha'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='tipo'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='comision'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='referencia'></td>
+        <td align='end' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='monto'></td>
+        <td align='end' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='monto_bs'></td>
+    </tr>
+</template>

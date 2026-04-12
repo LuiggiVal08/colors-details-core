@@ -1,0 +1,170 @@
+<div
+    id='modal-create-payment-method'
+    class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden'
+    inert
+>
+    <form
+        class='bg-white rounded-lg shadow-lg max-w-lg m-auto overflow-auto max-h-[100vh] relative'
+        action='/payment-method'
+        data-method='POST'
+    >
+        <div
+            role='heading'
+            class='w-full flex justify-between items-center px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10'
+        >
+            <h2 class='text-xl font-medium text-gray-900'>Crear Método de Pago</h2>
+            <button
+                type='button'
+                data-dismiss='modal'
+                data-ico='cancel'
+                class='material-symbols-rounded cursor-pointer flex hover:text-red-500'
+            ></button>
+        </div>
+
+        <div role='dialog' class='p-6'>
+            <div class='flex gap-4 flex-row w-full'>
+                <div class='w-full'>
+                    <label
+                        for='nombre_payment_method_create'
+                        class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                    >Nombre</label>
+                    <input
+                        type='text'
+                        name='nombre'
+                        data-valid='name'
+                        id='nombre_payment_method_create'
+                        class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        placeholder='Ingrese el Nombre'
+                        required
+                    />
+                </div>
+                <div class='w-full'>
+                    <label
+                        for='tipo_payment_method_create'
+                        class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                    >Tipo de Pago</label>
+                    <select
+                        type='text'
+                        name='tipo'
+                        data-valid='text'
+                        id='tipo_payment_method_create'
+                        class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        required
+                    >
+                        <option value='' selected>Seleccione un Tipo de Pago</option>
+                        <option
+                            value='efectivo'
+                            data-ico='payments'
+                            class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'
+                        >
+                            Efectivo
+                        </option>
+                        <option
+                            value='tarjeta'
+                            data-ico='credit_card'
+                            class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'
+                        >
+                            Tarjeta
+                        </option>
+                        <option
+                            value='digital'
+                            data-ico='devices'
+                            class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'
+                        >
+                            Digital
+                        </option>
+                        <option
+                            value='transferencia'
+                            data-ico='account_balance_wallet'
+                            class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'
+                        >
+                            Transferencia
+                        </option>
+                        <option
+                            value='otro'
+                            data-ico='info'
+                            class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'
+                        >
+                            Otro
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class='w-full mt-4'>
+                <label
+                    for='comision_payment_method_create'
+                    class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                >Comisión (%)</label>
+                <input
+                    type='text'
+                    name='comision'
+                    data-valid='float'
+                    id='comision_payment_method_create'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none text-right'
+                    placeholder='0,00'
+                    required
+                />
+            </div>
+            <div class='mt-4'>
+                <label
+                    for='descripcion_payment_method_create'
+                    class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                >Descripción</label>
+                <textarea
+                    type='text'
+                    name='descripcion'
+                    data-valid='text'
+                    id='descripcion_payment_method_create'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese la descripción'
+                    required
+                ></textarea>
+            </div>
+            <div class='mt-4'>
+                <label for='activo_payment_method_create' class='block mb-2 text-sm font-medium text-gray-900'>
+                    Método activo
+                </label>
+                <label class='inline-flex items-center cursor-pointer relative'>
+                    <!-- input invisible -->
+                    <input
+                        type='checkbox'
+                        data-valid='boolean'
+                        id='activo_payment_method_create'
+                        name='activo'
+                        class='sr-only peer'
+                    />
+
+                    <!-- fondo del switch -->
+                    <div
+                        class='w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-green-500 relative transition-colors duration-300'
+                    >
+                        <!-- pelotica -->
+                    </div>
+                    <div
+                        class='absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5'
+                    ></div>
+
+                    <!-- texto al lado -->
+                    <span class='ml-3 text-sm text-gray-700'>Activo</span>
+                </label>
+            </div>
+
+        </div>
+        <div role='doc-footnote' class='px-6 py-2 border-t border-gray-200 flex items-center justify-end gap-4'>
+            <button
+                data-dismiss='modal'
+                type='button'
+                class='inline-block bg-transparent text-gray-500 px-4 py-2 rounded-md hover:bg-gray-400/50 border border-gray-400 cursor-pointer'
+            >
+                Cancelar
+            </button>
+            <button
+                data-confirm='modal'
+                type='submit'
+                class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer'
+            >
+                Crear Método de Pago
+            </button>
+        </div>
+    </form>
+</div>

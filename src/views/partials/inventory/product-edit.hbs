@@ -1,0 +1,121 @@
+<div id='modal-edit-product' class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden' inert>
+    <form
+        class='bg-white rounded-lg shadow-lg max-w-lg m-auto overflow-auto max-h-[100vh] relative'
+        action='/product'
+        data-method='PUT'
+    >
+        <div
+            role='heading'
+            class='w-full flex justify-between items-center px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10'
+        >
+            <h2 class='text-xl font-medium text-gray-900'>Editar Producto</h2>
+            <button
+                type='button'
+                data-dismiss='modal'
+                data-ico='cancel'
+                class='material-symbols-rounded cursor-pointer flex hover:text-red-500'
+            ></button>
+        </div>
+
+        <div role='dialog' class='p-6 space-y-4'>
+            <div class='w-full'>
+                <label
+                    for='codigo_product_edit'
+                    class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                >Código</label>
+                <input
+                    type='text'
+                    name='codigo'
+                    data-valid='text'
+                    id='codigo_product_edit'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese el Código'
+                    required
+                />
+            </div>
+            <div class='flex gap-4 flex-row w-full'>
+                <div class='w-full'>
+                    <label for='nombre' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Producto</label>
+                    <input
+                        type='text'
+                        name='nombre'
+                        data-valid='name'
+                        id='nombre'
+                        class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        placeholder='Ingrese el Nombre'
+                        required
+                    />
+                </div>
+                <div class='w-full'>
+                    <label for='precio' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Precio ($)</label>
+                    <input
+                        type='text'
+                        name='precio'
+                        data-valid='float'
+                        id='precio'
+                        placeholder='0,00'
+                        class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none text-right'
+                        {{! placeholder='Ingrese el Precio' }}
+                        required
+                    />
+                </div>
+            </div>
+
+            <div class=''>
+                <label
+                    for='categoria_id'
+                    class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                >Categoria</label>
+                <select
+                    type='text'
+                    name='categoria_id'
+                    data-valid='text'
+                    id='categoria_id'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese la Categoria'
+                    required
+                >
+                    <option value='' disabled selected>Seleccione una categoría</option>
+                    {{#each categorias}}
+                        <option value='{{id}}'>{{nombre}}</option>
+                    {{/each}}
+                    {{#unless categorias.length}}
+                        <option value=''>No hay categorías disponibles</option>
+                    {{/unless}}
+                </select>
+            </div>
+            <div class=''>
+                <label
+                    for='descripcion'
+                    class='block mb-2 text-sm font-medium text-gray-900 text-start'
+                >Descripción</label>
+                <textarea
+                    type='text'
+                    name='descripcion'
+                    data-valid='text'
+                    id='descripcion'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ingrese la descripción'
+                    required
+                ></textarea>
+            </div>
+
+        </div>
+        <div role='doc-footnote' class='px-6 py-2 border-t border-gray-200 flex items-center justify-end gap-4'>
+            <button
+                data-dismiss='modal'
+                type='button'
+                class='inline-block bg-transparent text-gray-500 px-4 py-2 rounded-md hover:bg-gray-400/50 border border-gray-400 cursor-pointer'
+            >
+                Cancelar
+            </button>
+            <button
+                data-confirm='modal'
+                type='submit'
+                class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer'
+            >
+                Editar Producto
+            </button>
+        </div>
+    </form>
+</div>

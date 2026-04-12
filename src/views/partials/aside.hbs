@@ -1,0 +1,152 @@
+<div
+    class='inset-0 fixed h-screen w-full bg-black/50 content-center hidden backdrop-blur-xs z-50 transition-opacity duration-300 opacity-100'
+    id='aside-overlay'
+>
+    <div
+        class='fixed top-0 left-0 h-screen max-w-96 w-full bg-gradient-to-b from-slate-50 to-slate-100 z-50 shadow-2xl transform transition-transform duration-300 ease-in-out translate-x-0'
+    >
+        <div
+            class='flex items-center justify-between h-[60px] px-4 sticky top-0 z-30 bg-pink-100 border-b border-slate-200'
+        >
+            <div class='flex items-center'>
+                <img src='/img/logo.png' alt='Logo' class='h-10 mr-3' />
+                <div class=''>
+                    <span class='text-xl font-semibold tracking-tight text-pink-500/80'>Colores y Detalles</span>
+                    <p class='text-xs text-slate-500'>Sistema de gestión</p>
+                </div>
+            </div>
+            <button
+                data-dismiss='modal'
+                data-ico='menu'
+                type='button'
+                class='flex items-center focus:outline-none cursor-pointer material-symbols-rounded leading-0'
+            >
+            </button>
+        </div>
+        <div class='flex flex-col h-[calc(100%-4rem)] p-4 space-y-4 overflow-y-auto'>
+            <div
+                class='rounded-lg bg-card text-card-foreground bg-gradient-to-br from-emerald-500 to-teal-600 border-0 shadow-lg p-4'
+            >
+
+                <div class='flex items-center justify-between text-white'>
+                    <div class='flex items-center space-x-2'><div class='p-2 bg-white/20 rounded-lg'><svg
+                                xmlns='http://www.w3.org/2000/svg'
+                                width='24'
+                                height='24'
+                                viewBox='0 0 24 24'
+                                fill='none'
+                                stroke='currentColor'
+                                stroke-width='2'
+                                stroke-linecap='round'
+                                stroke-linejoin='round'
+                                class='lucide lucide-dollar-sign h-5 w-5'
+                            ><line x1='12' x2='12' y1='2' y2='22'></line><path
+                                    d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'
+                                ></path></svg></div><div><p class='text-sm font-medium opacity-90'>Tasa del Dólar</p><p
+                                class='text-xs opacity-75'
+                            >Actualizado ahora</p></div></div>
+
+                    <div class='text-right flex flex-col items-end'>
+                        <span data-tasa-dolar class='flex items-center font-bold'></span>
+                        <div
+                            class='inline-flex items-center rounded-full px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent hover:bg-secondary/80 bg-white/20 text-white border-0 text-xs w-fit'
+                            data-v0-t='badge'
+                        >VES</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class='flex-1 space-y-4'>
+
+                {{#if userValid}}
+                    <div class='space-y-2'>
+                        <h3 class='text-xs font-semibold text-slate-500 uppercase tracking-wider px-2'>Principal</h3>
+                        <ul class='bg-white border border-slate-200 shadow-md rounded-md w-full px-0 py-2'>
+                            <li data-dismiss='modal'>
+                                <a
+                                    data-ico='home'
+                                    href='/'
+                                    class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300 material-symbols-rounded leading-0 gap-2'
+                                >Inicio</a>
+                            </li>
+                            <li data-dismiss='modal'>
+                                <a
+                                    data-ico='help'
+                                    href='/help'
+                                    class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300 material-symbols-rounded leading-0 gap-2'
+                                >Ayuda</a>
+                            </li>
+                            <li data-dismiss='modal'>
+                                <a
+                                    href='/customers'
+                                    data-ico='group'
+                                    class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300 material-symbols-rounded leading-0 gap-2'
+                                >Clientes</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class='space-y-2'>
+                        <h3 class='text-xs font-semibold text-slate-500 uppercase tracking-wider px-2'>Productos</h3>
+                        <ul class='bg-white border border-slate-200 shadow-md rounded-md w-full px-0 py-2'>
+                            <li data-dismiss='modal'>
+                                <a
+                                    href='/inventory'
+                                    data-ico='inventory'
+                                    class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300 material-symbols-rounded leading-0 gap-2'
+                                >Inventario</a>
+                            </li>
+                            <li data-dismiss='modal'>
+                                <a
+                                    href='/payments-methods'
+                                    data-ico='wallet'
+                                    class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300 material-symbols-rounded leading-0 gap-2'
+                                >Metodos de Pago</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class='space-y-2'>
+                        <h3 class='text-xs font-semibold text-slate-500 uppercase tracking-wider px-2'>Gestión</h3>
+                        <ul class='bg-white border border-slate-200 shadow-md rounded-md w-full px-0 py-2'>
+                            <li data-dismiss='modal'>
+                                <a
+                                    href='/orders'
+                                    data-ico='shopping_cart'
+                                    class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300 material-symbols-rounded leading-0 gap-2'
+                                >Pedidos</a>
+                            </li>
+                            <li data-dismiss='modal'>
+                                <a
+                                    href='/shopping'
+                                    data-ico='shopping_bag'
+                                    class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300 material-symbols-rounded leading-0 gap-2'
+                                >Ventas</a>
+                            </li>
+
+                        </ul>
+                    </div>
+                {{else}}
+                    <ul class='bg-white border border-slate-200 shadow-md rounded-md w-full px-0 py-2'>
+                        <li data-dismiss='modal'>
+                            <a
+                                data-ico='login'
+                                href='/login'
+                                class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300 material-symbols-rounded leading-0 gap-2'
+                            >Iniciar Sesión</a>
+                        </li>
+                        <li data-dismiss='modal'>
+                            <a
+                                data-ico='help'
+                                href='/help'
+                                class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300 material-symbols-rounded leading-0 gap-2'
+                            >Ayuda</a>
+                        </li>
+                    </ul>
+                {{/if}}
+
+            </div>
+            <div class='pt-4 border-t border-slate-200'><p class='text-xs text-slate-400 text-center'>© 2024 Colores y
+                    Detalles</p></div>
+        </div>
+    </div>
+</div>
+<script type='module' src='/js/aside.js'></script>

@@ -1,0 +1,65 @@
+.main {
+    background: #dddddd;
+    background-image: url('/img/5background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+.btn-tabla {
+    background-color: transparent;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 2px;
+
+    &.btn-paginar {
+        &:disabled {
+            background-color: transparent;
+            color: #bebebe;
+            cursor: not-allowed;
+        }
+    }
+}
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+/* Elimina el icono de "ojo" nativo en Edge */
+input::-ms-reveal {
+    display: none;
+}
+
+/* Elimina el icono de "limpiar" nativo en IE/Edge */
+input::-ms-clear {
+    display: none;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+.scrollbar {
+    /* scrollbar-width: thin; */
+
+    scrollbar-color: var(--color-gray-400) transparent;
+}
+select,
+::picker(select) {
+    appearance: base-select;
+}
+/* option {
+    background: #333;
+    &:hover {
+        background: #444;
+    }
+    &:checked {
+        background: #0286c4;
+    }
+} */
+/* select::-ms-expand {
+    display: none;
+} */

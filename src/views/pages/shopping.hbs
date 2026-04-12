@@ -1,0 +1,38 @@
+<div class='container mx-auto py-4 flex flex-col items-center justify-center gap-4'>
+
+    <div id="box-register" class="flex flex-row items-center justify-center w-full h-10 bg-red-100 p-1 rounded-md">
+
+    </div>
+
+    <div id='tabs-shpping' class='flex flex-row items-center justify-center w-full h-10 bg-red-100 p-1 rounded-md'>
+
+
+        <button
+            data-tab='shopping'
+            type='button'
+            data-ico='add_shopping_cart'
+            class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+        >
+            Ventas
+        </button>
+        <button
+            data-tab='box-register'
+            type='button'
+            data-ico='receipt_long'
+            class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
+        >
+            Cajas Registradoras
+        </button>
+
+
+    </div>
+    <div id='tab-shopping' class='tab-content hidden w-full'>
+        {{> shopping/shopping}}
+    </div>
+
+    <div id='tab-box-register' class='tab-content hidden w-full'>
+        {{> shopping/box-register}}
+    </div>
+</div>
+
+<script type="module" src="/js/pages/shopping/index.js"></script>
