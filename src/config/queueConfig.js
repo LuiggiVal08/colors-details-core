@@ -6,7 +6,7 @@ import { Queue } from 'bullmq';
 const connection = new ioredis(REDIS_URL, {
     maxRetriesPerRequest: null,
 });
-
+connection.on('error', (err) => console.log('Redis Client Error', err));
 // BullMQ usará esta conexión para comunicarse con Redis
 const queue = new Queue('reportes-pdf', {
     connection,

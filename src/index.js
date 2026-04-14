@@ -23,8 +23,6 @@ io.on('connection', (socket) => {
 });
 (async () => {
     try {
-        // await sequelize.sync({ alter: true });
-        // await sequelize.sync({ alter: true, logging: console.log });
         await sequelize.sync({ logging: false });
         server.listen(PORT, () => logger.info(`🚀 Servidor corriendo en http://localhost:${PORT}`));
     } catch (error) {
