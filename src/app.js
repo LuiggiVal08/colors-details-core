@@ -74,7 +74,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(APP_SECRET));
-app.use(csrf({ excludedRoutes: ['/api/auth/login', '/api/auth/logout'] }));
+app.use(csrf({ excludedRoutes: ['/api/user/singin', '/api/user/logout'] }));
 app.use('/api', morgan('dev', { stream: { write: (message) => logger.info(message.trim()) } }));
 // Configurar Handlebars
 app.use(session); // Middleware de sesión
