@@ -41,7 +41,7 @@ const app = express();
 const devOrigins = [
     'http://localhost:8081', // Puerto actual por defecto de Expo Web
     'http://localhost:19006', // Puerto antiguo de Expo Web
-    'https://colors-details-core-production.up.railway.app/', // URL de producción
+    'https://colors-details-core-production.up.railway.app', // URL de producción
 ];
 app.use(express.static(path.join(cwd(), 'public')));
 
