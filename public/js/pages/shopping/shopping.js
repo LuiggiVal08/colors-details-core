@@ -311,9 +311,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         Format.formatEventInput({ elements: root.querySelectorAll('input, select') });
 
         const toggleReferencia = () => {
+            const methodsAccep = ['transferencia', 'digital'];
             const metodoSeleccionado = methodPaymentSelect.options[methodPaymentSelect.selectedIndex];
-            const metodoTexto = metodoSeleccionado?.textContent?.toLowerCase() || '';
-            const requiereReferencia = /pago móvil|transferencia/i.test(metodoTexto);
+            const metodoTexto = metodoSeleccionado?.dataset?.tipo.toLowerCase() || '';
+            const requiereReferencia = methodsAccep.some((m) => metodoTexto.includes(m));
+            console.log(metodoTexto);
 
             if (referenciaContainer) referenciaContainer.classList.toggle('hidden', !requiereReferencia);
             if (referenciaInput) {
@@ -330,7 +332,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Limpieza inicial
         montoPaymentInput.value = '0,00';
         montoUSDInput.value = '0,00';
-        toggleReferencia();
 
         const calcularValores = (origen = 'bs') => {
             let montoBS = 0;

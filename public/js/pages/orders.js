@@ -14,41 +14,7 @@ document.getElementById('btnAddOrder').addEventListener('click', () => {
     if (!modalOrder) return;
     setupModalLifecycle(modalOrder);
 });
-document.querySelectorAll('[data-btn="agregar-pago"]').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-        const idOrder = e.currentTarget.dataset.idOrder;
-        const modalOrder = document.getElementById('modal-create-payment-order');
-        if (!modalOrder) return;
-        // modalOrder.querySelector('[data-id-order]').value = idOrder;
-        setupModalLifecycle(modalOrder);
 
-        // Lógica condicional para referencia
-        const methodSelect = modalOrder.querySelector('#metodo_pago_id');
-        const referenciaContainer = modalOrder.querySelector('[data-referencia-container]');
-        const referenciaInput = modalOrder.querySelector('#referencia_pago');
-
-        const toggleReferencia = () => {
-            const metodoSeleccionado = methodSelect.options[methodSelect.selectedIndex];
-            const metodoTexto = metodoSeleccionado?.textContent?.toLowerCase() || '';
-            const requiereReferencia = /pago móvil|transferencia/i.test(metodoTexto);
-
-            if (referenciaContainer) referenciaContainer.classList.toggle('hidden', !requiereReferencia);
-            if (referenciaInput) {
-                referenciaInput.required = requiereReferencia;
-                referenciaInput.readOnly = !requiereReferencia;
-                referenciaInput.value = requiereReferencia
-                    ? referenciaInput.value === 'N/A'
-                        ? ''
-                        : referenciaInput.value
-                    : 'N/A';
-            }
-        };
-
-        methodSelect.addEventListener('change', toggleReferencia);
-        // Inicializar
-        toggleReferencia();
-    });
-});
 // Tabla de pedidos con paginación y filtros
 document.addEventListener('DOMContentLoaded', async () => {
     const response = await httpClient.get('/orders');
@@ -56,24 +22,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     setupFilteredTable({
         data: orders,
-        // filterInputs: {
-        //     searchClient: document.getElementById('searchClient'),
-        //     searchDate: document.getElementById('searchDate'),
-        //     searchStatus: document.getElementById('searchStatus'),
-        // },
-        // filterFn: (order, inputs) => {
-        //     const { searchClient, searchDate, searchStatus } = inputs;
-
-        //     const valueClient = searchClient.value.trim();
-        //     const valueDate = searchDate.value.trim();
-        //     const valueStatus = searchStatus.value.trim();
-
-        //     const filtroClient = valueClient === '' || order.cliente.cedula.startsWith(valueClient);
-        //     const filtroDate = valueDate === '' || order.fecha.startsWith(valueDate);
-        //     const filtroStatus = valueStatus === '' || order.estado.startsWith(valueStatus);
-
-        //     return filtroClient && filtroDate && filtroStatus;
-        // },
 
         fillTableOptions: {
             templateId: 'fila-ejemplo-pedidos',
@@ -200,9 +148,11 @@ const addOrderPayment = async (id) => {
         const lblPendienteBS = modalOrder.querySelector('[data-pedido-pendiente-bs]');
 
         const toggleReferencia = () => {
+            const methodsAccep = ['transferencia', 'digital'];
             const metodoSeleccionado = methodPaymentSelect.options[methodPaymentSelect.selectedIndex];
-            const metodoTexto = metodoSeleccionado?.textContent?.toLowerCase() || '';
-            const requiereReferencia = /pago móvil|transferencia/i.test(metodoTexto);
+            const metodoTexto = metodoSeleccionado?.dataset?.tipo.toLowerCase() || '';
+            const requiereReferencia = methodsAccep.some((m) => metodoTexto.includes(m));
+            console.log(metodoTexto);
 
             if (referenciaContainer) referenciaContainer.classList.toggle('hidden', !requiereReferencia);
             if (referenciaInput) {
@@ -220,7 +170,6 @@ const addOrderPayment = async (id) => {
         montoPaymentInput.value = '';
         montoComisionInput.value = '0,00';
         montoUSDInput.value = '0,00';
-        toggleReferencia();
 
         Format.formatEventInput({ elements: modalOrder.querySelectorAll('input, select') });
 

@@ -1,6 +1,6 @@
 <div id='modal-create-shopping' class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden' inert>
     <form
-        class='bg-white rounded-lg shadow-lg max-w-lg m-auto overflow-auto max-h-[100vh] relative'
+        class='bg-white rounded-lg shadow-lg w-full m-auto overflow-auto max-h-[100vh] relative'
         action='/shopping'
         data-method='POST'
         id='shopping-form'
@@ -291,7 +291,7 @@
         class='flex flex-row gap-4 items-center pago-item border border-dashed border-blue-500 bg-blue-400/10 rounded-md shadow-sm min-h-10 p-4 divide-x-1 divide-blue-500/50'
     >
         <input type='hidden' name='pagos[][tasa_id]' value='{{tasaDolar.id}}' data-valid='text' />
-        <div class='space-y-4 pr-4'>
+        <div class='pr-4 w-full flex gap-4'>
 
             <div class='w-full parent'>
                 <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
@@ -301,7 +301,7 @@
                     type='text'
                     name='pagos[][metodo_pago_id]'
                     data-valid='text'
-                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 w-full p-2 outline-none'
                     required=''
                 >
                     <option value='' selected=''>Seleccione un método de pago</option>
@@ -310,7 +310,6 @@
                             {{tipo}}
                             -
                             {{nombre}}
-                            ({{comision}}%)
                         </option>
                     {{/each}}
                     {{#unless methodsPayment.length}}
