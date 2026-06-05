@@ -8,6 +8,15 @@ import { setupFilteredTable } from '../helpers/setupFilteredTable.js';
 import intoIcon from '../helpers/intoIcon.js';
 import badge from '../helpers/badge.js';
 import { generarPDF } from '../helpers/generatePdf.js';
+import { initStatusBar } from '../components/statusBar.js';
+
+const removeOrderUrlParam = () => {
+    const url = new URL(window.location);
+    if (url.searchParams.has('id')) {
+        url.searchParams.delete('id');
+        window.history.replaceState({}, '', url);
+    }
+};
 
 document.getElementById('btnAddOrder').addEventListener('click', () => {
     const modalOrder = document.getElementById('modal-create-order');
@@ -19,10 +28,18 @@ document.getElementById('btnAddOrder').addEventListener('click', () => {
 document.addEventListener('DOMContentLoaded', async () => {
     const response = await httpClient.get('/orders');
     const { data: orders } = response;
+    const searchInput = document.getElementById('search-orders');
 
     setupFilteredTable({
         data: orders,
-
+        filterInputs: { search: searchInput },
+        filterFn: (item, inputs) => {
+            const term = inputs.search?.value?.toLowerCase().trim() || '';
+            if (!term) return true;
+            const clientName = `${item.cliente?.nombre || ''} ${item.cliente?.apellido || ''}`.toLowerCase();
+            const orderId = String(item.id);
+            return clientName.includes(term) || orderId.includes(term);
+        },
         fillTableOptions: {
             templateId: 'fila-ejemplo-pedidos',
             tableSelector: '#pedidos-tabla-body',
@@ -137,15 +154,14 @@ const addOrderPayment = async (id) => {
 
         modalOrder.querySelector('input[name="pedido_id"]').value = pedido.id;
 
-        // 🧩 Elementos del formulario
-        const methodPaymentSelect = modalOrder.querySelector('select[name="metodo_pago_id"]');
-        const montoPaymentInput = modalOrder.querySelector('input[name="monto_payment"]'); // Bs
-        const montoComisionInput = modalOrder.querySelector('input[name="comision"]');
-        const montoUSDInput = modalOrder.querySelector('input[name="monto"]'); // $
-        const referenciaContainer = modalOrder.querySelector('[data-referencia-container]');
-        const referenciaInput = modalOrder.querySelector('input[name="referencia_pago"]');
-        const lblPendienteUSD = modalOrder.querySelector('[data-pedido-pendiente]');
-        const lblPendienteBS = modalOrder.querySelector('[data-pedido-pendiente-bs]');
+         // 🧩 Elementos del formulario
+         const methodPaymentSelect = modalOrder.querySelector('select[name="metodo_pago_id"]');
+         const montoPaymentInput = modalOrder.querySelector('input[name="monto_payment"]'); // Bs
+         const montoUSDInput = modalOrder.querySelector('input[name="monto"]'); // $
+         const referenciaContainer = modalOrder.querySelector('[data-referencia-container]');
+         const referenciaInput = modalOrder.querySelector('input[name="referencia_pago"]');
+         const lblPendienteUSD = modalOrder.querySelector('[data-pedido-pendiente]');
+         const lblPendienteBS = modalOrder.querySelector('[data-pedido-pendiente-bs]');
 
         const toggleReferencia = () => {
             const methodsAccep = ['transferencia', 'digital'];
@@ -166,18 +182,14 @@ const addOrderPayment = async (id) => {
             }
         };
 
-        // 🧹 Limpieza inicial
-        montoPaymentInput.value = '';
-        montoComisionInput.value = '0,00';
-        montoUSDInput.value = '0,00';
+         // 🧹 Limpieza inicial
+         montoPaymentInput.value = '';
+         montoUSDInput.value = '0,00';
 
         Format.formatEventInput({ elements: modalOrder.querySelectorAll('input, select') });
 
         // 🔢 Calcular valores (bidireccional)
         const calcularValores = (origen = 'bs') => {
-            const metodoSeleccionado = methodPaymentSelect.options[methodPaymentSelect.selectedIndex];
-            const porcentajeComision = parseFloat(metodoSeleccionado?.dataset?.comision || 0);
-
             let montoBS = 0;
             let montoUSD = 0;
 
@@ -193,12 +205,7 @@ const addOrderPayment = async (id) => {
                 montoBS = montoIngresadoUSD * tasa;
             }
 
-            // 💰 Aplicar comisión
-            const comisionBS = montoBS * (porcentajeComision / 100);
-            const montoBSMenosComision = montoBS - comisionBS;
-
             // 🧾 Actualizar campos
-            montoComisionInput.value = Format.float(montoBSMenosComision.toFixed(2));
             montoPaymentInput.value = Format.float(montoBS.toFixed(2));
             montoUSDInput.value = Format.float(montoUSD.toFixed(2));
 
@@ -283,6 +290,7 @@ const viewOrder = async (id) => {
         // 5. Info general del pedido
         // ================================
         modal.querySelector('[data-pedido-date]').textContent = fechaTexto;
+        modal.querySelector('[data-pedido-id]').textContent = `Pedido #${pedido.id}`;
         modal.querySelector('[data-pedido-status]').textContent = pedido.estado;
         modal.querySelector('[data-pedido-observaciones]').textContent = observaciones;
 
@@ -323,14 +331,13 @@ const viewOrder = async (id) => {
             fillTableOptions: {
                 templateId: 'fila-ejemplo-pago',
                 tableSelector: '#pedido-pagos',
-                formatters: {
-                    fecha: (p) => new Date(p.fecha).toLocaleDateString('es-ES'),
-                    tipo: (p) => p.metodo.nombre,
-                    referencia: (p) => p.referencia_pago,
-                    comision: (p) => p.metodo.comision + '%',
-                    monto: (p) => '$' + Format.float(p.monto),
-                    monto_bs: (p) => '$' + Format.float((Number(p.monto) * Number(tasa)).toFixed(2)),
-                },
+                 formatters: {
+                     fecha: (p) => new Date(p.fecha).toLocaleDateString('es-ES'),
+                     tipo: (p) => p.metodo.nombre,
+                     referencia: (p) => p.referencia_pago,
+                     monto: (p) => '$' + Format.float(p.monto),
+                     monto_bs: (p) => '$' + Format.float((Number(p.monto) * Number(tasa)).toFixed(2)),
+                 },
             },
         });
 
@@ -353,6 +360,7 @@ const viewOrder = async (id) => {
             () => {
                 btnAgregarPago.removeEventListener('click', handler);
                 btnEditStatus.removeEventListener('click', handlerEditStatus);
+                removeOrderUrlParam();
             },
         );
     } catch (error) {
@@ -663,4 +671,14 @@ const calcularTotales = () => {
 };
 document.getElementById('generate_pdf_order').addEventListener('click', () => {
     generarPDF('#order-general-info', 'detalle_pedido');
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    initStatusBar();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('id');
+    if (orderId) viewOrder(orderId);
 });
