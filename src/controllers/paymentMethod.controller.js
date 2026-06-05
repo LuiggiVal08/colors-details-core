@@ -1,5 +1,6 @@
 import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
+import { Op } from 'sequelize';
 import { z } from 'zod';
 
 const metodoPagoSchema = z.object({
@@ -7,13 +8,31 @@ const metodoPagoSchema = z.object({
     descripcion: z.string().optional(),
     tipo: z.string().min(1, 'El tipo es obligatorio'),
     activo: z.boolean(),
-    comision: z.string().optional(),
 });
 
 class MetodoPagoController {
     static async getAll(req, res) {
         try {
-            const metodos = await models.MetodoPago.findAll();
+            const { search, tipo, page, limit } = req.query;
+            const where = {};
+
+            if (search) {
+                where[Op.or] = [{ nombre: { [Op.like]: `%${search}%` } }];
+            }
+
+            if (tipo) {
+                where.tipo = tipo;
+            }
+
+            const queryOptions = { where };
+
+            // Paginación (opcional para el móvil)
+            if (page && limit) {
+                queryOptions.limit = parseInt(limit);
+                queryOptions.offset = (parseInt(page) - 1) * parseInt(limit);
+            }
+
+            const metodos = await models.MetodoPago.findAll(queryOptions);
             res.json(metodos);
         } catch (error) {
             handleErrorsController(error, res, req);
@@ -44,7 +63,7 @@ class MetodoPagoController {
             }
 
             const metodo = await models.MetodoPago.create(data);
-            res.status(201).json({ metodo });
+            res.status(201).json(metodo);
         } catch (error) {
             handleErrorsController(error, res, req);
         }

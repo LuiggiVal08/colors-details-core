@@ -134,14 +134,13 @@ const viewPurchase = async (id) => {
                 fillTableOptions: {
                     templateId: 'fila-ejemplo-pago-purchase',
                     tableSelector: '#purchase-pagos',
-                    formatters: {
-                        fecha: (p) => new Date(p.fecha).toLocaleDateString('es-ES'),
-                        tipo: (p) => p.metodo_pago.nombre,
-                        referencia: (p) => p.referencia_pago,
-                        comision: (p) => p.metodo_pago.comision + '%',
-                        monto: (p) => '$' + Format.float(p.monto),
-                        monto_bs: (p) => '$' + Format.float((Number(p.monto) * Number(tasa)).toFixed(2)),
-                    },
+                 formatters: {
+                     fecha: (p) => new Date(p.fecha).toLocaleDateString('es-ES'),
+                     tipo: (p) => p.metodo_pago.nombre,
+                     referencia: (p) => p.referencia_pago,
+                     monto: (p) => '$' + Format.float(p.monto),
+                     monto_bs: (p) => '$' + Format.float((Number(p.monto) * Number(tasa)).toFixed(2)),
+                 },
                 },
             });
 
