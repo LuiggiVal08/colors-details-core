@@ -4,6 +4,7 @@ import jwt from '../helpers/jwt.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 import bcrypt from 'bcryptjs';
 import { timeExpiresToken } from '../constants.js';
+import logger from '../config/logger.js';
 
 const schemaUserSingIn = z.object({
     username: z.string().min(1, 'El nombre de usuario es obligatorio'),
@@ -33,9 +34,9 @@ class UserController {
             });
 
             if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
-            // la contraseña debe ser encriptada antes de compararla
-            const validPassword = await bcrypt.compare(password, user.password);
-            if (!validPassword) return res.status(401).json({ message: 'Contraseña incorrecta' });
+
+            if (!(await bcrypt.compare(password, user.password)))
+                return res.status(401).json({ message: 'Contraseña incorrecta' });
 
             const payload = {
                 id: user.id,
@@ -54,13 +55,14 @@ class UserController {
             const dataResponse = {
                 id: user.id,
                 username: user.username,
-                fullName: user.empleado ? `${user.empleado.nombre} ${user.empleado.apellido}` : null,
+                fullName: user.empleado ? `${user.empleado?.nombre} ${user.empleado?.apellido}` : null,
                 role: user.tipo ? user.tipo.nombre : null,
                 token: token,
             };
             res.setHeader('Authorization', `Bearer ${token}`);
             res.status(200).json(dataResponse);
         } catch (error) {
+            logger.error(error);
             handleErrorsController(error, res, req);
         }
     }

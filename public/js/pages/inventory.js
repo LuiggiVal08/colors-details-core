@@ -34,8 +34,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             },
         },
         paginationButtons: {
-            prev: document.querySelector('#btnAnteriorCategory'),
-            next: document.querySelector('#btnSiguienteCategory'),
+            prev: document.querySelector('#paginador-tabla-categorias .btn-paginar:first-child'),
+            next: document.querySelector('#paginador-tabla-categorias .btn-paginar:last-child'),
         },
         itemsPerPage: 4,
     });
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 stock: (dato) => dato.stock.toString(),
                 precio: (dato) => `$${Format.float(dato.precio)}`,
                 precio_bs: (dato) => {
-                    const tasaValue = tasa?.tasa ?? 1; // si tasa es null/undefined, usa 1
+                    const tasaValue = tasa?.tasa ?? 1;
 
                     console.log(tasaValue);
 
@@ -113,8 +113,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             },
         },
         paginationButtons: {
-            prev: document.querySelector('#btnAnteriorProducts'),
-            next: document.querySelector('#btnSiguienteProducts'),
+            prev: document.querySelector('#paginador-tabla-productos .btn-paginar:first-child'),
+            next: document.querySelector('#paginador-tabla-productos .btn-paginar:last-child'),
         },
         itemsPerPage: 4,
     });

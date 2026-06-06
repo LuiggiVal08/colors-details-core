@@ -1,91 +1,80 @@
 {{> payments/payment-method-create}}
 {{> payments/payment-method-edit}}
-<div class='p-4'>
-<div class='bg-red-100 shadow-lg rounded-lg p-6 w-full flex-col gap-4 flex '>
-    <div class='flex flex-row items-center justify-between'>
-        <div class=''>
-            <div class='flex flex-row gap-4'>
-                <span data-ico='payment' class='material-symbols-rounded md-28'></span>
-                <h3 class='text-xl font-medium text-gray-900'>Métodos de Pago</h3>
+<div class="content-center py-4 flex-1 container mx-auto">
+    <div class='bg-red-100 shadow-lg rounded-lg p-6 w-full flex flex-col gap-4'>
+        <div class='flex flex-row items-center justify-between flex-wrap gap-4'>
+            <div class=''>
+                <div class='flex flex-row gap-4'>
+                    <span data-ico='payment' class='material-symbols-rounded md-28'></span>
+                    <h1 class='text-xl font-medium text-gray-900'>Métodos de Pago</h1>
+                </div>
+                <span>Configura los métodos de pago disponibles</span>
             </div>
-            <span>Configura los métodos de pago disponibles</span>
-        </div>
-        <div class='flex flex-row items-center gap-2'>
-            <input
-                type='text'
-                name='code'
-                id='searchPaymentMethod'
-                placeholder='Buscar Método de Pago'
-                class='bg-red-300/30 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-            />
-            <select
-                type='text'
-                name='tipo'
-                data-valid='text'
-                id='searchTypePaymentMethod'
-                class='bg-red-300/30 border min-w-56 border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-                required
-            >
-                <option value='' selected>Seleccione un Tipo de Pago</option>
-                <option value='efectivo' data-ico='payments' class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'>
-                    Efectivo
-                </option>
-                <option value='tarjeta' data-ico='credit_card' class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'>
-                    Tarjeta
-                </option>
-                <option value='digital' data-ico='devices' class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'>
-                    Digital
-                </option>
-                <option value='transferencia' data-ico='account_balance_wallet' class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'>
-                    Transferencia
-                </option>
-                <option value='otro' data-ico='info' class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'>
-                    Otro
-                </option>
-            </select>
-            <button
-                type='button'
-                data-ico='add'
-                id='btn-add-payment-method'
-                class='material-symbols-rounded bg-red-400 hover:bg-red-500 duration-300 text-white px-4 py-2 rounded-md text-nowrap cursor-pointer flex items-center gap-2'
-            >
-                Agregar Método de Pago
-            </button>
+            <div class='flex flex-col md:flex-row items-center gap-2 flex-nowrap w-full md:w-auto'>
+                <input
+                    type='text'
+                    name='code'
+                    id='searchPaymentMethod'
+                    placeholder='Buscar Método de Pago'
+                    class='bg-red-300/30 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 flex w-full p-2 outline-none'
+                />
+                <select
+                    type='text'
+                    name='tipo'
+                    data-valid='text'
+                    id='searchTypePaymentMethod'
+                    class='bg-red-300/30 border  border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 flex w-full p-2 outline-none flex-nowrap text-nowrap'
+                    required
+                >
+                    <option value='' selected>Seleccione un Tipo de Pago</option>
+                    <option value='efectivo' data-ico='payments' class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'>
+                        Efectivo
+                    </option>
+                    <option value='tarjeta' data-ico='credit_card' class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'>
+                        Tarjeta
+                    </option>
+                    <option value='digital' data-ico='devices' class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'>
+                        Digital
+                    </option>
+                    <option value='transferencia' data-ico='account_balance_wallet' class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'>
+                        Transferencia
+                    </option>
+                    <option value='otro' data-ico='info' class='material-symbols-rounded md-28 before:text-gray-700 before:hover:text-gray-500 leading-0'>
+                        Otro
+                    </option>
+                </select>
 
+            </div>
+                {{> components/action-btn id='btn-add-payment-method' icon='add' label='Agregar Método de Pago'}}
         </div>
-    </div>
-    <div class='overflow-x-auto scrollbar rounded-md border border-red-400/50'>
-        <table class='w-full border-collapse table caption-bottom'>
-            <thead class="[&_tr]:border-b border-red-400/50">
-                <tr class="border-b border-red-400/50">
-                    <th align='start' align='start' class='text-gray-900 font-medium p-3'>Metodo</th>
-                    <th align='center' align='start' class='text-gray-900 font-medium p-3'>Tipo</th>
-                    <th align='center' class='text-gray-900 font-medium p-3'>Comisión (%)</th>
-                    <th align='center' class='text-gray-900 font-medium p-3'>Estado</th>
-                    <th align='center' class='text-gray-900 font-medium p-3'>Decripción</th>
-                    <th align='center' class='text-gray-900 font-medium p-3'>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id='table-payment-methods' class="[&_tr:last-child]:border-0">
-                {{! Aquí se insertarán las filas dinámicamente }}
-                <tr class="border-b transition-colors ">
-                    <td colspan='6' class='text-center p-3'>Cargando...</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-        <div class='w-full flex justify-end items-center gap-2' id='paginador-tabla'>
-            <button data-ico="arrow_back" class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent  px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400' disabled>Anterior</button>
-            <button data-ico="arrow_forward" class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent  px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400' disabled>Siguiente</button>
+        <div class='overflow-x-auto scrollbar rounded-md border border-red-400/50'>
+            <table class='w-full border-collapse table caption-bottom'>
+                <thead class="[&_tr]:border-b border-red-400/50">
+                    <tr class="border-b border-red-400/50">
+                        <th align='start' align='start' class='text-gray-900 font-medium p-3'>Método</th>
+                        <th align='center' align='start' class='text-gray-900 font-medium p-3'>Tipo</th>
+                        <th align='center' class='text-gray-900 font-medium p-3 hidden'>Comisión (%)</th>
+                        <th align='center' class='text-gray-900 font-medium p-3'>Estado</th>
+                        <th align='center' class='text-gray-900 font-medium p-3'>Descripción</th>
+                        <th align='center' class='text-gray-900 font-medium p-3'>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id='table-payment-methods' class="[&_tr:last-child]:border-0">
+                    {{! Aquí se insertarán las filas dinámicamente }}
+                    <tr class="border-b transition-colors ">
+                        <td colspan='6' class='text-center p-3'>Cargando...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-</div>
-
+        {{> components/pagination id='paginador-tabla' disablePrev=true disableNext=true}}
+    </div>
 </div>
 <template id='template-payment-method'>
     <tr class='hover:bg-pink-400/10 transition-all duration-300 border-b border-red-400/50'>
         <td align='start' class=' p-4 align-middle max-w-xs truncate' data-key='nombre' class='text-nowrap'></td>
         <td align='center' class=' p-4 align-middle max-w-xs truncate' data-key='tipo'></td>
-        <td align='center' class=' p-4 align-middle max-w-xs truncate' data-key='comision'></td>
+        <td align='center' class=' p-4 align-middle max-w-xs truncate hidden' data-key='comision'></td>
         <td align='center' class=' p-4 align-middle max-w-xs truncate' data-key='estado'></td>
         <td align='center' class=' p-4 align-middle max-w-xs truncate' data-key='descripcion'></td>
         <td align='center' class=' p-4 align-middle max-w-xs truncate'>

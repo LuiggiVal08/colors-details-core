@@ -244,43 +244,45 @@ router.get('/settings', isAuthenticatedView, validRole(['admin', 'superadmin']),
 });
 router.get('/settings/service/:id', isAuthenticatedView, async (req, res) => {
     const { id } = req.params;
-    const service = await models.ServicioEmpresa.findByPk(id, {
-        include: [{ model: models.ServicioPeriodo, as: 'periodos' }],
-    });
+    const service = await models.ServicioEmpresa.findByPk(id);
     const serviceJson = service ? service.toJSON() : null;
 
-    // Tomamos el último periodo (si existe) para obtener la fecha de corte
-    const pago_actual = serviceJson?.periodos?.[0] ?? null;
-    const fecha_corte = pago_actual ? new Date(pago_actual.fecha_corte).toLocaleDateString() : null;
+    // Computar próximo corte real desde dia_corte + hoy
+    const hoy = new Date();
+    const diaCorte = serviceJson?.dia_corte ?? 1;
+    let proxCorte = new Date(hoy.getFullYear(), hoy.getMonth(), diaCorte);
+    if (proxCorte <= hoy) {
+        proxCorte = new Date(hoy.getFullYear(), hoy.getMonth() + 1, diaCorte);
+    }
+    // Manejar overflow de días (ej. dia_corte=31 en mes de 30 días)
+    if (proxCorte.getDate() !== diaCorte) {
+        proxCorte = new Date(proxCorte.getFullYear(), proxCorte.getMonth() + 1, 0);
+    }
+    const proximoCorteStr = proxCorte.toLocaleDateString();
 
-    // Obtener historial de precios y periodos para la vista
-    const preciosRaw = await models.ServicioPrecio.findAll({
-        where: { servicio_id: id },
-        order: [['fecha_inicio', 'DESC']],
-    });
     const periodosRaw = await models.ServicioPeriodo.findAll({
         where: { servicio_id: id },
         order: [['fecha_corte', 'DESC']],
     });
 
-    const precios = preciosRaw.map((p) => {
-        const pj = p.toJSON ? p.toJSON() : p;
-        return {
-            ...pj,
-            fecha_inicio: pj.fecha_inicio ? new Date(pj.fecha_inicio).toLocaleDateString() : null,
-            fecha_fin: pj.fecha_fin ? new Date(pj.fecha_fin).toLocaleDateString() : null,
-            precio: typeof pj.precio === 'number' ? pj.precio.toFixed(2) : pj.precio,
-        };
-    });
-
+    const now = new Date();
     const periodos = periodosRaw.map((r) => {
         const pj = r.toJSON ? r.toJSON() : r;
+        const fechaCorte = pj.fecha_corte ? new Date(pj.fecha_corte + 'T00:00:00') : null;
+        const diffTime = fechaCorte ? fechaCorte - now : null;
+        const diffDias = diffTime ? Math.ceil(diffTime / (1000 * 60 * 60 * 24)) : null;
+        const vencido = !!(fechaCorte && fechaCorte < now && pj.estado !== 'paid');
+
         return {
             ...pj,
             fecha_generada: pj.fecha_generada ? new Date(pj.fecha_generada).toLocaleDateString() : null,
-            fecha_corte: pj.fecha_corte ? new Date(pj.fecha_corte).toLocaleDateString() : null,
+            fecha_corte: fechaCorte ? fechaCorte.toLocaleDateString() : null,
             amount_due: pj.amount_due ?? null,
             amount_balance: pj.amount_balance ?? null,
+            diff_dias: diffDias,
+            vencido,
+            pagado: pj.estado === 'paid',
+            parcial: pj.estado === 'partial',
         };
     });
 
@@ -290,15 +292,14 @@ router.get('/settings/service/:id', isAuthenticatedView, async (req, res) => {
         service: {
             ...serviceJson,
             creado_en: serviceJson?.creado_en ? new Date(serviceJson.creado_en).toLocaleDateString() : null,
-            fecha_corte,
-            coste: serviceJson?.coste
-                ? `$${serviceJson.coste.toLocaleString('es-VE', {
+            fecha_corte: proximoCorteStr,
+            coste: serviceJson?.precio
+                ? `$${Number(serviceJson.precio).toLocaleString('es-VE', {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                   })}`
                 : 'Sin Coste',
         },
-        precios,
         periodos,
     });
 });
@@ -312,6 +313,9 @@ router.get('/settings/employe/:id', isAuthenticatedView, async (req, res) => {
 
         employe: employe ? employe.toJSON() : null,
     });
+});
+router.get('/payroll', isAuthenticatedView, validRole(['admin', 'superadmin']), (req, res) => {
+    res.render(basePath('payroll'), { title: 'Nómina' });
 });
 router.get('/settings/*splat', (req, res) => {
     return res.redirect('/settings');

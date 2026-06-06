@@ -55,6 +55,14 @@ export default function setupTabs(
             // Guardar en localStorage
             const storageKey = `tabs-${containerSelector}`;
             localStorage.setItem(storageKey, module);
+
+            // Sincronizar query param en URL
+            const url = new URL(window.location);
+            const current = url.searchParams.get('tab');
+            if (current !== module) {
+                url.searchParams.set('tab', module);
+                window.history.replaceState({}, '', url);
+            }
         };
 
         // Eventos de clic
@@ -68,12 +76,16 @@ export default function setupTabs(
             });
         });
 
-        // Activar tab desde hash en URL
+        // Prioridad de activación: query param > hash > localStorage > first
+        const params = new URLSearchParams(window.location.search);
+        const tabParam = params.get('tab');
+        const queryBtn = tabParam ? Array.from(buttons).find((b) => b.getAttribute('data-tab') === tabParam) : null;
+        if (queryBtn) return activateTab(queryBtn);
+
         const hash = window.location.hash.replace('#', '');
         const hashBtn = Array.from(buttons).find((b) => b.getAttribute('data-tab') === hash);
         if (hashBtn) return activateTab(hashBtn);
 
-        // Activar tab guardado en localStorage
         const saved = localStorage.getItem(`tabs-${containerSelector}`);
         const savedBtn = Array.from(buttons).find((b) => b.getAttribute('data-tab') === saved);
         if (savedBtn) return activateTab(savedBtn);

@@ -28,7 +28,7 @@
                     data-valid='text'
                     id='tipo_usuario_id_user_edit'
                     class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-                    placeholder='Ingrese la Proveedor'
+                    placeholder='Ingrese el Proveedor'
                     required
                 >
                     <option value=''>Seleccione un Tipo de Usuario</option>
@@ -72,13 +72,7 @@
             >
                 Cancelar
             </button>
-            <button
-                data-confirm='modal'
-                type='submit'
-                class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer'
-            >
-                Editar
-            </button>
+            {{> components/submit-btn icon='save' label='Editar'}}
         </div>
     </form>
 </div>

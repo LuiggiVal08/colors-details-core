@@ -103,6 +103,7 @@ const editEmploye = async (id) => {
 
         form.querySelector('[name="fecha_ingreso"]').value = new Date(client.fecha_ingreso).toISOString().split('T')[0];
         form.querySelector('[name="salario_base"]').value = Format.float(client.salario_base);
+        form.querySelector('[name="frecuencia_pago"]').value = client.frecuencia_pago || 'mensual';
         form.querySelector('[name="activo"]').checked = client.activo;
     }
 

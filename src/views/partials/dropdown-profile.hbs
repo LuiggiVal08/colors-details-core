@@ -1,47 +1,35 @@
 <div class='relative'>
-    <button
-        type='button'
-        class='flex items-center focus:outline-none cursor-pointer leading-0 rounded-full overflow-hidden size-8'
+    <button type='button'
+        class='flex items-center focus:outline-none cursor-pointer leading-0 rounded-full overflow-hidden size-8 ring-2 ring-pink-200 hover:ring-pink-400 transition-all'
         id='btn-profile'
-    >
-        <img src='/img/profile-default.png' alt='Profile' class='w-full h-full object-cover' />
+        aria-label='Menú de perfil'>
+        <img src='/img/profile-default.png' alt='' class='w-full h-full object-cover' />
     </button>
-    <div
-        class='absolute right-0 mt-2 top-full w-52 bg-white rounded-md shadow-lg z-20 py-2 hidden'
-        id='profile-dropdown'
-    >
-        <a
-            href='/profile'
-            class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300'
-        >Perfil</a>
+    <div class='absolute right-0 mt-2 top-full w-52 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-2 hidden'
+        id='profile-dropdown'>
+        <a href='/profile'
+            class='text-gray-700 h-12 w-full hover:bg-pink-50 flex items-center justify-start hover:border-l-4 border-pink-500 pl-4 duration-200 text-sm'>
+            Perfil
+        </a>
         {{#with user}}
             {{#if this.superadmin}}
-                <a
-                    href='/management'
-                    class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300'
-                >Mantenimiento</a>
+                <a href='/management'
+                    class='text-gray-700 h-12 w-full hover:bg-pink-50 flex items-center justify-start hover:border-l-4 border-pink-500 pl-4 duration-200 text-sm'>
+                    Mantenimiento
+                </a>
             {{/if}}
             {{#if this.admin}}
-                <a
-                    href='/settings'
-                    class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300'
-                >Configuración</a>
+                <a href='/settings'
+                    class='text-gray-700 h-12 w-full hover:bg-pink-50 flex items-center justify-start hover:border-l-4 border-pink-500 pl-4 duration-200 text-sm'>
+                    Configuración
+                </a>
             {{/if}}
         {{/with}}
-        <button
-            id='logout-btn-aside'
-            class='text-gray-700 h-12 w-full hover:bg-gray-500/10 flex items-center justify-start hover:border-l-4 border-pink-500/80 pl-4 duration-300 cursor-pointer'
-        >Cerrar Sesion</button>
-
-        <script type='module'>
-            import { httpClient } from '/js/index.js'; const logoutBtn = document.getElementById('logout-btn-aside');
-            logoutBtn.addEventListener('click', async () => { await httpClient.delete('/user/logout');
-            location.reload(); });
-        </script>
+        <hr class='my-1 border-gray-100'>
+        <button id='logout-btn-aside'
+            class='text-gray-700 h-12 w-full hover:bg-pink-50 flex items-center justify-start hover:border-l-4 border-pink-500 pl-4 duration-200 text-sm cursor-pointer'>
+            Cerrar Sesión
+        </button>
     </div>
-    <script type='module'>
-        import handleDropdown from '/js/helpers/handleDropdown.js'; const btnProfile =
-        document.getElementById('btn-profile'); const profileDropdown = document.getElementById('profile-dropdown');
-        handleDropdown(btnProfile, profileDropdown);
-    </script>
 </div>
+<script src='/js/partials/dropdownProfile.js' type='module'></script>

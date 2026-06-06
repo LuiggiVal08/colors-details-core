@@ -1,6 +1,6 @@
 <div id='modal-create-order' class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden' inert>
     <form
-        class='bg-white rounded-lg shadow-lg max-w-2xl m-auto overflow-auto max-h-[100vh] relative'
+        class='bg-white rounded-lg shadow-lg max-w-3xl w-full m-auto overflow-auto max-h-[100vh] relative'
         action='/orders'
         data-method='POST'
         id='pedido-form'
@@ -20,6 +20,7 @@
 
         <div role='dialog' class='p-6 space-y-4'>
             <input type='hidden' name='iva_id' value='{{iva.id}}' data-valid='text' />
+            <input type='hidden' name='iva_porcentaje' value='{{iva.porcentaje}}' data-valid='text' />
             <input type='hidden' name='usuario_id' value='{{user.id}}' data-valid='text' />
             <div class='flex flex-col gap-4'>
                 <div class='w-full'>
@@ -106,7 +107,7 @@
                 >
                     Agregar producto
                 </button>
-                <div class='flex flex-row gap-2 items-center'>
+                <div class='flex flex-col md:flex-row gap-2 items-center'>
                     <div class='w-full'>
                         <label for='total' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
                             Total $ (sin IVA)
@@ -137,7 +138,6 @@
                             class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none text-right'
                             placeholder='0,00'
                             data-valid='float'
-                            data-value='{{iva.porcentaje}}'
                             value='0,00'
                             readonly
                         />
@@ -172,128 +172,94 @@
             >
                 Cancelar
             </button>
-            <button
-                data-confirm='modal'
-                type='submit'
-                class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer'
-            >
-                Crear Pedido
-            </button>
+            {{> components/submit-btn icon='shopping_cart' label='Crear Pedido'}}
         </div>
     </form>
 </div>
 <!-- TEMPLATE PARA DETALLES DE PEDIDO -->
 <template id='template-detalle-producto'>
-    <div
-        class='flex flex-row gap-4 items-center detalle-item border border-dashed border-blue-500 bg-blue-400/10 rounded-md shadow-sm min-h-10 p-4 divide-x-1 divide-blue-500/50'
-    >
-        <div class='flex flex-col gap-4 w-full pr-4'>
+    <div class='detalle-item grid grid-cols-1 gap-2 rounded-md border border-dashed border-blue-500 bg-blue-400/10 p-3 shadow-sm md:grid-cols-[2.2fr_0.8fr_0.9fr_1.2fr_0.9fr_auto] items-center'>
+        <div class='relative md:col-span-1'>
+            <label class='sr-only'>Código o nombre del producto</label>
+            <input
+                type='text'
+                name='detalles[][codigo]'
+                class='codigo-input w-full bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 p-2 outline-none'
+                placeholder='Buscar producto por nombre o código'
+                data-valid='text'
+                required
+            />
+            <div
+                class='resultados-productos absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg hidden max-h-64 overflow-y-auto'
+            ></div>
+            <input type='hidden' name='detalles[][producto_id]' class='producto-id-hidden' />
+        </div>
 
-            <!-- 🔎 Búsqueda dinámica del producto -->
-            <div class='flex flex-row gap-4 w-full'>
-                <div class='w-full parent relative'>
-                    <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
-                        Código o nombre del producto
-                    </label>
+        <div class='grid grid-cols-1 gap-2 md:grid-cols-[0.9fr_0.9fr_1.5fr_0.9fr] md:col-span-4 hidden' data-producto>
+            <div class='parent'>
+                <label class='sr-only'>Cantidad</label>
+                <input
+                    type='number'
+                    name='detalles[][cantidad]'
+                    class='w-full bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 p-2 outline-none'
+                    placeholder='Cant.'
+                    data-valid='number'
+                    min='1'
+                    required
+                />
+            </div>
+            <div class='parent'>
+                <label class='sr-only'>Precio Unitario ($)</label>
+                <input
+                    type='text'
+                    name='detalles[][precio_unitario]'
+                    step='0.01'
+                    class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
+                    placeholder='Precio Unitario ($)'
+                    data-valid='float'
+                    readonly
+                    required
+                />
+            </div>
+            <div class='parent'>
+                <label class='sr-only'>Detalle del Sublimado / Personalización</label>
+                <input
+                    type='text'
+                    name='detalles[][detalle_pedido_producto]'
+                    class='w-full bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 p-2 outline-none'
+                    placeholder='Detalle / Personalización (opcional)'
+                />
+            </div>
+            <div class='grid grid-cols-1 gap-2 md:grid-cols-[0.9fr_0.9fr]'>
+                <div class='parent'>
+                    <label class='sr-only'>Precio Sublimado ($)</label>
                     <input
                         type='text'
-                        name='detalles[][codigo]'
-                        class='w-full bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 p-2 outline-none codigo-input'
-                        placeholder='Buscar producto por nombre o código'
-                        data-valid='text'
-                        required
-                    />
-                    <div
-                        class='resultados-productos absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg hidden max-h-64 overflow-y-auto'
-                    ></div>
-                </div>
-
-                <!-- ID oculto del producto -->
-                <input type='hidden' name='detalles[][producto_id]' class='producto-id-hidden' />
-            </div>
-
-            <!-- 🧩 Campos que se muestran solo tras seleccionar un producto -->
-            <div class='flex-col gap-4 w-full hidden' data-producto>
-                <div class='flex flex-row gap-4 w-full'>
-                    <div class='w-full parent'>
-                        <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
-                            Cantidad
-                        </label>
-                        <input
-                            type='number'
-                            name='detalles[][cantidad]'
-                            class='w-full bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 p-2 outline-none'
-                            placeholder='Cantidad'
-                            data-valid='number'
-                            min='1'
-                            required
-                        />
-                    </div>
-                    <div class='w-full parent'>
-                        <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
-                            Precio Unitario ($)
-                        </label>
-                        <input
-                            type='text'
-                            name='detalles[][precio_unitario]'
-                            step='0.01'
-                            class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
-                            placeholder='Precio Unitario ($)'
-                            data-valid='float'
-                            readonly
-                            required
-                        />
-                    </div>
-                </div>
-
-                <div class='w-full parent'>
-                    <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
-                        Detalle del Sublimado / Personalización
-                    </label>
-                    <textarea
-                        name='detalles[][detalle_pedido_producto]'
+                        name='detalles[][precio_pedido_producto]'
                         class='w-full bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 p-2 outline-none'
-                        placeholder='Describe el diseño o personalización'
-                        rows='2'
-                    ></textarea>
+                        placeholder='Precio Sublimado ($)'
+                        data-valid='float'
+                        value='0,00'
+                    />
                 </div>
-
-                <div class='flex flex-row gap-4 w-full'>
-                    <div class='w-full parent'>
-                        <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
-                            Precio Sublimado ($)
-                        </label>
-                        <input
-                            type='text'
-                            name='detalles[][precio_pedido_producto]'
-                            class='w-full bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 p-2 outline-none'
-                            placeholder='Ej. 2.50'
-                            data-valid='float'
-                            value='0,00'
-                        />
-                    </div>
-                    <div class='w-full parent'>
-                        <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
-                            Subtotal ($)
-                        </label>
-                        <input
-                            type='text'
-                            name='detalles[][subtotal]'
-                            class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
-                            placeholder='Subtotal ($)'
-                            data-valid='float'
-                            readonly
-                        />
-                    </div>
+                <div class='parent'>
+                    <label class='sr-only'>Subtotal ($)</label>
+                    <input
+                        type='text'
+                        name='detalles[][subtotal]'
+                        class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
+                        placeholder='Subtotal ($)'
+                        data-valid='float'
+                        readonly
+                    />
                 </div>
             </div>
         </div>
 
-        <!-- ❌ Botón eliminar -->
         <button
             data-ico='delete'
             type='button'
-            class='remove-detalle text-red-500 text-lg material-symbols-rounded cursor-pointer'
+            class='remove-detalle text-red-500 text-lg material-symbols-rounded cursor-pointer self-start md:self-center'
             title='Eliminar'
         ></button>
     </div>

@@ -25,10 +25,11 @@ import Venta from './Venta.js';
 import VentaDetalle from './VentaDetalle.js';
 import PagoVenta from './PagoVenta.js';
 import MovimientoCaja from './MovimientoCaja.js';
-import ServicioPrecio from './ServicioPrecio.js';
-import PagoTransaccion from './PagoTransaccion.js';
 import ServicioPeriodo from './ServicioPeriodo.js';
-import CreditoServicio from './CreditoServicio.js';
+import Notificacion from './Notificacion.js';
+import Nomina from './Nomina.js';
+import NominaDetalle from './NominaDetalle.js';
+
 const models = {
     Empresa,
     Caja,
@@ -47,10 +48,8 @@ const models = {
     ServicioEmpresa,
     Servicio: ServicioEmpresa,
     PagoServicio,
-    ServicioPrecio,
     ServicioPeriodo,
-    PagoTransaccion,
-    CreditoServicio,
+    Notificacion,
     ControlCaja,
     TasaDolar,
     Iva,
@@ -60,7 +59,10 @@ const models = {
     VentaDetalle,
     PagoVenta,
     MovimientoCaja,
+    Nomina,
+    NominaDetalle,
 
     sequelize,
 };
+
 export { sequelize, models };

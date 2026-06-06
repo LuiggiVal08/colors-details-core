@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         html: false,
                         classes: ['!text-gray-700', 'bg-white/20', 'border', 'border-gray-400'],
                     }),
-                coste: (dato) => (dato.coste ? `$${Format.float(dato.coste)}` : 'Sin Coste'),
+                precio: (dato) => (dato.precio ? `$${Format.float(dato.precio)}` : 'Sin Coste'),
                 fecha_corte: (dato) => (dato.fecha_corte ? new Date(dato.fecha_corte).toLocaleDateString() : ''),
             },
         },
@@ -74,7 +74,7 @@ const editBoxRegister = async (id) => {
         form.querySelector('[name="descripcion"]').value = data.descripcion;
         form.querySelector('[name="empresa_id"]').value = data.empresa_id;
         form.querySelector('[name="proveedor"]').value = data.proveedor;
-        form.querySelector('[name="coste"]').value = Format.float(data.coste);
+        form.querySelector('[name="precio"]').value = Format.float(data.precio);
         form.querySelector('[name="dia_corte"]').value = data.dia_corte;
     }
     setupModalLifecycle(modalEdit);

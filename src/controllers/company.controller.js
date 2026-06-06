@@ -14,7 +14,7 @@ const companySchema = z.object({
 class CompanyController {
     static async getAll(req, res) {
         try {
-            const modelss = await models.Empresa.findAll();
+            const empresas = await models.Empresa.findAll();
             res.json(empresas);
         } catch (error) {
             handleErrorsController(error, res, req);

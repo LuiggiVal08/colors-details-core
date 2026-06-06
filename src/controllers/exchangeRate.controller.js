@@ -52,6 +52,9 @@ class TasaDolarController {
                 fecha: new Date(),
             });
 
+            const io = req.app.get('io');
+            if (io) io.emit('tasa-dolar:updated', { tasa: nueva.tasa, cambio: nueva.cambio });
+
             res.status(201).json({ message: 'Tasa registrada', nueva });
         } catch (error) {
             handleErrorsController(error, res, req);

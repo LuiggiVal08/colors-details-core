@@ -1,6 +1,7 @@
 import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 import { z } from 'zod';
+import { Op, fn, col, where } from 'sequelize';
 
 const clienteSchema = z.object({
     nombre: z.string().min(1),
@@ -16,7 +17,27 @@ const clienteSchema = z.object({
 class ClienteController {
     static async getAll(req, res) {
         try {
-            const clientes = await models.Cliente.findAll();
+            const { search, page, limit } = req.query;
+            let queryOptions = { where: {} };
+
+            if (search) {
+                queryOptions.where = {
+                    [Op.or]: [
+                        { nombre: { [Op.like]: `%${search}%` } },
+                        { apellido: { [Op.like]: `%${search}%` } },
+                        { cedula: { [Op.like]: `%${search}%` } },
+                        where(fn('concat', col('nombre'), ' ', col('apellido')), { [Op.like]: `%${search}%` }),
+                    ],
+                };
+            }
+
+            // Paginación (opcional para el móvil)
+            if (page && limit) {
+                queryOptions.limit = parseInt(limit);
+                queryOptions.offset = (parseInt(page) - 1) * parseInt(limit);
+            }
+
+            const clientes = await models.Cliente.findAll(queryOptions);
             res.json(clientes);
         } catch (error) {
             handleErrorsController(error, res, req);
@@ -50,7 +71,7 @@ class ClienteController {
             if (!data.fecha_registro) data.fecha_registro = new Date();
 
             const cliente = await models.Cliente.create(data);
-            res.status(201).json({ cliente });
+            res.status(201).json(cliente);
         } catch (error) {
             handleErrorsController(error, res, req);
         }

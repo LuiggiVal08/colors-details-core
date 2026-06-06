@@ -81,6 +81,19 @@ class QuestionsController {
             handleErrorsController(error, res, req);
         }
     }
+    static async userCheck(req, res) {
+        try {
+            if (!res.locals.user?.id) {
+                return res.status(401).json({ hasQuestions: false, message: 'No autenticado' });
+            }
+            const usuario_id = res.locals.user.id;
+            const count = await models.PreguntaSeguridadUsuario.count({ where: { usuario_id } });
+            res.json({ hasQuestions: count > 0 });
+        } catch (error) {
+            handleErrorsController(error, res, req);
+        }
+    }
+
     static async getById(req, res) {
         try {
             const { id } = req.params;

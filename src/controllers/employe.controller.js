@@ -1,6 +1,8 @@
 import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 import { z } from 'zod';
+import { Op, fn, col, where } from 'sequelize';
+import { computeDeuda } from '../services/payrollPeriodService.js';
 
 const empleadoSchema = z.object({
     empresa_id: z.number().int(),
@@ -12,18 +14,40 @@ const empleadoSchema = z.object({
     direccion: z.string().min(1),
     fecha_ingreso: z.coerce.date(),
     salario_base: z.string(),
+    frecuencia_pago: z.enum(['mensual', 'quincenal', 'semanal']).optional().default('mensual'),
     activo: z.boolean().optional(),
 });
 
 class EmpleadoController {
     static async getAll(req, res) {
         try {
-            const empleados = await models.Empleado.findAll({
+            const { search, page, limit } = req.query;
+            let queryOptions = {
                 include: [
                     { model: models.Empresa, as: 'empresa' },
                     { model: models.NominaEmpleado, as: 'nominas', include: [{ model: models.TasaDolar, as: 'tasa' }] },
                 ],
-            });
+                where: {},
+            };
+
+            if (search) {
+                queryOptions.where = {
+                    [Op.or]: [
+                        { nombre: { [Op.like]: `%${search}%` } },
+                        { apellido: { [Op.like]: `%${search}%` } },
+                        { cedula: { [Op.like]: `%${search}%` } },
+                        where(fn('concat', col('nombre'), ' ', col('apellido')), { [Op.like]: `%${search}%` }),
+                    ],
+                };
+            }
+
+            // Paginación (opcional para el móvil)
+            if (page && limit) {
+                queryOptions.limit = parseInt(limit);
+                queryOptions.offset = (parseInt(page) - 1) * parseInt(limit);
+            }
+
+            const empleados = await models.Empleado.findAll(queryOptions);
             res.json(empleados);
         } catch (error) {
             handleErrorsController(error, res, req);
@@ -102,6 +126,17 @@ class EmpleadoController {
 
             await empleado.destroy();
             res.json({ message: 'Empleado eliminado' });
+        } catch (error) {
+            handleErrorsController(error, res, req);
+        }
+    }
+
+    static async deuda(req, res) {
+        try {
+            const { id } = req.params;
+            const result = await computeDeuda(id);
+            if (!result) return res.status(404).json({ message: 'Empleado no encontrado' });
+            res.json(result);
         } catch (error) {
             handleErrorsController(error, res, req);
         }

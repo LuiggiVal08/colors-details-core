@@ -33,9 +33,14 @@ import routerCashMovement from './api/cashMovement.routes.js';
 
 // API de servicios
 import routerService from './api/service.router.js';
-import routerServicePrice from './api/servicePrice.routes.js';
 import routerServicePeriod from './api/servicePeriod.routes.js';
 import routerServicePayment from './api/servicePayment.routes.js';
+
+// Nómina
+import routerNomina from './api/nomina.routes.js';
+
+// Notificaciones
+import routerNotificacion from './api/notificacion.routes.js';
 
 // IVA y tipos de cambio
 import routerIva from './api/iva.router.js';
@@ -85,9 +90,14 @@ routerApp.use('/cash-movements', routerCashMovement);
 
 // Servicios
 routerApp.use('/service', routerService);
-routerApp.use('/service-price', routerServicePrice);
 routerApp.use('/service-period', routerServicePeriod);
 routerApp.use('/service-payment', routerServicePayment);
+
+// Nómina
+routerApp.use('/nomina', routerNomina);
+
+// Notificaciones
+routerApp.use('/notifications', routerNotificacion);
 
 // IVA y tipos de cambio
 routerApp.use('/iva', routerIva);

@@ -149,24 +149,7 @@
                 </table>
             </div>
 
-            <!-- Paginador -->
-            <div class='p-6 pt-0 flex justify-end gap-2' id='paginador-control-caja'>
-                <button
-                    data-ico='arrow_back'
-                    class='material-symbols-rounded flex bg-blue-600 text-white px-4 py-2 rounded-md shadow disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-700 transition btn-paginar'
-                    disabled
-                >
-                    Anterior
-                </button>
-
-                <button
-                    data-ico='arrow_forward'
-                    class='material-symbols-rounded flex bg-blue-600 text-white px-4 py-2 rounded-md shadow disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-700 transition btn-paginar'
-                    disabled
-                >
-                    Siguiente
-                </button>
-            </div>
+            {{> components/pagination id='paginador-control-caja' disablePrev=true disableNext=true}}
         </div>
 
         <!-- MOVIMIENTOS -->
@@ -209,24 +192,7 @@
                     </tbody>
                 </table>
             </div>
-            <!-- Paginador -->
-            <div class='p-6 pt-0 flex justify-end gap-2' id='paginador-movimientos-caja'>
-                <button
-                    data-ico='arrow_back'
-                    class='material-symbols-rounded flex bg-blue-600 text-white px-4 py-2 rounded-md shadow disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-700 transition btn-paginar'
-                    disabled
-                >
-                    Anterior
-                </button>
-
-                <button
-                    data-ico='arrow_forward'
-                    class='material-symbols-rounded flex bg-blue-600 text-white px-4 py-2 rounded-md shadow disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-700 transition btn-paginar'
-                    disabled
-                >
-                    Siguiente
-                </button>
-            </div>
+            {{> components/pagination id='paginador-movimientos-caja' disablePrev=true disableNext=true}}
         </div>
 
     </div>

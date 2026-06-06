@@ -16,7 +16,6 @@ import { session } from './middlewares/session.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const getPartials = (dir, partials = {}) => {
     try {
         fs.readdirSync(dir).forEach((file) => {
@@ -41,7 +40,9 @@ const app = express();
 const devOrigins = [
     'http://localhost:8081', // Puerto actual por defecto de Expo Web
     'http://localhost:19006', // Puerto antiguo de Expo Web
+    'https://colors-details-core-production.up.railway.app', // URL de producción
 ];
+app.use(express.static(path.join(cwd(), 'public')));
 
 app.use(
     cors({
@@ -72,7 +73,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(APP_SECRET));
-app.use(csrf({ excludedRoutes: ['/api/auth/login', '/api/auth/logout'] }));
+app.use(csrf({ excludedRoutes: ['/api/user/signin', '/api/user/logout'] }));
 app.use('/api', morgan('dev', { stream: { write: (message) => logger.info(message.trim()) } }));
 // Configurar Handlebars
 app.use(session); // Middleware de sesión
@@ -91,7 +92,7 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Rutas
-app.use(express.static(path.join(cwd(), 'public')));
+
 app.use('/api', routesAPI);
 app.use('/', viewsRoutes);
 

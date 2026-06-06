@@ -1,7 +1,9 @@
+import { Op } from 'sequelize';
 import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 import { z } from 'zod';
 import { queue } from '../config/queueConfig.js';
+import { Logger } from 'winston';
 
 const productoSchema = z.object({
     categoria_id: z.string(),
@@ -10,15 +12,45 @@ const productoSchema = z.object({
     precio: z.string().min(1, 'El precio es obligatorio'),
     stock: z.string().optional(),
     codigo: z.string().min(1, 'El codigo es obligatorio'),
+    imagen: z.string().optional(),
 });
 
 class ProductoController {
     static async getAll(req, res) {
         try {
-            const productos = await models.Producto.findAll({
+            const { search, page, limit } = req.query;
+            const lowStock = req.query.lowStock === 'true';
+            const categoriaId = req.query.categoria_id;
+
+            let queryOptions = { where: {} };
+
+            if (search) {
+                queryOptions.where = {
+                    [Op.or]: [
+                        { codigo: { [Op.like]: `%${search}%` } },
+                        { nombre: { [Op.like]: `%${search}%` } },
+                        { '$categoria.nombre$': { [Op.like]: `%${search}%` } },
+                    ],
+                };
+            }
+            if (page && limit) {
+                queryOptions.limit = parseInt(limit);
+                queryOptions.offset = (parseInt(page) - 1) * parseInt(limit);
+            }
+            if (categoriaId) {
+                queryOptions.where.categoria_id = categoriaId;
+            }
+
+            if (lowStock) {
+                queryOptions.where.stock = { [Op.lt]: 5 };
+            }
+
+            const products = await models.Producto.findAll({
+                ...queryOptions,
                 include: [{ model: models.CategoriaProducto, as: 'categoria' }],
             });
-            res.json(productos);
+
+            res.json(products);
         } catch (error) {
             handleErrorsController(error, res, req);
         }
@@ -28,11 +60,13 @@ class ProductoController {
     static async getAllReportPDF(req, res) {
         try {
             const { socketId } = req.body; // Extraído por tu interceptor del front
+            const userId = req.user?.id;
 
             // 🚀 ENVIAMOS A LA COLA
             const job = await queue.add('reportes-pdf', {
-                tipo: 'PRODUCTOS', // El worker ya tiene la lógica para PRODUCTOS
+                tipo: 'PRODUCTOS',
                 socketId: socketId,
+                userId: userId,
             });
 
             // Respondemos de inmediato
@@ -61,6 +95,9 @@ class ProductoController {
     static async create(req, res) {
         try {
             const data = productoSchema.parse(req.body);
+            if (req.file?.filename) {
+                data.imagen = `/uploads/${req.file.filename}`;
+            }
 
             const categoria = await models.CategoriaProducto.findByPk(data.categoria_id);
             if (!categoria) {
@@ -84,6 +121,9 @@ class ProductoController {
             if (!producto) return res.status(404).json({ message: 'Producto no encontrado' });
 
             const data = productoSchema.parse(req.body);
+            if (req.file?.filename) {
+                data.imagen = `/uploads/${req.file.filename}`;
+            }
 
             const categoria = await models.CategoriaProducto.findByPk(data.categoria_id);
             if (!categoria) {

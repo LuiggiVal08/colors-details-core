@@ -134,14 +134,13 @@ const viewPurchase = async (id) => {
                 fillTableOptions: {
                     templateId: 'fila-ejemplo-pago-purchase',
                     tableSelector: '#purchase-pagos',
-                    formatters: {
-                        fecha: (p) => new Date(p.fecha).toLocaleDateString('es-ES'),
-                        tipo: (p) => p.metodo_pago.nombre,
-                        referencia: (p) => p.referencia_pago,
-                        comision: (p) => p.metodo_pago.comision + '%',
-                        monto: (p) => '$' + Format.float(p.monto),
-                        monto_bs: (p) => '$' + Format.float((Number(p.monto) * Number(tasa)).toFixed(2)),
-                    },
+                 formatters: {
+                     fecha: (p) => new Date(p.fecha).toLocaleDateString('es-ES'),
+                     tipo: (p) => p.metodo_pago.nombre,
+                     referencia: (p) => p.referencia_pago,
+                     monto: (p) => '$' + Format.float(p.monto),
+                     monto_bs: (p) => '$' + Format.float((Number(p.monto) * Number(tasa)).toFixed(2)),
+                 },
                 },
             });
 
@@ -302,22 +301,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ✅ AGREGA LÓGICA DE CÁLCULO A CADA PAGO (bidireccional Bs ↔ USD)
     const agregarLogicaPago = (root) => {
-        const montoPaymentInput = root.querySelector('input[name="pagos[][monto_payment]"'); // Bs.
+        const montoPaymentInput = root.querySelector('input[name="pagos[][monto_payment]"]'); // Bs.
         const methodPaymentSelect = root.querySelector('select[name="pagos[][metodo_pago_id]"]');
-        const montoComisionInput = root.querySelector('input[name="pagos[][comision]"]');
         const montoUSDInput = root.querySelector('input[name="pagos[][monto]"]'); // $
+        const referenciaContainer = root.querySelector('[data-referencia-container]');
+        const referenciaInput = root.querySelector('input[name="pagos[][referencia_pago]"]');
 
         Format.formatEventInput({ elements: root.querySelectorAll('input, select') });
 
+        const toggleReferencia = () => {
+            const methodsAccep = ['transferencia', 'digital'];
+            const metodoSeleccionado = methodPaymentSelect.options[methodPaymentSelect.selectedIndex];
+            const metodoTexto = metodoSeleccionado?.dataset?.tipo.toLowerCase() || '';
+            const requiereReferencia = methodsAccep.some((m) => metodoTexto.includes(m));
+            console.log(metodoTexto);
+
+            if (referenciaContainer) referenciaContainer.classList.toggle('hidden', !requiereReferencia);
+            if (referenciaInput) {
+                referenciaInput.required = requiereReferencia;
+                referenciaInput.readOnly = !requiereReferencia;
+                referenciaInput.value = requiereReferencia
+                    ? referenciaInput.value === 'N/A'
+                        ? ''
+                        : referenciaInput.value
+                    : 'N/A';
+            }
+        };
+
         // Limpieza inicial
         montoPaymentInput.value = '0,00';
-        montoComisionInput.value = '0,00';
         montoUSDInput.value = '0,00';
 
         const calcularValores = (origen = 'bs') => {
-            const metodoSeleccionado = methodPaymentSelect.options[methodPaymentSelect.selectedIndex];
-            const porcentajeComision = parseFloat(metodoSeleccionado?.dataset?.comision || 0);
-
             let montoBS = 0;
             let montoUSD = 0;
 
@@ -333,12 +348,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 montoBS = montoIngresadoUSD * tasa;
             }
 
-            // 💰 Cálculo de comisión
-            const comisionBS = montoBS * (porcentajeComision / 100);
-            const montoBSMenosComision = montoBS - comisionBS;
-
             // 🧾 Actualizamos campos
-            montoComisionInput.value = Format.float(montoBSMenosComision.toFixed(2));
             montoPaymentInput.value = Format.float(montoBS.toFixed(2));
             montoUSDInput.value = Format.float(montoUSD.toFixed(2));
 
@@ -346,7 +356,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         // 📌 Eventos sincronizados
-        methodPaymentSelect.addEventListener('change', () => calcularValores('bs'));
+        methodPaymentSelect.addEventListener('change', () => {
+            calcularValores('bs');
+            toggleReferencia();
+        });
         montoPaymentInput.addEventListener('input', () => calcularValores('bs')); // Bs → USD
         montoUSDInput.addEventListener('input', () => calcularValores('usd')); // USD → Bs
 
@@ -538,8 +551,9 @@ const calcularTotales = () => {
         sumaSubTotal += valor;
     });
 
-    const porcentajeIva = parseFloat(inputTotalMasIVA.dataset.value);
-    const valueTasaDolar = parseFloat(inputTotalBS.dataset.value);
+    const inputIvaPorcentaje = form.querySelector('input[name="iva_porcentaje"]');
+    const porcentajeIva = parseFloat(inputIvaPorcentaje?.value) || 0;
+    const valueTasaDolar = parseFloat(inputTotalBS.dataset.value) || 0;
     const totalConIva = sumaSubTotal + (sumaSubTotal * porcentajeIva) / 100;
     const totalBS = totalConIva * valueTasaDolar;
 
@@ -548,7 +562,7 @@ const calcularTotales = () => {
     inputTotalBS.value = Format.float(totalBS.toFixed(2));
 
     // 🔹 Cálculo de los pagos (en dólares)
-    const containerPagos = document.getElementById('container-pagos'); // ✅ así sí existe
+    const containerPagos = document.getElementById('pagos-venta');
     const totalPagoInput = form.querySelector('input[name="total_pago"]');
     let totalPagosUSD = 0;
 

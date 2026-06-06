@@ -57,34 +57,32 @@
             </div>
             <input type='hidden' name='pedido_id' data-valid='text' />
 
-            <div class='w-full'>
-                <label for='metodo_pago_id' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
-                    Método de Pago
-                </label>
-                <Select
-                    type='text'
-                    name='metodo_pago_id'
-                    data-valid='text'
-                    id='metodo_pago_id'
-                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-                    required
-                >
-                    <option value='' selected>Seleccione un método de pago</option>
-                    {{#each methodsPayment}}
-                        <option value='{{id}}' data-comision='{{comision}}'>
-                            {{tipo}}
-                            -
-                            {{nombre}}
-                            ({{comision}}%)
-                        </option>
-                    {{/each}}
-                    {{#unless methodsPayment.length}}
-                        <option value=''>No hay métodos de pago disponibles</option>
-                    {{/unless}}
-                </Select>
-            </div>
-
-            <div class='flex flex-row gap-4 items-center w-full'>
+             <div class='w-full'>
+                 <label for='metodo_pago_id' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                     Método de Pago
+                 </label>
+                 <Select
+                     type='text'
+                     name='metodo_pago_id'
+                     data-valid='text'
+                     id='metodo_pago_id'
+                     class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 w-full p-2 outline-none'
+                     required
+                 >
+                     <option value='' selected>Seleccione un método de pago</option>
+                     {{#each methodsPayment}}
+                         <option value='{{id}}' data-tipo='{{tipo}}'>
+                             {{tipo}}
+                             -
+                             {{nombre}}
+                         </option>
+                     {{/each}}
+                     {{#unless methodsPayment.length}}
+                         <option value=''>No hay métodos de pago disponibles</option>
+                     {{/unless}}
+                 </Select>
+             </div>
+            <div class='flex flex-col md:flex-row gap-4 items-center w-full'>
                 <div class='w-full'>
                     <label for='monto' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Pago ($)</label>
                     <input
@@ -114,21 +112,6 @@
                 </div>
             </div>
             <div class='w-full'>
-                <label for='comision' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Monto (Bs.) -
-                    Comisión</label>
-                <input
-                    type='text'
-                    name='comision'
-                    data-valid='float'
-                    id='comision'
-                    class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
-                    placeholder='0,00'
-                    value='0,00'
-                    required
-                    readonly
-                />
-            </div>
-            <div class='w-full'>
                 <label for='fecha' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
                     Fecha de pago
                 </label>
@@ -141,7 +124,7 @@
                     required
                 />
             </div>
-            <div class='w-full'>
+            <div class='w-full parent referencia-container hidden' data-referencia-container>
                 <label for='referencia_pago' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
                     Referencia
                 </label>
@@ -152,7 +135,7 @@
                     id='referencia_pago'
                     class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
                     placeholder='Ingrese la referencia'
-                    required
+                    autocomplete='off'
                 />
             </div>
 
@@ -164,6 +147,7 @@
                             Se aplicará la tasa de cambio actual:
                             <span data-info-tasa-cambio class='font-semibold'></span>
                         </li>
+                        <li data-caja-status></li>
                         <li>El pago quedará registrado en Bolivares (Bs.)</li>
                         <li>Esta acción no se puede deshacer</li>
                     </ul>
@@ -178,13 +162,7 @@
             >
                 Cancelar
             </button>
-            <button
-                data-confirm='modal'
-                type='submit'
-                class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer'
-            >
-                Registrar Pago
-            </button>
+            {{> components/submit-btn icon='payments' label='Registrar Pago'}}
         </div>
     </form>
 </div>

@@ -51,15 +51,3 @@ select,
 ::picker(select) {
     appearance: base-select;
 }
-/* option {
-    background: #333;
-    &:hover {
-        background: #444;
-    }
-    &:checked {
-        background: #0286c4;
-    }
-} */
-/* select::-ms-expand {
-    display: none;
-} */
