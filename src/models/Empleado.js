@@ -20,6 +20,10 @@ Empleado.init(
         direccion: DataTypes.TEXT,
         fecha_ingreso: DataTypes.DATEONLY,
         salario_base: DataTypes.DECIMAL(10, 2),
+        frecuencia_pago: {
+            type: DataTypes.ENUM('mensual', 'quincenal', 'semanal'),
+            defaultValue: 'mensual',
+        },
         activo: {
             type: DataTypes.BOOLEAN,
             defaultValue: true,

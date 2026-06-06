@@ -8,6 +8,9 @@ export const nominaEmpleadoSchema = z.object({
     fecha_inicio: z.string().min(1),
     fecha_fin: z.string().min(1),
     monto: z.string(),
+    bono: z.string().optional().default('0'),
+    deduccion: z.string().optional().default('0'),
+    monto_usd: z.string().optional(),
     descripcion: z.string().optional(),
 });
 
@@ -52,7 +55,25 @@ class NominaEmpleadoController {
             });
             if (!exchangeRate) return res.status(404).json({ message: 'No se encontró la tasa actual del dólar' });
 
-            const data = nominaEmpleadoSchema.parse({ ...req.body, tasa_id: exchangeRate.id });
+            const parsed = nominaEmpleadoSchema.parse({ ...req.body, tasa_id: exchangeRate.id });
+
+            const parseNum = (v) => Number(String(v || '0').replace(/\./g, '').replace(',', '.'));
+            const montoNum = parseNum(parsed.monto);
+            const bonoNum = parseNum(parsed.bono);
+            const deduccionNum = parseNum(parsed.deduccion);
+            const montoTotal = montoNum + bonoNum - deduccionNum;
+            const tasaNum = parseNum(exchangeRate.tasa);
+            const montoUsd = parsed.monto_usd
+                ? parseNum(parsed.monto_usd)
+                : Math.round((montoTotal / tasaNum) * 100) / 100;
+
+            const data = {
+                ...parsed,
+                monto: String(montoTotal),
+                bono: String(bonoNum),
+                deduccion: String(deduccionNum),
+                monto_usd: String(montoUsd),
+            };
 
             const nominaExistente = await models.NominaEmpleado.findOne({
                 where: {

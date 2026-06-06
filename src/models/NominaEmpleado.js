@@ -20,6 +20,9 @@ NominaEmpleado.init(
         fecha_inicio: DataTypes.DATEONLY,
         fecha_fin: DataTypes.DATEONLY,
         monto: DataTypes.DECIMAL(10, 2),
+        bono: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
+        deduccion: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
+        monto_usd: { type: DataTypes.DECIMAL(10, 2), defaultValue: null },
         descripcion: DataTypes.TEXT,
     },
     {
@@ -29,12 +32,19 @@ NominaEmpleado.init(
         hooks: {
             beforeCreate: (nomina, options) => {
                 nomina.monto = formatearPrecio(nomina.monto);
+                if (nomina.bono) nomina.bono = formatearPrecio(nomina.bono);
+                if (nomina.deduccion) nomina.deduccion = formatearPrecio(nomina.deduccion);
+                if (nomina.monto_usd) nomina.monto_usd = formatearPrecio(nomina.monto_usd);
             },
         },
     },
 );
 
-const formatearPrecio = (valor) => parseFloat(valor.replace(/\./g, '').replace(',', '.'));
+const formatearPrecio = (valor) => {
+    if (typeof valor !== 'string') return valor;
+    if (/^\d+\.\d{1,2}$/.test(valor)) return parseFloat(valor);
+    return parseFloat(valor.replace(/\./g, '').replace(',', '.'));
+};
 NominaEmpleado.belongsTo(Empleado, { foreignKey: 'empleado_id', as: 'empleado' });
 Empleado.hasMany(NominaEmpleado, { foreignKey: 'empleado_id', as: 'nominas' });
 
