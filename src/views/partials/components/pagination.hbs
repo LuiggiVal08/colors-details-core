@@ -1,0 +1,12 @@
+<div class='w-full flex justify-end items-center gap-2' id='{{id}}'>
+    <button data-ico='arrow_back'
+        class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0'
+        {{#if disablePrev}}disabled{{/if}}>
+        Anterior
+    </button>
+    <button data-ico='arrow_forward'
+        class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0'
+        {{#if disableNext}}disabled{{/if}}>
+        Siguiente
+    </button>
+</div>
