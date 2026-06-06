@@ -1,4 +1,7 @@
 node_modules/
+.agents/
+.vscode/
+tmp/
 .env
 .DS_Store
 dist/
