@@ -16,17 +16,17 @@
                         data-ico='group'
                         class='material-symbols-rounded fill-solid wght-normal md-28 text-gray-900 leading-0'
                     ></span>
-                    <h4 class='text-lg md:text-xl font-semibold'>Empleado: {{employe.nombre}} {{employe.apellido}}</h4>
+                    <h1 class='text-lg md:text-xl font-semibold'>Empleado: {{employe.nombre}} {{employe.apellido}}</h1>
                 </div>
             </div>
             {{#if employe.activo}}
                 <span class='px-3 py-1 h-fit text-xs text-white rounded-full bg-green-500 w-fit'>Activo</span>
             {{else}}
-                <span class='px-3 py-1 h-fit text-xs text-white rounded-full w-fit bg-red-400/10'>Desactivado</span>
+                <span class='px-3 py-1 h-fit text-xs text-white rounded-full w-fit bg-gray-400'>Desactivado</span>
             {{/if}}
         </div>
 
-        <div class='flex flex-row gap-4 w-full justify-between'>
+        <div class='flex flex-col md:flex-row gap-4 w-full justify-between'>
 
             <div class='w-full flex flex-col gap-4'>
                 <span
@@ -54,18 +54,63 @@
                 <span
                     data-ico='payments'
                     class='material-symbols-rounded wght-normal md-18 leading-0 flex items-center gap-2 before:text-gray-600'
-                >Salario Base: {{employe.salario_base}}</span>
+                >Salario Base: <span id='salary-base'>${{employe.salario_base}}</span>
+                    <span
+                        id='frecuencia-badge'
+                        class='ml-2 px-2 py-0.5 text-xs text-white rounded-full bg-rose-400'
+                    >{{employe.frecuencia_pago}}</span>
+                </span>
             </div>
         </div>
 
-        <div class='flex flex-row gap-4 justify-between items-center'>
+        {{! Summary cards }}
+        <div class='grid grid-cols-2 md:grid-cols-4 gap-3' id='payroll-summary'>
+            <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>Total Esperado</p>
+                <p id='total-expected' class='text-lg font-bold text-gray-900 mt-0.5'>—</p>
+                <p id='total-expected-bs' class='text-xs text-gray-500 mt-0.5 hidden'></p>
+            </div>
+            <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>Total Pagado</p>
+                <p id='total-paid' class='text-lg font-bold text-green-600 mt-0.5'>—</p>
+                <p id='total-paid-bs' class='text-xs text-gray-500 mt-0.5 hidden'></p>
+            </div>
+            <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>Deuda Actual</p>
+                <p id='debt-estimated' class='text-lg font-bold text-rose-600 mt-0.5'>—</p>
+                <p id='debt-estimated-bs' class='text-xs text-gray-500 mt-0.5 hidden'></p>
+            </div>
+            <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>Días sin Pago</p>
+                <p id='days-without-pay' class='text-lg font-bold text-amber-600 mt-0.5'>—</p>
+            </div>
+        </div>
+
+        {{! Next payment }}
+        <div id='next-payment' class='flex items-center gap-2 text-sm text-gray-700 bg-white rounded-lg border border-gray-200 px-3 py-2'>
+            <span data-ico='payments' class='material-symbols-rounded text-rose-500 text-base'></span>
+            <span class='font-medium'>Próximo pago:</span>
+            <span id='next-payment-date' class='font-semibold'>—</span>
+            <span id='next-payment-amount' class='font-semibold text-rose-600'>—</span>
+        </div>
+
+        {{! Pending periods }}
+        <div id='pending-periods-container' class='hidden'>
+            <h3 class='text-base font-semibold text-red-700 mb-2 flex items-center gap-2'>
+                <span data-ico='warning' class='material-symbols-rounded text-red-500'></span>
+                Periodos Vencidos
+            </h3>
+            <div class='space-y-2 pending-list'></div>
+        </div>
+
+        <div class='flex flex-col md:flex-row gap-4 justify-between items-center'>
             <div class='flex flex-row gap-4'>
                 <h3
                     data-ico='calculate'
                     class='text-xl font-medium text-gray-900 material-symbols-rounded md-28 flex gap-2 items-center'
                 >Historial de Nóminas</h3>
             </div>
-            <div class='flex items-center justify-end gap-4'>
+            <div class='flex items-center justify-end gap-4 flex-wrap'>
                 <input
                     type='date'
                     id='searchStartPeriod'
@@ -79,12 +124,7 @@
                     class='bg-red-300/30 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
                 />
 
-                <button
-                    type='button'
-                    id='btnAddPayroll'
-                    class='material-symbols-rounded bg-red-400 hover:bg-red-500 duration-300 text-white px-4 py-2 rounded-md text-nowrap cursor-pointer flex items-center gap-2'
-                    data-ico='add'
-                >Regsitras Pago Nomina</button>
+                {{> components/action-btn id='btnAddPayroll' icon='add' label='Registrar Pago Nómina'}}
             </div>
         </div>
         <div class='flex-col gap-4 flex'>
@@ -95,9 +135,10 @@
                             <th align='start' class='text-gray-900 font-medium p-3 text-nowrap'>Fecha de pago</th>
                             <th align='start' class='text-gray-900 font-medium p-3'>Periodo</th>
                             <th align='start' class='text-gray-900 font-medium p-3'>Descripción</th>
-                            <th align='center' align='start' class='text-gray-900 font-medium p-3 text-nowrap'>Monto (BS)</th>
-                            <th align='center' class='text-gray-900 font-medium p-3 text-nowrap'>Tasa USD/BS</th>
                             <th align='center' class='text-gray-900 font-medium p-3 text-nowrap'>Monto (USD)</th>
+                            <th align='center' class='text-gray-900 font-medium p-3 text-nowrap'>Tasa USD/BS</th>
+                            <th align='center' class='text-gray-900 font-medium p-3 text-nowrap'>Monto (BS)</th>
+                            <th align='center' class='text-gray-900 font-medium p-3'>Estado</th>
                         </tr>
                     </thead>
                     <tbody id='table-employee-nomina' class='[&_tr:last-child]:border-0'>
@@ -107,18 +148,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class='w-full flex justify-end items-center gap-2' id='paginador-tabla-iva'>
-                <button
-                    data-ico='arrow_back'
-                    class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
-                    disabled
-                >Anterior</button>
-                <button
-                    data-ico='arrow_forward'
-                    class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
-                    disabled
-                >Siguiente</button>
-            </div>
+            {{> components/pagination id='paginador-tabla-iva' disablePrev=true disableNext=true}}
         </div>
     </div>
 </div>
@@ -131,7 +161,7 @@
         <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='monto'></td>
         <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='tasa'></td>
         <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='monto_usd'></td>
-
+        <td align='center' class='p-4 align-middle' data-key='status' data-tipo='html'></td>
     </tr>
 </template>
 

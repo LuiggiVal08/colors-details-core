@@ -33,7 +33,7 @@
                 <tr class="border-b border-red-400/50">
                     <th align='start' align='start' class='text-gray-900 font-medium p-3'>Nombre</th>
                     <th align='start' class='text-gray-900 font-medium p-3'>Descripción</th>
-                    <th align='center' class='text-gray-900 font-medium p-3'>Coste</th>
+                    <th align='center' class='text-gray-900 font-medium p-3'>Precio</th>
                     <th align='center' class='text-gray-900 font-medium p-3'>Dia de corte</th>
                     <th align='center' class='text-gray-900 font-medium p-3'>Proveedor</th>
                     <th align='center' class='text-gray-900 font-medium p-3'>Acciones</th>
@@ -47,16 +47,13 @@
             </tbody>
         </table>
     </div>
-        <div class='w-full flex justify-end items-center gap-2' id='paginador-tabla-service'>
-            <button data-ico="arrow_back" class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent  px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400' disabled>Anterior</button>
-            <button data-ico="arrow_forward" class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent  px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400' disabled>Siguiente</button>
-        </div>
+        {{> components/pagination id='paginador-tabla-service' disablePrev=true disableNext=true}}
 </div>
 <template id='template-service'>
     <tr class='hover:bg-pink-400/10 transition-all duration-300 border-b border-red-400/50'>
         <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='nombre'></td>
         <td align='start' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='descripcion'></td>
-        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='coste'></td>
+        <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='precio'></td>
         <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='dia_corte'></td>
         <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-tipo="html" data-key='proveedor'></td>
         <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap'>

@@ -1,6 +1,6 @@
 <div id='modal-create-order' class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden' inert>
     <form
-        class='bg-white rounded-lg shadow-lg w-full m-auto overflow-auto max-h-[100vh] relative'
+        class='bg-white rounded-lg shadow-lg max-w-3xl w-full m-auto overflow-auto max-h-[100vh] relative'
         action='/orders'
         data-method='POST'
         id='pedido-form'
@@ -107,7 +107,7 @@
                 >
                     Agregar producto
                 </button>
-                <div class='flex flex-row gap-2 items-center'>
+                <div class='flex flex-col md:flex-row gap-2 items-center'>
                     <div class='w-full'>
                         <label for='total' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
                             Total $ (sin IVA)
@@ -172,13 +172,7 @@
             >
                 Cancelar
             </button>
-            <button
-                data-confirm='modal'
-                type='submit'
-                class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer'
-            >
-                Crear Pedido
-            </button>
+            {{> components/submit-btn icon='shopping_cart' label='Crear Pedido'}}
         </div>
     </form>
 </div>

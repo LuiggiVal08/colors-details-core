@@ -71,13 +71,22 @@ class PedidoController {
     }
 
     static async create(req, res) {
+        const normalizeDecimal = (val) => String(val).replace(/\./g, '').replace(',', '.');
+
         const t = await models.sequelize.transaction();
         try {
             const fechaPedido = new Date();
             const data = pedidoSchema.parse({ ...req.body, fecha: fechaPedido, estado: 'pendiente' });
 
-            const { cliente_id, usuario_id, fecha, fecha_entrega, estado, total, observaciones, iva_id, detalles } =
+            const { cliente_id, usuario_id, fecha, fecha_entrega, estado, observaciones, iva_id } =
                 data;
+            const total = normalizeDecimal(data.total);
+            const detalles = data.detalles.map((item) => ({
+                ...item,
+                precio_unitario: normalizeDecimal(item.precio_unitario),
+                precio_pedido_producto: normalizeDecimal(item.precio_pedido_producto),
+                subtotal: normalizeDecimal(item.subtotal),
+            }));
             if (
                 (fecha_entrega && new Date(fecha_entrega) < fechaPedido) ||
                 new Date(fecha_entrega).toDateString() === fechaPedido.toDateString()
@@ -97,7 +106,7 @@ class PedidoController {
             const cantidadesPorProducto = {};
             for (const item of detalles) {
                 cantidadesPorProducto[item.producto_id] =
-                    (cantidadesPorProducto[item.producto_id] || 0) + item.cantidad;
+                    (cantidadesPorProducto[item.producto_id] || 0) + Number(item.cantidad);
             }
 
             // Validar stock disponible
@@ -125,7 +134,7 @@ class PedidoController {
                 });
 
                 const stockAntes = producto.stock;
-                const stockDespues = stockAntes - item.cantidad;
+                const stockDespues = stockAntes - Number(item.cantidad);
 
                 // Actualizar stock
                 await producto.update({ stock: stockDespues }, { transaction: t });
@@ -144,7 +153,7 @@ class PedidoController {
                     {
                         producto_id: item.producto_id,
                         tipo: 'salida',
-                        cantidad: item.cantidad,
+                        cantidad: Number(item.cantidad),
                         stock_antes: stockAntes,
                         stock_despues: stockDespues,
                         fecha: fechaPedido,

@@ -4,7 +4,7 @@ import isAuthenticated from '../../middlewares/isAuthenticate.js';
 
 const router = Router();
 
-router.post('/singin', UserController.singIn);
+router.post('/signin', UserController.singIn);
 router.delete('/logout', UserController.logout);
 
 router.post('/change-password/:id', isAuthenticated, UserController.changePassword);

@@ -11,20 +11,17 @@ export const initQueueEvents = (app) => {
         const io = app.get('io');
         if (!io) return;
 
-        // Recuperamos el job para saber a qué socketId enviarlo
         const job = await queue.getJob(jobId);
-        const socketId = job?.data?.socketId;
+        const userId = job?.data?.userId;
 
         const responseData = {
             url: `/api/reports/download/${path.basename(returnvalue.path)}`,
             message: '¡Tu reporte está listo!',
         };
 
-        if (socketId) {
-            // Se lo enviamos SOLO al usuario que lo pidió
-            io.to(socketId).emit('reporte-listo', responseData);
+        if (userId) {
+            io.to(`notifs_user_${userId}`).emit('reporte-listo', responseData);
         } else {
-            // Si por alguna razón no hay socketId, a todos (o log)
             io.emit('reporte-listo', responseData);
         }
     });

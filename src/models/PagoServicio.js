@@ -1,6 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/sequelize.js';
-import ServicioEmpresa from './ServicioEmpresa.js';
+import ServicioPeriodo from './ServicioPeriodo.js';
 import Usuario from './Usuario.js';
 
 class PagoServicio extends Model {}
@@ -8,10 +8,10 @@ class PagoServicio extends Model {}
 PagoServicio.init(
     {
         id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-        servicio_id: {
+        periodo_id: {
             type: DataTypes.INTEGER,
             allowNull: false,
-            references: { model: ServicioEmpresa, key: 'id' },
+            references: { model: ServicioPeriodo, key: 'id' },
         },
         usuario_id: {
             type: DataTypes.INTEGER,
@@ -31,8 +31,8 @@ PagoServicio.init(
     },
 );
 
-PagoServicio.belongsTo(ServicioEmpresa, { foreignKey: 'servicio_id', as: 'servicio' });
-ServicioEmpresa.hasMany(PagoServicio, { foreignKey: 'servicio_id', as: 'pagos' });
+PagoServicio.belongsTo(ServicioPeriodo, { foreignKey: 'periodo_id', as: 'periodo' });
+ServicioPeriodo.hasMany(PagoServicio, { foreignKey: 'periodo_id', as: 'pagos' });
 
 PagoServicio.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 Usuario.hasMany(PagoServicio, { foreignKey: 'usuario_id', as: 'pagos_servicio' });

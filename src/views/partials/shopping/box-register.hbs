@@ -46,10 +46,7 @@
             </tbody>
         </table>
     </div>
-        <div class='w-full flex justify-end items-center gap-2' id='paginador-tabla-box-register'>
-            <button data-ico="arrow_back" class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent  px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400' disabled>Anterior</button>
-            <button data-ico="arrow_forward" class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent  px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400' disabled>Siguiente</button>
-        </div>
+        {{> components/pagination id='paginador-tabla-box-register' disablePrev=true disableNext=true}}
 </div>
 <template id='template-box-register'>
     <tr class='hover:bg-pink-400/10 transition-all duration-300 border-b border-red-400/50'>

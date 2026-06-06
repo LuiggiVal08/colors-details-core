@@ -1,61 +1,27 @@
-<div class=''>
-    <div class='container mx-auto flex items-center h-[calc(100vh-90px)] justify-center'>
-        <div
-            class='w-full max-w-3xl text-center bg-red-100 shadow-lg rounded-md p-8 flex flex-row justify-around items-center gap-6'
-        >
-            <div class='size-60'>
-                <img src='/img/logo.png' alt='logo' class='w-full' style='view-transition-name: home-logo' />
-            </div>
-            <div class=''>
-                <form action='/user/singin' data-method='POST' class='flex flex-col'>
-                    <h2 class='text-4xl font-medium text-gray-900'>Iniciar sesión</h2>
-                    <p class='mt-4 text-lg text-gray-600'>Ingresa tus credenciales para iniciar sesión.</p>
-                    <div class='mt-6'>
-                        <label
-                            for='user'
-                            class='block mb-2 text-sm font-medium text-gray-900 text-start'
-                        >Usuario</label>
-                        <input
-                            type='text'
-                            name='username'
-                            data-valid='username'
-                            id='user'
-                            class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-                            placeholder='Usuario'
-                            required
-                        />
-                    </div>
-                    <div class='mt-6'>
-                        <label
-                            for='pass'
-                            class='block mb-2 text-sm font-medium text-gray-900 text-start'
-                        >Contraseña</label>
-                        <input
-                            type='password'
-                            name='password'
-                            data-valid='password'
-                            id='pass'
-                            class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-                            placeholder='Contraseña'
-                            required
-                        />
-                    </div>
-                    <div class='mt-6'>
-                        <button
-                            type='submit'
-                            class='w-full text-white px-4 py-2 rounded-md bg-red-400 hover:bg-red-500 duration-300 cursor-pointer'
-                        >
-                            Iniciar sesión
-                        </button>
-                    </div>
-                </form>
-                <a
-                    href='/rescue'
-                    class='text-sm hover:text-gray-700 cursor-pointer mt-6 inline-block text-blue-500 px-4'
-                >
-                    ¿Olvidaste tu contraseña?
-                </a>
-            </div>
+<div class=' mx-auto content-center py-4 flex-1 '>
+    <div class='w-full max-w-3xl text-center bg-rose-50 shadow-lg rounded-md p-8 flex flex-col md:flex-row justify-around items-center gap-6'>
+        <div class='size-60'>
+            <img src='/img/logo.png' alt='logo' class='w-full' style='view-transition-name: home-logo' />
+        </div>
+        <div>
+            <form action='/user/signin' data-method='POST' class='flex flex-col'>
+                <h1 class='text-4xl font-medium text-gray-900'>Iniciar sesión</h1>
+                <p class='mt-4 text-lg text-gray-600'>Ingresa tus credenciales para iniciar sesión.</p>
+                <div class='mt-6'>
+                    <label for='user' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Usuario</label>
+                    <input type='text' name='username' data-valid='username' id='user' autocomplete='username' class='bg-pink-50 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block w-full p-2 outline-none' placeholder='Usuario' required />
+                </div>
+                <div class='mt-6'>
+                    <label for='pass' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Contraseña</label>
+                    <input type='password' name='password' data-valid='password' id='pass' autocomplete='current-password' class='bg-pink-50 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block w-full p-2 outline-none' placeholder='Contraseña' required />
+                </div>
+                <div class='mt-6'>
+{{> components/submit-btn icon='login' label='Iniciar sesión' class='w-full'}}
+                </div>
+            </form>
+            <a href='/rescue' class='text-sm hover:text-gray-700 cursor-pointer mt-6 inline-block text-pink-600 px-4'>
+                ¿Olvidaste tu contraseña?
+            </a>
         </div>
     </div>
 </div>

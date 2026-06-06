@@ -1,6 +1,6 @@
 <div id='modal-create-shopping' class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden' inert>
     <form
-        class='bg-white rounded-lg shadow-lg w-full m-auto overflow-auto max-h-[100vh] relative'
+        class='bg-white rounded-lg shadow-lg max-w-3xl w-full m-auto overflow-auto max-h-[100vh] relative'
         action='/shopping'
         data-method='POST'
         id='shopping-form'
@@ -84,7 +84,7 @@
                 >
                     Agregar producto
                 </button>
-                <div class='flex flex-row gap-2 items-center'>
+                <div class='flex flex-col md:flex-row gap-2 items-center'>
                     <div class='w-full'>
                         <label for='total' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
                             Total $ (sin IVA)
@@ -147,7 +147,7 @@
                 >
                     Agregar pago
                 </button>
-                <div class='flex flex-row gap-2 items-center w-full'>
+                <div class='flex flex-col md:flex-row gap-2 items-center w-full'>
                     <div class='w-full'>
                         <label for='total_faltante' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
                             Monto faltante ($)
@@ -206,14 +206,7 @@
             >
                 Cancelar
             </button>
-            <button
-                data-confirm='modal'
-                type='submit'
-                data-ico='shopping_bag_speed'
-                class='bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer material-symbols-rounded flex items-center gap-2 justify-center'
-            >
-                Crear Venta
-            </button>
+{{> components/submit-btn icon='shopping_bag' label='Crear Venta'}}
         </div>
     </form>
 </div>
@@ -291,7 +284,7 @@
         class='flex flex-row gap-4 items-center pago-item border border-dashed border-blue-500 bg-blue-400/10 rounded-md shadow-sm min-h-10 p-4 divide-x-1 divide-blue-500/50'
     >
         <input type='hidden' name='pagos[][tasa_id]' value='{{tasaDolar.id}}' data-valid='text' />
-        <div class='pr-4 w-full flex gap-4'>
+        <div class='pr-4 w-full flex flex-col md:flex-row gap-4'>
 
             <div class='w-full parent'>
                 <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>
@@ -318,7 +311,7 @@
                 </select>
             </div>
 
-            <div class='flex flex-row gap-4 items-center w-full'>
+            <div class='flex flex-col md:flex-row gap-4 items-center w-full'>
                 <div class='w-full parent'>
                     <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Pago ($)</label>
                     <input

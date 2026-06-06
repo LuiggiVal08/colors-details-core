@@ -4,8 +4,8 @@
             <div class='flex flex-row gap-4 justify-start items-center'>
                 <img src='/img/profile-default.png' alt='profile' class='h-24 rounded-full' />
                 <div class='flex flex-col'>
-                    <h2 class='text-2xl font-bold text-gray-900'>{{usuario.empleado.nombre}}
-                        {{usuario.empleado.apellido}}</h2>
+                    <h1 class='text-2xl font-bold text-gray-900'>{{usuario.empleado.nombre}}
+                        {{usuario.empleado.apellido}}</h1>
 
                     <span class='text-gray-900 text-sm'>@{{usuario.username}}</span>
 
@@ -28,30 +28,9 @@
             </div>
         </div>
         <div id='tabs-profile' class='flex flex-row items-center justify-center w-full h-10 bg-red-100 p-1 rounded-md'>
-            <button
-                type='button'
-                data-ico='receipt_long'
-                data-tab='employee'
-                class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
-            >
-                Datos de Empleado
-            </button>
-            <button
-                type='button'
-                data-ico='encrypted'
-                data-tab='security'
-                class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
-            >
-                Seguridad
-            </button>
-            <button
-                type='button'
-                data-ico='shield_question'
-                data-tab='question'
-                class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
-            >
-                Preguntas de Seguridad
-            </button>
+            {{> components/tab-btn tab='employee' icon='receipt_long' label='Datos de Empleado'}}
+            {{> components/tab-btn tab='security' icon='encrypted' label='Seguridad'}}
+            {{> components/tab-btn tab='question' icon='shield_question' label='Preguntas de Seguridad'}}
         </div>
         <!-- Empleado -->
         <div id='tab-employee' class='tab-content w-full hidden'>

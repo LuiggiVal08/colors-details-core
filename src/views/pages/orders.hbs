@@ -86,6 +86,7 @@
 
                     </line>
                     <line x1='12' x2='12.01' y1='16' y2='16'>
+
                     </line>
                 </svg>
             </div>
@@ -125,7 +126,7 @@
     {{! Tab content }}
     <div class='rounded-md bg-red-100 text-card-foreground shadow-2xs p-4 space-y-4'>
         {{!-- Advertencia --}}
-         <div
+        <div
             class='border border-dashed border-blue-500 bg-blue-400/10 rounded-md shadow-sm min-h-10 p-4 w-full flex flex-col gap-1'
         >
             <div class='flex flex-row items-center gap-1'>
@@ -141,7 +142,7 @@
         {{!-- Cabecera --}}
         <div class='flex items-center justify-between'>
             <div>
-                <h3 class='text-2xl font-semibold leading-none tracking-tight'>Lista de Pedidos</h3>
+                <h2 class='text-2xl font-semibold leading-none tracking-tight'>Lista de Pedidos</h2>
                 <p class='text-sm text-gray-600'>Gestiona todos los pedidos de sublimación</p>
             </div>
             <div class='flex gap-4'>
@@ -164,25 +165,20 @@
                         </path>
                     </svg>
                     <input
+                        id='search-orders'
                         class='bg-red-300/30 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-                        placeholder='Buscar pedidos...'
+                        placeholder='Buscar por cliente o #pedido...'
                         value=''
                     />
                 </div>
-                <button
-                    class='material-symbols-rounded bg-red-400 hover:bg-red-500 duration-300 text-white px-4 py-2 rounded-md text-nowrap cursor-pointer flex items-center gap-2'
-                    data-ico='add'
-                    id='btnAddOrder'
-                    type='button'
-                >
-                    Nuevo Pedido</button>
+                {{> components/action-btn id='btnAddOrder' icon='add' label='Nuevo Pedido'}}
             </div>
         </div>
         {{!-- Tabla --}}
         <div class='rounded-md border overflow-x-auto scrollbar border-red-400/50'>
             <div class='relative w-full overflow-auto'>
                 <table class='w-full caption-bottom text-sm'>
-                    <thead class='[&amp;_tr]:border-b border-red-400/50'>
+                    <thead class='[&_tr]:border-b border-red-400/50'>
                         <tr class='border-b border-red-400/50 transition-colors'>
                             <th align='start' class='h-12 px-4 align-middle font-medium'>Cliente</th>
                             <th align='center' class='h-12 px-4 align-middle font-medium'>Fecha</th>
@@ -195,7 +191,7 @@
                             <th align='center' class='h-12 px-4 align-middle font-medium'>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody class='[&amp;_tr:last-child]:border-0' id='pedidos-tabla-body'>
+                    <tbody class='[&_tr:last-child]:border-0' id='pedidos-tabla-body'>
                         <tr>
                             <td colspan='8' class='text-center p-3'>Cargando...</td>
                         </tr>
@@ -204,21 +200,8 @@
             </div>
         </div>
         {{!-- Paginador --}}
-        <div class='w-full flex justify-end items-center gap-2' id='paginador-tabla-pedidos'>
-            <button
-                data-ico='arrow_back'
-                class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
-                disabled
-            >Anterior</button>
-            <button
-                data-ico='arrow_forward'
-                class='cursor-pointer flex items-center justify-center gap-2 w-fit h-10 text-white font-semibold bg-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded disabled:opacity-30 border border-transparent px-4 disabled:cursor-not-allowed btn-paginar leading-0 disabled:hover:bg-red-400'
-                disabled
-            >Siguiente</button>
-        </div>
-
+        {{> components/pagination id='paginador-tabla-pedidos' disablePrev=true disableNext=true}}
     </div>
-
 </div>
 <script type='module' src='/js/pages/orders.js'></script>
 

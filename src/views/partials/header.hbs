@@ -1,21 +1,41 @@
 {{> aside}}
-<div
-    class='min-h-[60px] w-full sticky top-0 z-10 bg-primary shadow-md transition-all duration-300 ease-in-out content-center'
+<header
+    class='py-2.5 w-full sticky top-0 z-10 bg-linear-to-r from-pink-100/70 to-pink-200/70 backdrop-blur-sm shadow-sm transition-all duration-300 ease-in-out'
 >
-    <div class='container mx-auto flex items-center justify-between h-full'>
+    <div class='container mx-auto flex items-center justify-between h-full px-4  '>
         <div class='flex items-center'>
-                <button type='button' data-ico='menu' id="btn-aside" class='flex items-center focus:outline-none material-symbols-rounded mr-4 cursor-pointer leading-0'>
-                </button>
-            <a href='/' class='flex items-center'>
-                <img src='/img/logo.png' alt='Logo' class='h-10 mr-3' />
-                <span class='text-xl font-semibold tracking-tight text-pink-500/80'>Colores y Detalles</span>
+            <button type='button' data-ico='menu' id="btn-aside"
+                class='flex items-center focus:outline-none material-symbols-rounded mr-4 cursor-pointer leading-0 hover:text-pink-500 transition-colors'
+                aria-label='Abrir menú lateral'>
+            </button>
+            <a href='/' class='flex items-center gap-2'>
+                <img src='/img/logo.png' alt='Colores y Detalles' class='h-10 w-10 rounded-full' />
+                <span class='hidden sm:inline text-lg font-semibold tracking-tight text-pink-600/90'>Colores y Detalles</span>
             </a>
         </div>
-        <div class='flex items-center md:order-2'>
+        <div class='flex items-center gap-2'>
             {{#if userValid}}
-                {{> dropdown-profile}}
+            <div class="relative" id="notif-container">
+                <div class="relative mx-2">
+                    <button type="button" id="btn-notifications"
+                        class="relative flex items-center focus:outline-none material-symbols-rounded hover:text-pink-500 transition-colors cursor-pointer"
+                        data-ico="notifications"
+                        aria-label="Notificaciones">
+                    </button>
+                    <span id="notif-badge"
+                        class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-4.5 h-4.5 flex items-center justify-center px-1">0</span>
+                </div>
+                <div id="notif-dropdown"
+                    class="hidden absolute right-0 top-full mt-2 min-w-72 md:min-w-96 bg-white rounded-xl shadow-lg border border-gray-100 z-50">
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                        <span class="text-sm font-semibold text-gray-800">Notificaciones</span>
+                        <button id="btn-mark-all-read" class="text-xs text-pink-500 hover:underline cursor-pointer">Marcar todas leídas</button>
+                    </div>
+                    <div id="notif-list" class="divide-y divide-gray-100 max-h-64 overflow-y-auto scrollbar"></div>
+                </div>
+            </div>
+            {{> dropdown-profile}}
             {{/if}}
-
         </div>
     </div>
-</div>
+</header>

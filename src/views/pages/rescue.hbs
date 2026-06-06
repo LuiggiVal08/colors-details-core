@@ -1,26 +1,20 @@
 <style>
-    [data-step-card] {
-        display: none;
-    }
-    [data-step-card].active {
-        display: block;
+    .active {
+        display: block !important;
     }
 </style>
 
-<div class='container mx-auto flex justify-center items-center min-h-[calc(100vh-90px)] p-4'>
+<div class='container mx-auto flex justify-center items-center p-4'>
     <div class='flex flex-col gap-4 w-full justify-center items-center'>
-        {{! avatar }}
         <div class='flex items-center focus:outline-none cursor-pointer leading-0 rounded-full overflow-hidden size-20'>
             <img src='/img/profile-default.png' alt='Profile' class='w-full h-full object-cover' />
         </div>
-        {{! header }}
         <div class='text-center space-y-2'>
-            <h3 class='text-xl font-medium text-gray-900'>Recuperación de Contraseña</h3>
+            <h1 class='text-2xl font-medium text-gray-900'>Recuperación de Contraseña</h1>
             <p class='text-gray-600 text-sm'>
                 Sigue los siguientes pasos para recuperar el acceso a su cuenta
             </p>
         </div>
-        {{! progress bar }}
         <div class='space-y-2 max-w-lg w-full' id='progressBar'>
             <div class='flex justify-between text-xs text-gray-500'>
                 <span data-step>Paso 1 de 4</span>
@@ -30,18 +24,16 @@
                 <div
                     data-max='100'
                     data-bar-progress
-                    class='h-full w-full flex-1 bg-red-100 transition-all'
+                    class='h-full w-full flex-1 bg-pink-500 transition-all'
                     style='transform: translateX(-100%);'
-                >
-                </div>
+                ></div>
             </div>
         </div>
 
-        {{! Card Recuperación Contraseña y Preguntas de Seguridad }}
         <div class='flex flex-col gap-4 w-full justify-center items-center'>
-            <div data-step-card class='max-w-lg w-full bg-red-100 shadow-lg rounded-lg p-6 m-auto space-y-4'>
+            <div data-step-card class='hidden max-w-lg w-full bg-rose-50 shadow-lg rounded-lg p-6 m-auto space-y-4'>
                 <div class='text-center space-y-2'>
-                    <h3 class='text-xl font-medium text-gray-900'>Identificación de Usuario</h3>
+                    <h2 class='text-xl font-medium text-gray-900'>Identificación de Usuario</h2>
                     <p class='text-gray-600 text-sm'>
                         Ingrese tu nombre de usuario para iniciar el proceso de recuperación
                     </p>
@@ -55,16 +47,15 @@
                 >
                     <div class='w-full'>
                         <label
-                            for='porcentaje_iva_update'
+                            for='rescue-username'
                             class='block mb-2 text-sm font-medium text-gray-900 text-start'
                         >Nombre de Usuario</label>
-
                         <input
                             type='text'
                             name='username'
                             data-valid='username'
-                            id='porcentaje_iva_update'
-                            class='bg-red-100 border border-red-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                            id='rescue-username'
+                            class='bg-pink-50 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block w-full p-2 outline-none'
                             placeholder='Ingrese su nombre de usuario'
                             required
                         />
@@ -72,16 +63,16 @@
                     <button
                         data-next-step
                         type='submit'
-                        class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer duration-300 w-full'
+                        class='inline-block bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-md cursor-pointer duration-300 w-full'
                     >
                         Continuar
                     </button>
                 </form>
             </div>
-            {{! Card Nueva Contraseña }}
-            <div data-step-card class='max-w-lg w-full bg-red-100 shadow-lg rounded-lg p-6 m-auto space-y-4'>
+
+            <div data-step-card class='hidden max-w-lg w-full bg-rose-50 shadow-lg rounded-lg p-6 m-auto space-y-4'>
                 <div class='text-center space-y-2'>
-                    <h3 class='text-xl font-medium text-gray-900'>Preguntas de Seguridad</h3>
+                    <h2 class='text-xl font-medium text-gray-900'>Preguntas de Seguridad</h2>
                     <p class='text-gray-600 text-sm'>
                         Responde las preguntas de seguridad para verificar tu identidad
                     </p>
@@ -93,30 +84,29 @@
                     data-ignore='true'
                     class='w-full space-y-4'
                 >
-
                     <div class='w-full' id='questions'></div>
                     <div class='flex items-center gap-4'>
                         <button
                             data-prev-step
                             type='button'
-                            class='inline-block bg-transparent border border-red-400 hover:bg-red-300/50 text-gray-500 px-4 py-2 rounded-md cursor-pointer duration-300 w-full'
+                            class='inline-block bg-transparent border border-pink-500 hover:bg-pink-100 text-gray-600 px-4 py-2 rounded-md cursor-pointer duration-300 w-full'
                         >
                             Volver
                         </button>
                         <button
                             data-next-step
                             type='submit'
-                            class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer duration-300 w-full'
+                            class='inline-block bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-md cursor-pointer duration-300 w-full'
                         >
                             Continuar
                         </button>
                     </div>
                 </form>
             </div>
-            {{! Card Nueva Contraseña }}
-            <div data-step-card class='max-w-lg w-full bg-red-100 shadow-lg rounded-lg p-6 m-auto space-y-4'>
+
+            <div data-step-card class='hidden max-w-lg w-full bg-rose-50 shadow-lg rounded-lg p-6 m-auto space-y-4'>
                 <div class='text-center space-y-2'>
-                    <h3 class='text-xl font-medium text-gray-900'>Nueva Contraseña</h3>
+                    <h2 class='text-xl font-medium text-gray-900'>Nueva Contraseña</h2>
                     <p class='text-gray-600 text-sm'>
                         Crea una nueva contraseña segura para tu cuenta
                     </p>
@@ -130,16 +120,16 @@
                 >
                     <div class='w-full'>
                         <label
-                            for='porcentaje_iva_update'
+                            for='rescue-password'
                             class='block mb-2 text-sm font-medium text-gray-900 text-start'
                         >Nueva Contraseña</label>
-
                         <input
                             type='password'
                             name='password'
                             data-valid='username'
-                            id='porcentaje_iva_update'
-                            class='bg-red-100 border border-red-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                            id='rescue-password'
+                            autocomplete='new-password'
+                            class='bg-pink-50 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block w-full p-2 outline-none'
                             placeholder='Ingresa tu nueva contraseña'
                             required
                         />
@@ -148,16 +138,16 @@
                     </div>
                     <div class='w-full'>
                         <label
-                            for='porcentaje_iva_update'
+                            for='rescue-password-confirm'
                             class='block mb-2 text-sm font-medium text-gray-900 text-start'
                         >Confirmar Contraseña</label>
-
                         <input
                             type='password'
                             name='password_confirmation'
                             data-valid='username'
-                            id='porcentaje_iva_update'
-                            class='bg-red-100 border border-red-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                            id='rescue-password-confirm'
+                            autocomplete='new-password'
+                            class='bg-pink-50 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block w-full p-2 outline-none'
                             placeholder='Confirma tu contraseña'
                             required
                         />
@@ -165,16 +155,16 @@
                     <button
                         data-next-step
                         type='submit'
-                        class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer duration-300 w-full'
+                        class='inline-block bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-md cursor-pointer duration-300 w-full'
                     >
                         Continuar
                     </button>
                 </form>
             </div>
-            {{! Card Recuperación Exitosa }}
-            <div data-step-card class='max-w-lg w-full bg-red-100 shadow-lg rounded-lg p-6 m-auto space-y-4'>
+
+            <div data-step-card class='hidden max-w-lg w-full bg-rose-50 shadow-lg rounded-lg p-6 m-auto space-y-4'>
                 <div class='text-center space-y-2'>
-                    <h3 class='text-xl font-medium text-gray-900'>Recuperación Exitosa</h3>
+                    <h2 class='text-xl font-medium text-gray-900'>Recuperación Exitosa</h2>
                     <p class='text-gray-600 text-sm'>
                         Tu contraseña ha sido actualizada exitosamente
                     </p>
@@ -214,11 +204,8 @@
                                 stroke-linejoin='round'
                                 class='lucide lucide-circle-check-big h-8 w-8 text-green-600'
                             >
-                                <path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'>
-
-                                </path>
-                                <path d='m9 11 3 3L22 4'>
-                                </path>
+                                <path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'></path>
+                                <path d='m9 11 3 3L22 4'></path>
                             </svg>
                         </div>
                         <div>
@@ -230,7 +217,7 @@
                         </div>
                         <a
                             href='/login'
-                            class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer duration-300 w-full'
+                            class='inline-block bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-md cursor-pointer duration-300 w-full'
                         >
                             Ir a Iniciar Sesión
                         </a>
@@ -239,19 +226,18 @@
             </div>
         </div>
     </div>
-
 </div>
 <script type='module' src='/js/pages/rescue.js'></script>
 
 <template id='question-template'>
     <div class='w-full'>
         <label class='block mb-2 text-sm font-medium text-gray-900 text-start' data-question></label>
-
         <input
             type='password'
             data-answer
             data-valid='text'
-            class='bg-red-100 border border-red-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+            autocomplete='off'
+            class='bg-pink-50 border border-pink-300 text-gray-900 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block w-full p-2 outline-none'
             placeholder='Tu respuesta'
             required
         />

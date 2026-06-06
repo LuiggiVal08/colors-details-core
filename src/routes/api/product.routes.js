@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { upload } from '../../config/multer.js';
 import ProductoController from '../../controllers/product.controller.js';
 
 const router = Router();
@@ -6,8 +7,8 @@ const router = Router();
 router.get('/', ProductoController.getAll);
 router.post('/report/get-all', ProductoController.getAllReportPDF);
 router.get('/:id', ProductoController.getById);
-router.post('/', ProductoController.create);
-router.put('/:id', ProductoController.update);
+router.post('/', upload.single('imagen'), ProductoController.create);
+router.put('/:id', upload.single('imagen'), ProductoController.update);
 router.delete('/:id', ProductoController.delete);
 
 export default router;
