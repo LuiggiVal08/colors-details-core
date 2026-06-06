@@ -99,6 +99,26 @@ class ControlCajaController {
     }
 
     // =======================
+    //     CONTROL — MI ACTUAL
+    // =======================
+
+    static async getMyActual(req, res) {
+        try {
+            const usuario_id = res.locals.user.id;
+            const control = await models.ControlCaja.findOne({
+                where: { usuario_id, fecha_cierre: null, estado: 'abierto' },
+                include: [
+                    { model: models.Caja, as: 'caja' },
+                    { model: models.Usuario, as: 'usuario' },
+                ],
+            });
+            return res.json(control);
+        } catch (error) {
+            handleErrorsController(error, res, req);
+        }
+    }
+
+    // =======================
     //     CONTROL — APERTURA
     // =======================
 
@@ -125,6 +145,15 @@ class ControlCajaController {
                 monto_apertura: caja.monto,
                 estado: 'abierto',
             });
+
+            const controlCompleto = await models.ControlCaja.findByPk(control.id, {
+                include: [
+                    { model: models.Caja, as: 'caja' },
+                    { model: models.Usuario, as: 'usuario' },
+                ],
+            });
+            const io = req.app.get('io');
+            if (io) io.emit('caja:status-changed', controlCompleto);
 
             res.status(201).json({ control });
         } catch (error) {
@@ -159,6 +188,15 @@ class ControlCajaController {
                 estado: 'cerrado',
                 usuario_id,
             });
+
+            const controlCerrado = await models.ControlCaja.findByPk(controlAbierto.id, {
+                include: [
+                    { model: models.Caja, as: 'caja' },
+                    { model: models.Usuario, as: 'usuario' },
+                ],
+            });
+            const io = req.app.get('io');
+            if (io) io.emit('caja:status-changed', controlCerrado);
 
             res.json({
                 message: 'Caja cerrada correctamente',

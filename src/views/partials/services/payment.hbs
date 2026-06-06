@@ -20,7 +20,7 @@
 
         <!-- BODY -->
         <div role='dialog' class='p-6 space-y-4'>
-            <!-- ID oculto del período -->
+            <!-- ID oculto del servicio -->
             <input
                 type='hidden'
                 name='payment_service_id'
@@ -29,6 +29,21 @@
                 class='inputError'
                 value='{{service.id}}'
             />
+            <input type='hidden' name='payment_periodo_id' id='payment_periodo_id' value='' />
+
+            <!-- Periodo a Pagar -->
+            <div>
+                <label for='periodo_selector' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Periodo a
+                    Pagar</label>
+                <select
+                    name='periodo_id'
+                    id='periodo_selector'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    required
+                >
+                    <option value=''>Seleccionar periodo...</option>
+                </select>
+            </div>
 
             <!-- Monto a Pagar -->
             <div>
@@ -84,13 +99,7 @@
             >
                 Cancelar
             </button>
-            <button
-                data-confirm='modal'
-                type='submit'
-                class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer'
-            >
-                Registrar Pago
-            </button>
+            {{> components/submit-btn icon='payments' label='Registrar Pago'}}
         </div>
     </form>
 </div>

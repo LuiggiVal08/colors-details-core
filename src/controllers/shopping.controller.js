@@ -62,18 +62,18 @@ class VentaController {
     }
     static async getSalesReportPDF(req, res) {
         try {
-            // 1. Extraemos el socketId que viene del interceptor del front
             const { fecha_inicio, fecha_fin, socketId } = req.body;
+            const userId = req.user?.id;
 
             if (!fecha_inicio || !fecha_fin) {
                 return res.status(400).json({ message: 'Faltan fechas' });
             }
 
-            // 2. Agregamos el socketId a la data del job
             const job = await queue.add('reportes-pdf', {
                 tipo: 'VENTAS',
                 filtros: { fecha_inicio, fecha_fin },
-                socketId: socketId, // <--- ¡ESTO ES VITAL!
+                socketId: socketId,
+                userId: userId,
             });
 
             res.status(202).json({

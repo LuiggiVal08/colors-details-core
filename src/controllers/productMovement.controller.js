@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { z } from 'zod';
 import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
@@ -13,14 +14,24 @@ const schemaMovimiento = z.object({
 class MovimientoProductoController {
     static async getAll(req, res) {
         try {
-            const movimientos = await models.MovimientoProducto.findAll({
+            const { tipo, page, limit } = req.query;
+
+            const queryOptions = { where: {} };
+
+            if (tipo) {
+                queryOptions.where.tipo = tipo;
+            }
+
+            const movements = await models.MovimientoProducto.findAll({
+                ...queryOptions,
+                order: [['fecha', 'DESC']],
                 include: [
                     { model: models.Producto, as: 'producto' },
                     { model: models.Usuario, as: 'usuario' },
                 ],
-                order: [['fecha', 'DESC']],
             });
-            res.json(movimientos);
+
+            res.json(movements);
         } catch (error) {
             handleErrorsController(error, res, req);
         }

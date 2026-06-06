@@ -10,7 +10,7 @@
     </div>
     <form class='rounded-lg overflow-auto relative' action='/employe/{{usuario.empleado.id}}' data-method='PUT'>
         <div role='dialog' class=''>
-            <div class='flex flex-row gap-4 w-full'>
+            <div class='flex flex-col md:flex-row gap-4 w-full'>
                 <input type='hidden' name='fecha_ingreso' value="{{usuario.empleado.fecha_ingreso}}" />
                 <div class='w-full'>
                     <label
@@ -49,7 +49,7 @@
                 <label
                     for='cedula_employee_edit'
                     class='block mb-2 text-sm font-medium text-gray-900 text-start'
-                >Cedula</label>
+                >Cédula</label>
                 <input
                     type='text'
                     name='cedula'
@@ -57,16 +57,16 @@
                     value='{{usuario.empleado.cedula}}'
                     id='cedula_employee_edit'
                     class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-                    placeholder='Ingrese la Dirección'
+                    placeholder='Ingrese la Cédula'
                     required
                 />
             </div>
-            <div class='flex flex-row gap-4 w-full'>
+            <div class='flex flex-col md:flex-row gap-4 w-full'>
                 <div class='mt-4 w-full'>
                     <label
                         for='telefono_employee_edit'
                         class='block mb-2 text-sm font-medium text-gray-900 text-start'
-                    >Telefono</label>
+                    >Teléfono</label>
                     <input
                         type='text'
                         name='telefono'
@@ -74,7 +74,7 @@
                         value='{{usuario.empleado.telefono}}'
                         id='telefono_employee_edit'
                         class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-                        placeholder='Ingrese el Telefono'
+                        placeholder='Ingrese el Teléfono'
                         required
                     />
                 </div>
@@ -154,13 +154,7 @@
             </div>
         </div>
         <div role='doc-footnote' class='flex items-center justify-end gap-4 mt-4'>
-            <button
-                data-confirm='modal'
-                type='submit'
-                class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer duration-300 w-full'
-            >
-                Editar Empleado
-            </button>
+{{> components/submit-btn icon='save' label='Editar Empleado' class='w-full'}}
         </div>
     </form>
 </div>

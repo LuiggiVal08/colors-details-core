@@ -1,27 +1,20 @@
 <template id='template-modal-confirm'>
-    {{! Modal for confirmation actions }}
-    <div class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden' tabindex='-1' inert>
-        <div class='bg-white rounded-lg shadow-lg max-w-lg m-auto'>
-            <div role='heading' class='w-full flex justify-between items-center px-6 py-4 border-b border-gray-200'>
-                <h2 class='text-xl font-medium text-gray-900'>Confirmación</h2>
-                <button
-                    data-dismiss='modal'
-                    data-ico='cancel'
-                    class='material-symbols-rounded cursor-pointer flex hover:text-red-500'
-                ></button>
+    <div class='fixed inset-0 h-screen w-full bg-black/50 z-20 content-center hidden' aria-hidden='true'>
+        <div class='bg-white rounded-xl shadow-2xl max-w-lg mx-auto' role='dialog' aria-modal='true' aria-labelledby='modal-title'>
+            <div class='flex justify-between items-center px-6 py-4 border-b border-gray-200'>
+                <h2 id='modal-title' class='text-xl font-semibold text-gray-900'>Confirmación</h2>
+                <button data-dismiss='modal' data-ico='cancel'
+                    class='material-symbols-rounded cursor-pointer hover:text-red-500 transition-colors'
+                    aria-label='Cerrar'></button>
             </div>
-            <div role='dialog' class='p-6'></div>
-            <div role='doc-footnote' class='px-6 py-2 border-t border-gray-200 flex items-center justify-end gap-4'>
-                <button
-                    data-dismiss='modal'
-                    class='inline-block bg-transparent text-gray-500 px-4 py-2 rounded-md hover:bg-gray-400/50 border border-gray-400 cursor-pointer'
-                >
+            <div class='p-6 text-gray-700'></div>
+            <div class='px-6 py-3 border-t border-gray-200 flex items-center justify-end gap-3'>
+                <button data-dismiss='modal'
+                    class='px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer'>
                     Cancelar
                 </button>
-                <button
-                    data-confirm='modal'
-                    class='inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 cursor-pointer'
-                >
+                <button data-confirm='modal'
+                    class='px-4 py-2 text-sm font-medium text-white bg-pink-500 rounded-lg hover:bg-pink-600 transition-colors cursor-pointer'>
                     Confirmar
                 </button>
             </div>

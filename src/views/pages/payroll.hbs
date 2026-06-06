@@ -1,0 +1,97 @@
+{{> modal }}
+
+<h1 class="sr-only">Gestión de Nómina</h1>
+
+<div class='content-center py-4 flex-1 container mx-auto'>
+    <div class='container mx-auto max-w-5xl bg-red-100 rounded-md p-4 md:p-6 flex flex-col gap-6'>
+        <div class='flex items-center gap-2'>
+            <span data-ico='payments' class='material-symbols-rounded fill-solid wght-normal md-28 text-gray-900'></span>
+            <h2 class='text-xl font-semibold text-gray-900'>Gestión de Nómina</h2>
+        </div>
+
+        {{! Summary cards }}
+        <div class='grid grid-cols-2 md:grid-cols-4 gap-3' id='payroll-summary'>
+            <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>Total Nóminas</p>
+                <p id='total-nominas' class='text-lg font-bold text-gray-900 mt-0.5'>—</p>
+            </div>
+            <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>Total Pagado</p>
+                <p id='total-paid-all' class='text-lg font-bold text-green-600 mt-0.5'>—</p>
+            </div>
+            <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>Total Empleados</p>
+                <p id='total-employees-all' class='text-lg font-bold text-gray-900 mt-0.5'>—</p>
+            </div>
+            <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>Última Nómina</p>
+                <p id='last-nomina-date' class='text-lg font-bold text-amber-600 mt-0.5'>—</p>
+            </div>
+        </div>
+
+        <div class='rounded-lg p-4 border border-red-200'>
+            <h3 class='text-base font-medium text-gray-900 mb-4'>Generar nueva nómina</h3>
+            <form id='form-generar-nomina' class='flex flex-col md:flex-row gap-4 items-end'>
+                <div class='w-full'>
+                    <label for='periodo_inicio' class='block mb-1 text-sm font-medium text-gray-900'>Periodo inicio</label>
+                    <input type='date' name='periodo_inicio' id='periodo_inicio'
+                        class='bg-red-50 border border-red-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        required />
+                </div>
+                <div class='w-full'>
+                    <label for='periodo_fin' class='block mb-1 text-sm font-medium text-gray-900'>Periodo fin</label>
+                    <input type='date' name='periodo_fin' id='periodo_fin'
+                        class='bg-red-50 border border-red-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        required />
+                </div>
+{{> components/submit-btn icon='add' label='Generar Nómina' id='btn-generar-nomina' class='text-nowrap'}}
+            </form>
+        </div>
+
+        <div class='flex flex-col gap-2'>
+            <h3 class='text-base font-medium text-gray-900'>Historial de nóminas</h3>
+            <div class='overflow-x-auto scrollbar rounded-md border border-red-400/50'>
+                <table class='w-full border-collapse table caption-bottom'>
+                    <thead class='[&_tr]:border-b border-red-400/50'>
+                        <tr class='border-b border-red-400/50'>
+                            <th align='start' class='text-gray-900 font-medium p-3 text-nowrap'>Período</th>
+                            <th align='start' class='text-gray-900 font-medium p-3'>Tasa Bs.</th>
+                            <th align='center' class='text-gray-900 font-medium p-3'>Empleados</th>
+                            <th align='center' class='text-gray-900 font-medium p-3 text-nowrap'>Total (USD)</th>
+                            <th align='center' class='text-gray-900 font-medium p-3 text-nowrap hidden md:table-cell'>Total (Bs.)</th>
+                            <th align='center' class='text-gray-900 font-medium p-3'>Pendiente</th>
+                            <th align='center' class='text-gray-900 font-medium p-3'>Estado</th>
+                            <th align='center' class='text-gray-900 font-medium p-3'>Generado por</th>
+                            <th align='center' class='text-gray-900 font-medium p-3'>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id='table-nomina' class='[&_tr:last-child]:border-0'>
+                        <tr class='border-b transition-colors'>
+                            <td colspan='8' class='text-center p-3'>Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id='fila-nomina'>
+    <tr class='hover:bg-pink-400/10 transition-all duration-300 border-b border-red-400/50'>
+        <td align='start' class='p-4 align-middle text-nowrap' data-key='periodo'></td>
+        <td align='start' class='p-4 align-middle text-nowrap' data-key='tasa'></td>
+        <td align='center' class='p-4 align-middle' data-key='total_empleados'></td>
+        <td align='center' class='p-4 align-middle text-nowrap' data-key='total_monto'></td>
+        <td align='center' class='p-4 align-middle text-nowrap hidden md:table-cell' data-key='total_bs'></td>
+        <td align='center' class='p-4 align-middle text-nowrap' data-key='pendiente'></td>
+        <td align='center' class='p-4 align-middle' data-key='estado'></td>
+        <td align='center' class='p-4 align-middle' data-key='usuario'></td>
+        <td align='center' class='p-4 align-middle'>
+            <button data-btn='view' data-idfield='id'
+                class='material-symbols-rounded cursor-pointer text-blue-500 hover:text-blue-700 duration-300'
+                data-ico='visibility'></button>
+        </td>
+    </tr>
+</template>
+
+<script type='module' src='/js/pages/payroll.js'></script>

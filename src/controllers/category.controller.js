@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 import { z } from 'zod';
@@ -10,10 +11,24 @@ const categoriaSchema = z.object({
 class CategoriaController {
     static async getAll(req, res) {
         try {
-            const categorias = await models.CategoriaProducto.findAll({
+            const { search, page, limit } = req.query;
+            let queryOptions = { where: {} };
+            if (search) {
+                queryOptions.where = {
+                    [Op.or]: [{ nombre: { [Op.like]: `%${search}%` } }],
+                };
+            }
+            if (page && limit) {
+                queryOptions.limit = parseInt(limit);
+                queryOptions.offset = (parseInt(page) - 1) * parseInt(limit);
+            }
+            const categorys = await models.CategoriaProducto.findAll({
+                ...queryOptions,
+                order: [['nombre', 'ASC']],
                 include: [{ model: models.Producto, as: 'productos' }],
             });
-            res.json(categorias);
+
+            res.json(categorys);
         } catch (error) {
             handleErrorsController(error, res, req);
         }

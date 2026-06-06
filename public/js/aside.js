@@ -1,7 +1,7 @@
 import { setupModalLifecycle } from './helpers/handleModalEvents.js';
 import intoIcon from './helpers/intoIcon.js';
 import showToast from './helpers/Toast.js';
-import { httpClient } from './index.js';
+import { httpClient, socket } from './index.js';
 
 document.getElementById('btn-aside').addEventListener('click', async () => {
     const modalAside = document.getElementById('aside-overlay');
@@ -52,4 +52,22 @@ document.addEventListener('DOMContentLoaded', function () {
             el.setAttribute('aria-current', 'page');
         }
     });
+});
+
+// Actualizar tasa en el aside via socket
+socket.on('tasa-dolar:updated', (data) => {
+    if (!data?.tasa) return;
+    const tasaEl = document.querySelector('[data-tasa-dolar]');
+    if (!tasaEl) return;
+
+    const cambio = data.cambio ? (((data.tasa - data.cambio) / data.cambio) * 100).toFixed(2) : '';
+    const icon = intoIcon(cambio > 0 ? 'trending_up' : 'trending_down', { classes: ['leading-0'] });
+
+    const span = document.createElement('span');
+    span.classList.add('text-xl', 'font-bold');
+    span.textContent = `$1=${data.tasa} Bs.`;
+
+    tasaEl.innerHTML = '';
+    tasaEl.appendChild(span);
+    tasaEl.appendChild(icon);
 });

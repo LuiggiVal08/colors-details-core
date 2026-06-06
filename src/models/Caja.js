@@ -25,9 +25,6 @@ Caja.init(
             beforeUpdate: async (caja) => {
                 if (caja.monto) caja.monto = formatearPrecio(caja.monto);
             },
-            beforeUpdate: async (caja) => {
-                if (caja.monto) caja.monto = formatearPrecio(caja.monto);
-            },
         },
     },
 );

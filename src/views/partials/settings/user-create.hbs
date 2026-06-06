@@ -18,7 +18,7 @@
         </div>
 
         <div role='dialog' class='p-6 space-y-4'>
-            <div class='w-full flex flex-row gap-4'>
+            <div class='w-full flex flex-col md:flex-row gap-4'>
                 <div class='w-full'>
                     <label
                         for='username_user_create'
@@ -44,7 +44,7 @@
                         data-valid='text'
                         id='tipo_usuario_id_user_create'
                         class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-                        placeholder='Ingrese la Proveedor'
+                        placeholder='Ingrese el Proveedor'
                         required
                     >
                         <option value=''>Seleccione un Tipo de Usuario</option>
@@ -63,6 +63,7 @@
                     name='password'
                     data-valid='password'
                     id='password_user_create'
+                    autocomplete='new-password'
                     class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
                     placeholder='Ingrese la Contraseña'
                     required
@@ -80,7 +81,7 @@
                     data-valid='text'
                     id='empleado_id_user_create'
                     class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-                    placeholder='Ingrese la Proveedor'
+                    placeholder='Ingrese el Proveedor'
                     required
                 >
                     <option value=''>Seleccione un Empleado</option>
@@ -124,13 +125,7 @@
             >
                 Cancelar
             </button>
-            <button
-                data-confirm='modal'
-                type='submit'
-                class='inline-block bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer'
-            >
-                Registrar
-            </button>
+            {{> components/submit-btn icon='person_add' label='Registrar'}}
         </div>
     </form>
 </div>

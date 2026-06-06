@@ -6,9 +6,7 @@ const isAuthenticated = async (req, res, next) => {
     if (NODE_ENV === 'test') {
         return next();
     }
-
-    // const expirationTime = Date.now() + 15 * 60 * 1000; // Expira en 15 minutos
-    const expirationTime = Date.now() + timeExpiresToken; // Expira en 1 hora
+    const expirationTime = Date.now() + timeExpiresToken;
 
     const token = req.cookies?.sid || req.headers.authorization?.split(' ')[1];
 

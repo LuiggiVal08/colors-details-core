@@ -36,8 +36,13 @@ async function realizarMovimiento({ usuario_id, monto, descripcion, tipo, transa
     try {
         const { control, caja } = await obtenerCajaActivaPorUsuario(usuario_id, t);
 
-        const montoBox = Number(caja.monto);
-        const montoMovement = Number(monto);
+        const parseNum = (v) => {
+            const s = String(v || '0');
+            if (/^-?\d+(\.\d{1,2})?$/.test(s)) return Number(s);
+            return Number(s.replace(/\./g, '').replace(',', '.'));
+        };
+        const montoBox = parseNum(caja.monto);
+        const montoMovement = parseNum(monto);
 
         if (tipo === 'egreso' && montoMovement > montoBox) throw new BadRequestError('Fondos insuficientes en caja');
 
@@ -45,7 +50,7 @@ async function realizarMovimiento({ usuario_id, monto, descripcion, tipo, transa
             {
                 control_caja_id: control.id,
                 usuario_id,
-                monto: montoMovement.toFixed(2).replace('.', ','),
+                monto: montoMovement.toFixed(2),
                 tipo,
                 descripcion: descripcion || '',
                 fecha: new Date(),

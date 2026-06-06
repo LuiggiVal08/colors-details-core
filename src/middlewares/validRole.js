@@ -1,6 +1,7 @@
 import path from 'path';
 import { JWT_SECRET } from '../constants.js';
 import jsonwebtoken from 'jsonwebtoken';
+import logger from '../config/logger.js';
 const basePath = (page) => path.join('pages', page);
 const validRole = (roles = []) => {
     return async (req, res, next) => {
@@ -31,7 +32,7 @@ const validRole = (roles = []) => {
 
             return next();
         } catch (error) {
-            console.log(error);
+            logger.error(error);
 
             return res.status(401).json({ error: 'Token inválido o expirado' });
         }

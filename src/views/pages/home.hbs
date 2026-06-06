@@ -1,37 +1,58 @@
-<div class=''>
-    {{#if userValid}}
-    <div class="container mx-auto p-4">
-        {{!-- <h1 class="text-3xl font-bold mb-6">Dashboard de Estadísticas</h1> --}}
+{{#if userValid}}
+    <div class="container mx-auto p-4 md:p-6 min-h-screen">
+        <div id="alert-security-questions" class="hidden mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span data-ico="shield_question" class="material-symbols-rounded text-amber-600"></span>
+                <p class="text-sm text-amber-800">
+                    No has configurado tus preguntas de seguridad.
+                    <a href="/profile?tab=question" class="font-medium underline hover:text-amber-900">Configúralas ahora</a>
+                    para poder recuperar tu contraseña.
+                </p>
+            </div>
+            <button type="button" id="dismiss-security-alert" class="text-amber-400 hover:text-amber-600 cursor-pointer">
+                <span class="material-symbols-rounded" data-ico="close"></span>
+            </button>
+        </div>
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p class="text-sm text-gray-500 mt-1">Resumen de los últimos 12 meses</p>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-red-100 p-4 rounded-lg shadow">
-                <h2 class="text-xl font-semibold mb-4">Ventas por Fecha</h2>
+            <div class="bg-white border border-rose-200 border-t-4 border-t-rose-400 rounded-xl shadow-sm hover:shadow-md transition-shadow p-5">
+                <h2 class="text-lg font-semibold text-rose-800 mb-4">Ventas por Fecha</h2>
                 <canvas id="salesChart"></canvas>
             </div>
-            <div class="bg-red-100 p-4 rounded-lg shadow">
-                <h2 class="text-xl font-semibold mb-4">Pedidos por Mes</h2>
+            <div class="bg-white border border-rose-200 border-t-4 border-t-rose-400 rounded-xl shadow-sm hover:shadow-md transition-shadow p-5">
+                <h2 class="text-lg font-semibold text-rose-800 mb-4">Pedidos por Mes</h2>
                 <canvas id="ordersChart"></canvas>
             </div>
-            <div class="bg-red-100 p-4 rounded-lg shadow">
-                <h2 class="text-xl font-semibold mb-4">Stock por Categoría</h2>
-                <canvas id="stockChart" class="max-w-md m-auto"></canvas>
+            <div class="bg-white border border-rose-200 border-t-4 border-t-rose-400 rounded-xl shadow-sm hover:shadow-md transition-shadow p-5">
+                <h2 class="text-lg font-semibold text-rose-800 mb-4">Stock por Categoría</h2>
+                <canvas id="stockChart" class="max-w-xs mx-auto"></canvas>
+                <div id="stockChart-empty" class="flex hidden flex-col items-center justify-center py-10 text-gray-400">
+                    <svg class="w-14 h-14 mb-3 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <p class="text-sm font-medium text-gray-500">Sin datos disponibles</p>
+                    <p class="text-xs text-gray-400 mt-1">Registra productos para ver estadísticas</p>
+                </div>
             </div>
-            <div class="bg-red-100 p-4 rounded-lg shadow">
-                <h2 class="text-xl font-semibold mb-4">Productos con Stock Bajo</h2>
+            <div class="bg-white border border-rose-200 border-t-4 border-t-rose-400 rounded-xl shadow-sm hover:shadow-md transition-shadow p-5">
+                <h2 class="text-lg font-semibold text-rose-800 mb-4">Productos con Stock Bajo</h2>
                 <canvas id="lowStockChart"></canvas>
             </div>
         </div>
     </div>
-    {{else}}
-    <div class='container mx-auto flex justify-center items-center min-h-[calc(100vh-90px)]'>
-        <div class='text-center rounded-lg p-8 max-w-lg'>
-            <img src='/img/logo.png' alt='logo' class='h-48 mb-4 m-auto' style="view-transition-name: home-logo" />
-            <h1 class='text-4xl font-bold text-gray-900'>Bienvenido a Colores y Detalles</h1>
-            <p class='mt-4 text-lg text-gray-600'>Tu tienda única en sublimado de colores y detalles</p>
-        </div>
+{{else}}
+<div class='mx-auto content-center py-4 flex-1'>
+    <div class='text-center rounded-lg p-8 max-w-lg'>
+        <img src='/img/logo.png' alt='logo' class='h-48 mb-4 m-auto' style="view-transition-name: home-logo" />
+        <h1 class='text-4xl font-bold text-gray-900'>Bienvenido a Colores y Detalles</h1>
+        <p class='mt-4 text-lg text-gray-600'>Tu tienda única en sublimado de colores y detalles</p>
     </div>
-    {{/if}}
 </div>
+{{/if}}
 {{> modal }}
 
 <script src="/js/libs/chart-v4.js"></script>
-<script type="module" src="/js/pages/home.js"></script>
+<script type="module" src="/js/pages/home/index.js"></script>

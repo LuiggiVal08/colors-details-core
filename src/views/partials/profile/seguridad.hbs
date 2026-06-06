@@ -8,7 +8,7 @@
             <span>Actualiza tu contraseña para mantener tu cuenta segura</span>
         </div>
     </div>
-    <div class='flex flex-row gap-4 w-full'>
+    <div class='flex flex-col md:flex-row gap-4 w-full'>
         <form action='/user/change-password/{{id_usuario}}' method='POST' class='w-full'>
             <div class='w-full'>
                 <label for='pass_actual' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Contraseña
@@ -18,6 +18,7 @@
                     name='passwordActual'
                     data-valid='password'
                     id='pass_actual'
+                    autocomplete='current-password'
                     class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
                     placeholder='Ingrese Contraseña Actual'
                     required
@@ -30,6 +31,7 @@
                     name='passwordNueva'
                     data-valid='password'
                     id='pass_new'
+                    autocomplete='new-password'
                     class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
                     placeholder='Ingrese Nueva Contraseña'
                     required
@@ -45,19 +47,14 @@
                     name='passwordConfirmacion'
                     data-valid='password'
                     id='pass_confirm'
+                    autocomplete='new-password'
                     class='bg-red-300/30 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
                     placeholder='Confirmar Nueva Contraseña'
                     required
                 />
             </div>
             <div class='mt-4 flex items-center'>
-                <button
-                    type='submit'
-                    data-ico='lock_reset'
-                    class='bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer material-symbols-rounded flex items-center gap-2 w-full justify-center'
-                >
-                    Cambiar Contraseña
-                </button>
+{{> components/submit-btn icon='lock_reset' label='Cambiar Contraseña' class='w-full'}}
             </div>
         </form>
         <div class='rounded-lg h-fit bg-red-400/20 w-full p-4 border border-red-400 border-dashed'>

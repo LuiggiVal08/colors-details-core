@@ -9,7 +9,7 @@
         </div>
     </div>
 
-    <div class='flex flex-row gap-4 w-full'>
+    <div class='flex flex-col md:flex-row gap-4 w-full'>
 
         <form action='/shopping/report' data-noreload='false' method='post'>
             <div class='w-full'>
@@ -43,13 +43,7 @@
             </div>
 
             <div class='mt-4 flex items-center'>
-                <button
-                    type='submit'
-                    data-ico='summarize'
-                    class='bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer material-symbols-rounded flex items-center gap-2 w-full justify-center'
-                >
-                    Generar Reporte
-                </button>
+{{> components/submit-btn icon='description' label='Generar Reporte' class='w-full'}}
             </div>
         </form>
 

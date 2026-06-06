@@ -1,21 +1,18 @@
 <template id='toast-template'>
-    <div
-        class='border-[1px] border-gray-200 fixed bottom-6 right-6 z-[999] rounded-md shadow-lg h-fit text-gray-700 bg-white backdrop-blur-sm transition-opacity duration-300 ease-in-out transform pointer-events-auto toast min-w-[280px] max-w-96'
-    >
+    <div role='alert' aria-live='polite'
+        class='fixed bottom-6 right-6 z-[999] rounded-xl shadow-lg h-fit text-gray-700 bg-white/95 backdrop-blur-sm border border-gray-200 transition-all duration-300 ease-in-out pointer-events-auto toast min-w-[280px] max-w-96'>
         <div class='relative w-full p-4'>
             <div class='flex items-center gap-3 pr-2'>
-                <span data-ico='info' data-toast-ico class='material-symbols-rounded md-28 fill-1'></span>
+                <span data-ico='info' data-toast-ico class='material-symbols-rounded md-28'></span>
                 <div class='flex flex-col gap-1 items-start justify-center'>
                     <strong class='font-semibold text-gray-900 text-sm' data-toast-title></strong>
                     <span class='text-gray-500 text-sm' data-toast-text></span>
                 </div>
             </div>
-            <button
-                data-close-toast
-                class='absolute top-2 right-2 outline-none bg-transparent border-none text-red-500 toast-close cursor-pointer hover:text-red-600 transition-colors duration-200 ease-in-out leading-none'
-                aria-label='Cerrar'
-            >
-                <span data-ico='cancel' class='material-symbols-rounded md-18 fill-1'></span>
+            <button data-close-toast
+                class='absolute top-2 right-2 bg-transparent border-none text-red-400 toast-close cursor-pointer hover:text-red-600 transition-colors'
+                aria-label='Cerrar'>
+                <span data-ico='cancel' class='material-symbols-rounded md-18'></span>
             </button>
         </div>
     </div>

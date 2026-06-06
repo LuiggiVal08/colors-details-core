@@ -1,28 +1,39 @@
+
 <div class='container mx-auto py-4 flex flex-col items-center justify-center gap-4'>
 
-    <div id="box-register" class="flex flex-row items-center justify-center w-full h-10 bg-red-100 p-1 rounded-md">
-
+    <div id="box-register" class="flex flex-col sm:flex-row items-stretch gap-0 w-full bg-rose-100 border border-rose-200 rounded-xl shadow-sm">
+        <div class="flex-1 flex items-center gap-3 px-4 py-3">
+            <div class="p-2 bg-white rounded-lg shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-rose-600">
+                    <line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500">Tasa del Dólar</p>
+                <p class="text-lg font-bold text-gray-900">
+                    <span class="tasa-valor">—</span>
+                    <span class="text-sm font-normal text-gray-500">Bs.</span>
+                </p>
+            </div>
+        </div>
+        <div class="hidden sm:block w-px bg-gray-500 my-2"></div>
+        <div class="flex-1 flex items-center gap-3 px-4 py-3 border-t sm:border-t-0 border-gray-200">
+            <div class="p-2 bg-white rounded-lg shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-rose-600">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                </svg>
+            </div>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1 caja-status-content">
+                <span class="text-sm text-gray-500">Cargando...</span>
+            </div>
+        </div>
     </div>
 
-    <div id='tabs-shpping' class='flex flex-row items-center justify-center w-full h-10 bg-red-100 p-1 rounded-md'>
+    <div id='tabs-shopping' class='flex flex-row items-center justify-center w-full h-10 bg-red-100 p-1 rounded-md'>
 
 
-        <button
-            data-tab='shopping'
-            type='button'
-            data-ico='add_shopping_cart'
-            class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
-        >
-            Ventas
-        </button>
-        <button
-            data-tab='box-register'
-            type='button'
-            data-ico='receipt_long'
-            class='cursor-pointer flex items-center justify-center gap-2 w-full h-full text-gray-600 hover:hover:bg-red-500 hover:text-white rounded-md transition-colors duration-200 material-symbols-rounded'
-        >
-            Cajas Registradoras
-        </button>
+        {{> components/tab-btn tab='shopping' icon='add_shopping_cart' label='Ventas'}}
+        {{> components/tab-btn tab='box-register' icon='receipt_long' label='Cajas Registradoras'}}
 
 
     </div>
