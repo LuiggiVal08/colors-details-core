@@ -49,20 +49,27 @@ export const generarPDF = async (tipo, data) => {
                 doc.on('pageAdded', () => drawHeader('Reporte de Ventas'));
 
                 data.ventas.forEach((venta) => {
+                    const subtotal = Number(venta.total) || 0;
+                    const ivaPorcentaje = Number(venta.iva?.porcentaje) || 0;
+                    const ivaMonto = (subtotal * ivaPorcentaje) / 100;
+                    const totalConIVA = subtotal + ivaMonto;
+
                     doc.fontSize(14).fillColor('#007bff').text(`Venta #${venta.id}`, { underline: true });
                     doc.fillColor('black')
                         .fontSize(12)
                         .moveDown(0.5)
                         .text(`Fecha: ${new Date(venta.fecha).toLocaleString('es-VE')}`)
                         .text(`Cliente: ${venta.cliente?.nombre || ''} ${venta.cliente?.apellido || ''}`)
-                        .text(`Total: $${venta.total}`)
+                        .text(`Subtotal: $${subtotal.toFixed(2)}`)
+                        .text(`IVA (${ivaPorcentaje}%): $${ivaMonto.toFixed(2)}`)
+                        .text(`Total con IVA: $${totalConIVA.toFixed(2)}`)
                         .moveDown(1);
 
                     // Detalles
                     doc.fontSize(13).text('Productos:', { underline: true });
                     venta.detalles.forEach((d) => {
                         doc.fontSize(12).text(
-                            `- ${d.producto?.nombre} | Cant: ${d.cantidad} | Subtotal: $${d.subtotal}`,
+                            `- ${d.producto?.nombre} | Cant: ${d.cantidad} | Subtotal: $${Number(d.subtotal || 0).toFixed(2)}`,
                         );
                     });
                     doc.moveDown(1).strokeColor('#cccccc').moveTo(50, doc.y).lineTo(550, doc.y).stroke().moveDown(1);

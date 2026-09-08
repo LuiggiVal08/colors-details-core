@@ -5,6 +5,7 @@ import handleErrorsController from '../helpers/handdleErrorsController.js';
 import bcrypt from 'bcryptjs';
 import { timeExpiresToken } from '../constants.js';
 import logger from '../config/logger.js';
+import { hashPassword, rehashIfPlain, verificarPassword } from '../helpers/password.js';
 
 const schemaUserSingIn = z.object({
     username: z.string().min(1, 'El nombre de usuario es obligatorio'),
@@ -35,12 +36,15 @@ class UserController {
 
             if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
-            if (!(await bcrypt.compare(password, user.password)))
+            if (!(await verificarPassword(password, user)))
                 return res.status(401).json({ message: 'Contraseña incorrecta' });
+
+            await rehashIfPlain(password, user);
 
             const payload = {
                 id: user.id,
                 username: user.username,
+                empleado_id: user.empleado_id,
                 tipo_usuario_id: user.tipo_usuario_id,
                 tipo_usuario_name: user.tipo ? user.tipo.nombre : null,
             };
@@ -82,14 +86,13 @@ class UserController {
 
             const { passwordActual, passwordNueva, passwordConfirmacion } = req.body;
             // la contraseña debe ser encriptada antes de compararla
-            const validPasswordActual = await bcrypt.compare(passwordActual, usuario.password);
+            const validPasswordActual = await verificarPassword(passwordActual, usuario);
             if (!validPasswordActual) {
                 return res.status(400).json({ message: 'La contraseña actual no es correcta' });
             }
             if (passwordNueva !== passwordConfirmacion)
                 return res.status(400).json({ message: 'Las contraseñas no coinciden' });
-            const salt = await bcrypt.genSalt(10);
-            const newPassword = await bcrypt.hash(passwordNueva, salt);
+            const newPassword = await hashPassword(passwordNueva);
             await usuario.update({ password: newPassword });
             res.json({ message: 'Contraseña cambiada' });
         } catch (error) {

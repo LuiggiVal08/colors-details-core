@@ -64,7 +64,7 @@ sequelize
 
 (async () => {
     try {
-        await sequelize.sync({ logging: false });
+        await sequelize.sync({ alter: true, logging: false });
 
         await notifQueue.removeRepeatableByKey('notificaciones-diarias');
         await notifQueue.add(

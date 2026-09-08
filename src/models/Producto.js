@@ -22,7 +22,7 @@ Producto.init(
         descripcion: DataTypes.TEXT,
         precio: DataTypes.DECIMAL(10, 2),
         stock: DataTypes.INTEGER,
-        // imagen: DataTypes.STRING,
+        imagen: DataTypes.STRING,
     },
     {
         sequelize,

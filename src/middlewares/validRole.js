@@ -14,7 +14,7 @@ const validRole = (roles = []) => {
         };
 
         if (!token) {
-            res.render(basePath('403'), forbidden);
+            return res.render(basePath('403'), forbidden);
         }
 
         try {
@@ -23,11 +23,11 @@ const validRole = (roles = []) => {
 
             const role = user.tipo_usuario_name;
             if (!role) {
-                res.render(basePath('403'), forbidden);
+                return res.render(basePath('403'), forbidden);
             }
 
             if (roles.length > 0 && !roles.includes(role)) {
-                res.render(basePath('403'), forbidden);
+                return res.render(basePath('403'), forbidden);
             }
 
             return next();

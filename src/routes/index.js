@@ -106,16 +106,21 @@ routerApp.use('/exchange-rate', routerExchangeRate);
 // Healthcheck, fallback y validación de sesión
 
 routerApp.get('/validate', isAuthenticated, (req, res) => {
-    console.log('into route validate', req.user);
     res.status(200).json({
         message: 'Sesión activa',
         user: req.user, // Devuelves los datos limpios que sacaste del token
     });
 });
 // En tus rutas de Node.js
-routerApp.get('/reports/download/:fileName', (req, res) => {
+routerApp.get('/reports/download/:fileName', isAuthenticated, (req, res) => {
     const { fileName } = req.params;
-    const filePath = path.join(cwd(), 'tmp', fileName);
+    const safeName = path.basename(fileName);
+    const filePath = path.join(cwd(), 'tmp', safeName);
+
+    // Evitar salir del directorio tmp
+    if (safeName !== fileName || !filePath.startsWith(path.join(cwd(), 'tmp'))) {
+        return res.status(400).send('Nombre de archivo no válido.');
+    }
 
     // Verificar si el archivo existe
     if (fs.existsSync(filePath)) {

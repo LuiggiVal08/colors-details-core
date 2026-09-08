@@ -62,7 +62,7 @@ async function realizarMovimiento({ usuario_id, monto, descripcion, tipo, transa
 
         await caja.update(
             {
-                monto: newBoxAmount.toFixed(2).replace('.', ','),
+                monto: newBoxAmount.toFixed(2),
             },
             { transaction: t },
         );

@@ -34,6 +34,12 @@ httpClient.setRequestInterceptor(async ({ url, options }) => {
     const storedToken = await localStorage.getItem('token');
     if (storedToken) options.headers.Authorization = `Bearer ${storedToken}`;
     if (options.method === 'POST' || options.method === 'PUT') {
+        if (options.body instanceof FormData) {
+            if (options.body.has('socketId') === false) {
+                options.body.append('socketId', socket.id || sessionStorage.getItem('socketId') || '');
+            }
+            return { url, options };
+        }
         const body = JSON.parse(options.body || '{}');
         body.socketId = socket.id || sessionStorage.getItem('socketId');
         options.body = JSON.stringify(body);

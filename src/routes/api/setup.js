@@ -6,9 +6,11 @@ import { unlink, writeFile } from 'fs/promises';
 import fs from 'fs'; // el viejo confiable, para sync
 import bcrypt from 'bcryptjs';
 import { exec, spawn } from 'child_process';
+import { execSync } from 'child_process';
 import path from 'path';
 import { tmpdir } from 'os';
 import multer from 'multer';
+import isAuthenticated from '../../middlewares/isAuthenticate.js';
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -32,16 +34,48 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ storage, fileFilter });
 const uploadMiddleware = (req, res, next) => {
     upload.single('backup')(req, res, (err) => {
-        if (err instanceof multer.MulterError || err) {
-            // Aquí puedes personalizar según el error
-            console.log(err);
-
-            return handleErrorsController(err.message, res, req);
+        if (err) {
+            return handleErrorsController(new Error(err.message), res, req);
         }
         next();
     });
 };
 const router = Router();
+
+// Resuelve la ruta de un binario de MySQL de forma portable (env o PATH).
+const resolveBin = (name, envKey) => {
+    const fromEnv = process.env[envKey];
+    if (fromEnv) return fromEnv;
+    try {
+        return execSync(`command -v ${name} 2>/dev/null || which ${name} 2>/dev/null`)
+            .toString()
+            .trim();
+    } catch {
+        return name; // que falle con el nombre y dé un error claro
+    }
+};
+
+// Middleware de autorización para operaciones de base de datos (solo admin/superadmin).
+const requireAdmin = (req, res, next) => {
+    const user = req.user || res.locals.user;
+    const role = user?.tipo_usuario_name;
+    if (role === 'admin' || role === 'superadmin') return next();
+    return res.status(403).json({ message: 'No tienes permisos para realizar esta acción' });
+};
+
+// Extrae host, puerto y credenciales del servidor MySQL desde DB_URL
+// (p. ej. mysql://root:@db:3306/colorsanddetails). Usa las mismas credenciales
+// que la app para que el CLI siempre coincida con Sequelize.
+const mysqlCredentials = () => {
+    try {
+        const url = new URL(DB_URL);
+        const user = decodeURIComponent(url.username);
+        const password = decodeURIComponent(url.password);
+        return { host: url.hostname, port: url.port || '3306', user, password };
+    } catch {
+        return { host: 'localhost', port: '3306', user: DB_USER, password: DB_PASSWORD };
+    }
+};
 
 router.get('/', async (req, res) => {
     try {
@@ -106,13 +140,17 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/db/dump', async (req, res) => {
+router.get('/db/dump', isAuthenticated, requireAdmin, async (req, res) => {
     try {
-        const command = `"C:\\xampp\\mysql\\bin\\mysqldump.exe" -u${DB_USER} --password=${DB_PASSWORD} ${DB_NAME}`;
+        const mysqldump = resolveBin('mysqldump', 'DB_MYSQL_DUMP');
+        const { host, port, user, password } = mysqlCredentials();
+        // --ssl-verify-server-cert=0: el servidor MySQL 8.4 trae certificado
+        // self-signed; el cliente CLI (MariaDB/Alpine) exige verificarlo.
+        const command = `"${mysqldump}" --ssl-verify-server-cert=0 -h${host} -P${port} -u${user} --password=${password} ${DB_NAME}`;
 
         exec(command, async (error, stdout, stderr) => {
             if (error) {
-                return handleErrorsController(`Error al generar dump: ${stderr}`, res, req);
+                return handleErrorsController(`Error al generar dump: ${stderr || error.message}`, res, req);
             }
             const filePath = path.join(tmpdir(), `${DB_NAME}_backup.sql`);
             try {
@@ -130,12 +168,13 @@ router.get('/db/dump', async (req, res) => {
     }
 });
 
-router.post('/db/restore', uploadMiddleware, async (req, res) => {
+router.post('/db/restore', isAuthenticated, requireAdmin, uploadMiddleware, async (req, res) => {
     try {
         const filePath = path.resolve('tmp', 'restore.sql');
-        const mysqlPath = 'C:\\xampp\\mysql\\bin\\mysql.exe'; // ajusta según tu ruta
+        const mysql = resolveBin('mysql', 'DB_MYSQL');
+        const { host, port, user, password } = mysqlCredentials();
 
-        const restoreProcess = spawn(mysqlPath, [`-u${DB_USER}`, `--password=${DB_PASSWORD}`, DB_NAME]);
+        const restoreProcess = spawn(mysql, [`--ssl-verify-server-cert=0`, `-h${host}`, `-P${port}`, `-u${user}`, `--password=${password}`, DB_NAME]);
 
         const sqlStream = fs.createReadStream(filePath);
         sqlStream.pipe(restoreProcess.stdin);

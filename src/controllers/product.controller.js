@@ -3,7 +3,9 @@ import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 import { z } from 'zod';
 import { queue } from '../config/queueConfig.js';
-import { Logger } from 'winston';
+import fs from 'fs';
+import path from 'path';
+import { cwd } from 'process';
 
 const productoSchema = z.object({
     categoria_id: z.string(),
@@ -114,6 +116,16 @@ class ProductoController {
         }
     }
 
+    static deleteImagenFile(imagenPath) {
+        try {
+            if (!imagenPath) return;
+            const filename = path.basename(imagenPath);
+            fs.rmSync(path.join(cwd(), 'public', 'uploads', filename), { force: true });
+        } catch {
+            // Si el archivo no existe o no se puede borrar, no bloqueamos la operación.
+        }
+    }
+
     static async update(req, res) {
         try {
             const { id } = req.params;
@@ -121,7 +133,13 @@ class ProductoController {
             if (!producto) return res.status(404).json({ message: 'Producto no encontrado' });
 
             const data = productoSchema.parse(req.body);
-            if (req.file?.filename) {
+            const removeImagen = req.body._removeImagen === '1' || req.body._removeImagen === 'true';
+
+            if (removeImagen) {
+                if (producto.imagen) this.deleteImagenFile(producto.imagen);
+                data.imagen = null;
+            } else if (req.file?.filename) {
+                if (producto.imagen) this.deleteImagenFile(producto.imagen);
                 data.imagen = `/uploads/${req.file.filename}`;
             }
 
@@ -143,6 +161,7 @@ class ProductoController {
             const producto = await models.Producto.findByPk(id);
             if (!producto) return res.status(404).json({ message: 'Producto no encontrado' });
 
+            if (producto.imagen) this.deleteImagenFile(producto.imagen);
             await producto.destroy();
             res.json({ message: 'Producto eliminado' });
         } catch (error) {

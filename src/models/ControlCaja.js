@@ -23,6 +23,12 @@ ControlCaja.init(
         monto_apertura: DataTypes.DECIMAL(10, 2),
         monto_cierre: DataTypes.DECIMAL(10, 2),
         estado: DataTypes.STRING,
+        cerrado_por_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: { model: Usuario, key: 'id' },
+        },
+        nota_cierre: DataTypes.TEXT,
     },
     {
         sequelize,

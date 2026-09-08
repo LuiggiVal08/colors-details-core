@@ -9,7 +9,7 @@
 
     {{#if company}}
         {{#with company}}
-            <form action='/company/{{this.id}}' data-method='PUT' id='company-form' class='space-y-6'>
+            <form action='/company/{{this.id}}' data-method='PUT' id='company-form' enctype='multipart/form-data' class='space-y-6'>
                 <!-- Sección: Logo y Subir archivo -->
 
                 <!-- Sección: Datos principales divididos en dos columnas -->
@@ -43,7 +43,7 @@
                                             type='file'
                                             name='logo'
                                             accept='image/*'
-                                            data-valid='img'
+                                            data-valid='image'
                                             id='logo_company'
                                             class='sr-only'
                                         />

@@ -3,6 +3,7 @@
         class='bg-white rounded-lg shadow-lg max-w-lg m-auto overflow-auto max-h-[100vh] relative'
         action='/product'
         data-method='POST'
+        enctype='multipart/form-data'
     >
         <div
             role='heading'
@@ -96,6 +97,7 @@
                     required
                 ></textarea>
             </div>
+            {{> components/image-dropzone id='imagen' label='Imagen del producto'}}
 
         </div>
         <div role='doc-footnote' class='px-6 py-2 border-t border-gray-200 flex items-center justify-end gap-4'>

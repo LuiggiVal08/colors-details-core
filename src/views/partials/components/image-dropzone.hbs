@@ -1,0 +1,37 @@
+<div class='w-full'>
+    <label for='{{id}}' class='block mb-2 text-sm font-medium text-gray-900 text-start'>{{label}}</label>
+    <div
+        class='relative flex w-full flex-col items-center justify-center gap-2 p-4 text-center text-gray-500 transition-colors cursor-pointer rounded-lg border-2 border-dashed border-gray-300 bg-red-100/50'
+        style='height: 10rem;'
+        data-dropzone
+        role='button'
+        aria-label='Subir imagen'
+    >
+        <div class='flex flex-col items-center gap-2' data-dropzone-placeholder>
+            <span class='material-symbols-rounded md-36' data-ico='add_photo_alternate'></span>
+            <p class='text-sm'>Arrastra la imagen aquí o haz clic para seleccionar</p>
+        </div>
+        <input
+            type='file'
+            name='imagen'
+            id='{{id}}'
+            accept='image/png,image/jpeg,image/gif'
+            class='hidden'
+            data-dropzone-input
+        />
+        <img
+            data-dropzone-preview
+            alt='Vista previa de la imagen'
+            class='hidden rounded-lg bg-white'
+            style='position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 0.5rem;'
+        />
+        <button
+            type='button'
+            data-dropzone-clear
+            title='Quitar imagen'
+            class='material-symbols-rounded absolute right-2 top-2 z-10 hidden cursor-pointer rounded-full p-1 text-lg text-white transition-colors'
+            style='background: rgba(17, 24, 39, 0.6);'
+            data-ico='close'
+        ></button>
+    </div>
+</div>

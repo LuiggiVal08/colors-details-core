@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const boxId = parseInt(location.pathname.split('/').pop());
 
     // 2️⃣ Consultar movimientos del control activo
-    const [movimientos] = await Promise.all([
+    const [movimientos, tasaDolar] = await Promise.all([
         httpClient.get(`/cash-movements/by-box/${boxId}`).then((res) => {
             const { error: errMovs, data, message } = res.data;
             console.log(res);
@@ -23,7 +23,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             return data;
         }),
+        httpClient.get('/exchange-rate/actual').then((res) => res.data).catch(() => null),
     ]);
+
+    const tasa = Number(tasaDolar?.tasa);
+    const formatUsd = (monto) =>
+        tasa ? `$${parseFloat(Number(monto) / tasa).toFixed(2)}` : '—';
 
     // 3️⃣ Construir tabla
     setupFilteredTable({
@@ -46,6 +51,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     span.innerHTML =
                         m.monto != null
                             ? `${m.tipo === 'ingreso' ? '' : '-'}${parseFloat(m.monto).toFixed(2)} Bs`
+                            : '—';
+                    return span;
+                },
+                monto_usd: (m) => {
+                    const span = document.createElement('span');
+                    span.classList.add(m.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600');
+                    span.innerText =
+                        m.monto != null
+                            ? `${m.tipo === 'ingreso' ? '' : '-'}${formatUsd(m.monto)}`
                             : '—';
                     return span;
                 },

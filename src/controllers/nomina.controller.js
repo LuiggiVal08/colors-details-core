@@ -12,11 +12,22 @@ const generateSchema = z.object({
 class NominaController {
     static async getAll(req, res) {
         try {
+            const isAdmin = ['admin', 'superadmin'].includes(req.user.tipo_usuario_name);
+            const include = [
+                { model: models.Usuario, as: 'usuario', attributes: ['id', 'username'] },
+                { model: models.TasaDolar, as: 'tasa', attributes: ['id', 'tasa'] },
+            ];
+            if (!isAdmin) {
+                include.push({
+                    model: models.NominaDetalle,
+                    as: 'detalles',
+                    attributes: ['id'],
+                    where: { empleado_id: req.user.empleado_id },
+                    required: true,
+                });
+            }
             const nominas = await models.Nomina.findAll({
-                include: [
-                    { model: models.Usuario, as: 'usuario', attributes: ['id', 'username'] },
-                    { model: models.TasaDolar, as: 'tasa', attributes: ['id', 'tasa'] },
-                ],
+                include,
                 order: [['creado_en', 'DESC']],
             });
             res.json(nominas);
@@ -27,6 +38,7 @@ class NominaController {
 
     static async getById(req, res) {
         try {
+            const isAdmin = ['admin', 'superadmin'].includes(req.user.tipo_usuario_name);
             const nomina = await models.Nomina.findByPk(req.params.id, {
                 include: [
                     { model: models.Usuario, as: 'usuario', attributes: ['id', 'username'] },
@@ -35,10 +47,14 @@ class NominaController {
                         model: models.NominaDetalle,
                         as: 'detalles',
                         include: [{ model: models.Empleado, as: 'empleado' }],
+                        ...(isAdmin ? {} : { where: { empleado_id: req.user.empleado_id } }),
                     },
                 ],
             });
             if (!nomina) return res.status(404).json({ message: 'Nómina no encontrada' });
+            if (!isAdmin && nomina.detalles.length === 0) {
+                return res.status(403).json({ message: 'No tienes permisos para ver esta nómina' });
+            }
             res.json(nomina);
         } catch (error) {
             handleErrorsController(error, res, req);

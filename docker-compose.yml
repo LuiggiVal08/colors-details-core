@@ -21,13 +21,20 @@ services:
 
     db:
         image: mysql:8.4
-        ports:
-            - '3306:3306' # Mantiene el puerto de la base de datos accesible desde Windows por si usas DBeaver/TablePlus
+        # ports:
+        #     - '3306:3306' # Descomenta para conectar DBeaver/TablePlus desde el host
+        expose:
+            - '3306' # Solo accesible desde la red interna de Docker
         environment:
             MYSQL_DATABASE: colorsanddetails
             MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+        command:
+            # Habilita mysql_native_password: necesario para que los clientes CLI
+            # (mysql/mysqldump) funcionen sobre los binarios de Alpine (MariaDB).
+            - '--mysql-native-password=ON'
         volumes:
             - db_data:/var/lib/mysql
+            - ./db-init:/docker-entrypoint-initdb.d:ro
         healthcheck:
             test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
             timeout: 5s
@@ -36,8 +43,10 @@ services:
 
     redis:
         image: redis:7-alpine
-        ports:
-            - '6379:6379'
+        # ports:
+        #     - '6379:6379' # Descomenta para conectar RedisInsight/redis-cli desde el host
+        expose:
+            - '6379' # Solo accesible desde la red interna de Docker
 
     nginx:
         image: nginx:alpine

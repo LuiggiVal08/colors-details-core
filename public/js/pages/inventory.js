@@ -7,6 +7,24 @@ import { setupModalLifecycle } from '../helpers/handleModalEvents.js';
 import showToast from '../helpers/Toast.js';
 import { setupFilteredTable } from '../helpers/setupFilteredTable.js';
 import badge from '../helpers/badge.js';
+import setupImageDropzone from '../helpers/imageDropzone.js';
+
+let editProductDropzone;
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupImageDropzone(document.querySelector('#modal-create-product [data-dropzone]'));
+    const removeImagenInput = () => document.querySelector('#modal-edit-product [data-remove-imagen]');
+    editProductDropzone = setupImageDropzone(document.querySelector('#modal-edit-product [data-dropzone]'), {
+        onClear: () => {
+            const cap = removeImagenInput();
+            if (cap) cap.value = '1';
+        },
+        onSelect: () => {
+            const cap = removeImagenInput();
+            if (cap) cap.value = '0';
+        },
+    });
+});
 
 document.addEventListener('DOMContentLoaded', async () => {
     const responseCategory = await httpClient.get('/category');
@@ -68,8 +86,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 editar: (e) => {
                     editProduct(e.currentTarget.dataset.idModel);
                 },
+                ver: (e) => {
+                    window.location.href = `/product/${e.currentTarget.dataset.idModel}`;
+                },
             },
             formatters: {
+                imagen: (dato) => {
+                    const nombre = dato.nombre || 'Producto';
+                    const inicial = nombre.trim().charAt(0).toUpperCase() || '?';
+                    const href = `/product/${dato.id}`;
+                    if (dato.imagen) {
+                        return `<a href='${href}' title='Ver detalle' class='inline-block'><img src='${dato.imagen}' alt='${nombre}' class='img-avatar' /></a>`;
+                    }
+                    return `<a href='${href}' title='Ver detalle' data-action='detail'><span class='img-avatar img-avatar-letter'>${inicial}</span></a>`;
+                },
                 stock: (dato) => dato.stock.toString(),
                 precio: (dato) => `$${Format.float(dato.precio)}`,
                 precio_bs: (dato) => {
@@ -203,6 +233,8 @@ const editProduct = async (id) => {
         form.querySelector('[name="categoria_id"]').value = data.categoria_id;
         form.querySelector('[name="descripcion"]').value = data.descripcion;
         form.querySelector('[name="codigo"]').value = data.codigo;
+        form.querySelector('[data-remove-imagen]').value = '0';
+        editProductDropzone?.setPreview(data.imagen);
     }
     setupModalLifecycle(modalEdit);
 };
@@ -233,4 +265,6 @@ document.getElementById('btnAddMovement').addEventListener('click', async () => 
 });
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs('#tabs-products'); // selector del contenedor donde están los botones
+    const editId = new URLSearchParams(window.location.search).get('edit');
+    if (editId) editProduct(editId);
 });

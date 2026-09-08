@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Op } from 'sequelize';
 import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 import { formatearPrecio } from '../helpers/format.js';
@@ -120,6 +121,7 @@ class VentaController {
         const t = await models.sequelize.transaction();
         try {
             const fechaVenta = new Date();
+            const normalizeDecimal = (val) => String(val).replace(/\./g, '').replace(',', '.');
             const body = {
                 ...req.body,
                 fecha: fechaVenta,
@@ -131,19 +133,34 @@ class VentaController {
 
             const data = ventaSchema.parse(body);
             const { cliente_id, usuario_id, fecha, total, observaciones, iva_id, detalles, pagos } = data;
+            const ventaTotal = normalizeDecimal(total);
+            const detallesNormalizados = detalles.map((item) => ({
+                ...item,
+                cantidad: Number(item.cantidad) || 0,
+                precio_unitario: normalizeDecimal(item.precio_unitario),
+                subtotal: normalizeDecimal(item.subtotal),
+            }));
 
             const venta = await models.Venta.create(
-                { cliente_id, usuario_id, fecha, total, observaciones, iva_id },
+                { cliente_id, usuario_id, fecha, total: ventaTotal, observaciones, iva_id },
                 { transaction: t },
             );
 
             // ========== DETALLES Y MOVIMIENTO PRODUCTO ==========
 
-            for (const item of detalles) {
-                const producto = await models.Producto.findByPk(item.producto_id, { transaction: t });
+            for (const item of detallesNormalizados) {
+                const producto = await models.Producto.findByPk(item.producto_id, {
+                    transaction: t,
+                    lock: t.LOCK.UPDATE,
+                });
+                if (!producto) {
+                    await t.rollback();
+                    return res.status(404).json({ message: `Producto con ID ${item.producto_id} no encontrado` });
+                }
 
-                const stockAntes = producto.stock;
-                const stockDespues = stockAntes - item.cantidad;
+                const cantidad = Number(item.cantidad) || 0;
+                const stockAntes = Number(producto.stock) || 0;
+                const stockDespues = stockAntes - cantidad;
 
                 if (stockDespues < 0) {
                     await t.rollback();
@@ -152,13 +169,16 @@ class VentaController {
 
                 await producto.update({ stock: stockDespues }, { transaction: t });
 
-                await models.VentaDetalle.create({ venta_id: venta.id, ...item }, { transaction: t });
+                await models.VentaDetalle.create(
+                    { venta_id: venta.id, ...item, cantidad },
+                    { transaction: t },
+                );
 
                 await models.MovimientoProducto.create(
                     {
                         producto_id: item.producto_id,
                         tipo: 'salida',
-                        cantidad: item.cantidad,
+                        cantidad,
                         stock_antes: stockAntes,
                         stock_despues: stockDespues,
                         fecha: fechaVenta,
@@ -182,6 +202,7 @@ class VentaController {
                 (formatearPrecio(total) + (formatearPrecio(total) * ivaPorcentaje) / 100).toFixed(2),
             );
 
+            const redondear = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
             let totalPagado = 0;
 
             for (const pago of pagos) {
@@ -198,11 +219,11 @@ class VentaController {
                     return res.status(404).json({ message: `Tasa con ID ${pago.tasa_id} no encontrada` });
                 }
 
-                const monto = Number(pago.monto.replace(',', '.'));
+                const monto = formatearPrecio(String(pago.monto).replace(',', '.'));
 
-                totalPagado += monto;
+                totalPagado = redondear(totalPagado + monto);
 
-                if (totalPagado > totalConIVA) {
+                if (totalPagado > redondear(totalConIVA)) {
                     await t.rollback();
                     return res
                         .status(400)
@@ -222,7 +243,7 @@ class VentaController {
                 }
             }
 
-            if (totalPagado !== totalConIVA) {
+            if (redondear(totalPagado) !== redondear(totalConIVA)) {
                 await t.rollback();
                 return res.status(400).json({ message: `Los pagos no concuerdan con el total de la venta con IVA` });
             }
@@ -239,15 +260,40 @@ class VentaController {
         const { id } = req.params;
         const t = await models.sequelize.transaction();
         try {
-            const venta = await models.Venta.findByPk(id);
-            if (!venta) return res.status(404).json({ message: 'Venta no encontrada' });
+            const venta = await models.Venta.findByPk(id, {
+                include: [{ model: models.VentaDetalle, as: 'detalles' }],
+                transaction: t,
+            });
+            if (!venta) {
+                await t.rollback();
+                return res.status(404).json({ message: 'Venta no encontrada' });
+            }
+
+            // Restaurar el stock de los productos vendidos
+            for (const detalle of venta.detalles || []) {
+                const producto = await models.Producto.findByPk(detalle.producto_id, {
+                    transaction: t,
+                    lock: t.LOCK.UPDATE,
+                });
+                if (producto) {
+                    const stockActual = Number(producto.stock) || 0;
+                    await producto.update(
+                        { stock: stockActual + Number(detalle.cantidad) },
+                        { transaction: t },
+                    );
+                }
+            }
 
             await models.VentaDetalle.destroy({ where: { venta_id: id }, transaction: t });
             await models.PagoVenta.destroy({ where: { venta_id: id }, transaction: t });
+            await models.MovimientoProducto.destroy(
+                { where: { observacion: { [Op.like]: `Venta #${id} %` } } },
+                { transaction: t },
+            );
             await venta.destroy({ transaction: t });
 
             await t.commit();
-            res.json({ message: 'Venta eliminada correctamente' });
+            res.json({ message: 'Venta eliminada correctamente. Stock restaurado.' });
         } catch (error) {
             await t.rollback();
             handleErrorsController(error, res, req);

@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import NominaEmpleadoController from '../../controllers/employeePayroll.controller.js';
+import isAuthenticated from '../../middlewares/isAuthenticate.js';
 
 const router = Router();
+router.use(isAuthenticated);
 
 router.get('/', NominaEmpleadoController.getAll);
 router.get('/:id', NominaEmpleadoController.getById);

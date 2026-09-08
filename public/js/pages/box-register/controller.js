@@ -3,10 +3,35 @@ import { setupFilteredTable } from '../../helpers/setupFilteredTable.js';
 import showToast from '../../helpers/Toast.js';
 import { httpClient } from '../../index.js';
 
+let tasaDolar = null;
+
+const getTasa = () => {
+    if (tasaDolar !== null) return Promise.resolve(tasaDolar);
+    return httpClient
+        .get('/exchange-rate/actual')
+        .then((res) => res.data)
+        .then((tasa) => {
+            tasaDolar = tasa;
+            return tasa;
+        })
+        .catch(() => {
+            tasaDolar = null;
+            return null;
+        });
+};
+
+const formatUsd = (monto) => {
+    const tasa = Number(tasaDolar?.tasa);
+    if (!tasa) return null;
+    return parseFloat(Number(monto) / tasa).toFixed(2);
+};
+
 document.getElementById('btnControlCaja').addEventListener('click', async (e) => {
     const cajaId = e.currentTarget.getAttribute('data-idmodel');
     const modal = document.getElementById('modal-control-caja');
     const form = document.getElementById('form-control-caja');
+
+    await getTasa();
 
     const response = await httpClient.get(`/box-register-control/actual/${cajaId}`);
 
@@ -31,18 +56,33 @@ document.getElementById('btnControlCaja').addEventListener('click', async (e) =>
 
     document.getElementById('controlCajaId').value = cajaId;
 
+    const notaCierreContainer = document.getElementById('notaCierreContainer');
+
     // CORRECTO: la caja está ABIERTA si hay control y no tiene fecha_cierre
     if (control && control.fecha_cierre === null) {
         titulo.textContent = 'Cerrar Caja';
         estadoTexto.textContent = 'Abierta';
         estadoTexto.classList = 'font-medium text-green-600';
 
+        notaCierreContainer.classList.remove('hidden');
+        const notaInput = document.getElementById('nota_cierre');
+        if (notaInput) notaInput.value = '';
+
         document.getElementById('controlCajaFechaApertura').textContent = new Date(
             control.fecha_apertura,
         ).toLocaleString();
 
-        document.getElementById('controlCajaMontoApertura').textContent = `${control.monto_apertura ?? 0} Bs`;
-        document.getElementById('controlCajaMonto').textContent = `${control?.caja?.monto ?? 0} Bs`;
+        const montoAperturaBs = parseFloat(control.monto_apertura ?? 0).toFixed(2);
+        const montoAperturaUsd = formatUsd(control.monto_apertura ?? 0);
+        document.getElementById('controlCajaMontoApertura').textContent = montoAperturaUsd
+            ? `${montoAperturaBs} Bs · $${montoAperturaUsd}`
+            : `${montoAperturaBs} Bs`;
+
+        const montoCajaBs = parseFloat(control?.caja?.monto ?? 0).toFixed(2);
+        const montoCajaUsd = formatUsd(control?.caja?.monto ?? 0);
+        document.getElementById('controlCajaMonto').textContent = montoCajaUsd
+            ? `${montoCajaBs} Bs · $${montoCajaUsd}`
+            : `${montoCajaBs} Bs`;
         infoControl.classList.remove('hidden');
 
         mensaje.innerHTML = `
@@ -57,6 +97,10 @@ document.getElementById('btnControlCaja').addEventListener('click', async (e) =>
         titulo.textContent = 'Apertura de Caja';
         estadoTexto.textContent = 'Cerrada';
         estadoTexto.classList = 'font-medium text-red-600';
+
+        notaCierreContainer.classList.add('hidden');
+        const notaInput = document.getElementById('nota_cierre');
+        if (notaInput) notaInput.value = '';
 
         infoControl.classList.add('hidden');
 
@@ -74,6 +118,8 @@ document.getElementById('btnControlCaja').addEventListener('click', async (e) =>
 
 document.addEventListener('DOMContentLoaded', async () => {
     const cajaId = parseInt(location.pathname.split('/').pop());
+
+    await getTasa();
 
     // 1️⃣ Consultar controles
     const controllers = await httpClient.get(`/box-register-control/by-box/${cajaId}`);
@@ -106,6 +152,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 fecha_cierre: (c) => (c.fecha_cierre ? new Date(c.fecha_cierre).toLocaleString() : '—'),
                 monto_apertura: (c) => (c.monto_apertura != null ? `${c.monto_apertura} Bs` : '—'),
                 monto_cierre: (c) => (c.monto_cierre != null ? `${c.monto_cierre} Bs` : '—'),
+                monto_apertura_usd: (c) => {
+                    const usd = formatUsd(c.monto_apertura);
+                    return usd != null ? `$${usd}` : '—';
+                },
+                monto_cierre_usd: (c) => {
+                    const usd = formatUsd(c.monto_cierre);
+                    return usd != null ? `$${usd}` : '—';
+                },
                 usuario: (c) => c.usuario?.username ?? '—',
                 estado: (c) => {
                     const span = document.createElement('span');

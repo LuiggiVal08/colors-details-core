@@ -1,0 +1,83 @@
+<div class='content-center py-4 flex-1 container mx-auto'>
+    <div class='container mx-auto max-w-5xl bg-red-100 rounded-md p-4 md:p-6 flex flex-col gap-6'>
+        <div class='flex items-center justify-between gap-2'>
+            <div class='flex items-center gap-2'>
+                <span data-ico='inventory' class='material-symbols-rounded fill-solid wght-normal md-28 text-gray-900'></span>
+                <h2 class='text-xl font-semibold text-gray-900'>Detalle del Producto</h2>
+            </div>
+            <a
+                href='/inventory'
+                class='inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors'
+            >
+                <span data-ico='arrow_back' class='material-symbols-rounded md-18'></span>
+                Volver
+            </a>
+        </div>
+
+        <div class='flex flex-col md:flex-row gap-6'>
+            <div class='w-full md:w-64 shrink-0 flex items-start justify-center md:justify-start'>
+                {{#if producto.imagen}}
+                    <img src='{{producto.imagen}}' alt='{{producto.nombre}}' class='img-detail' />
+                {{else}}
+                    <span class='img-detail img-detail-letter'>{{inicial}}</span>
+                {{/if}}
+            </div>
+
+            <div class='flex-1 space-y-5 min-w-0'>
+                <div>
+                    <h3 class='text-2xl font-bold text-gray-900'>{{producto.nombre}}</h3>
+                    <p class='text-sm text-gray-500'>Código: {{producto.codigo}}</p>
+                    <span
+                        class='inline-block mt-2 px-3 py-1 text-xs font-medium text-white rounded-full {{estadoClass}}'
+                    >{{estado}}</span>
+                </div>
+
+                <div class='grid grid-cols-2 lg:grid-cols-3 gap-3'>
+                    <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                        <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>Precio (USD)</p>
+                        <p class='text-lg font-bold text-gray-900 mt-0.5'>{{precioUsd}}</p>
+                    </div>
+                    <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                        <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>Precio (Bs.)</p>
+                        <p class='text-lg font-bold text-gray-900 mt-0.5'>{{precioBs}}</p>
+                    </div>
+                    <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                        <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>+ IVA (USD)</p>
+                        <p class='text-lg font-bold text-gray-900 mt-0.5'>{{ivaUsd}}</p>
+                    </div>
+                    <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                        <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>+ IVA (Bs.)</p>
+                        <p class='text-lg font-bold text-gray-900 mt-0.5'>{{ivaBs}}</p>
+                    </div>
+                    <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                        <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>Stock</p>
+                        <p class='text-lg font-bold text-gray-900 mt-0.5'>{{producto.stock}}</p>
+                    </div>
+                    <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                        <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>Categoría</p>
+                        <p class='text-lg font-bold text-gray-900 mt-0.5'>{{categoria.nombre}}</p>
+                    </div>
+                    <div class='bg-white rounded-lg border border-gray-200 p-3'>
+                        <p class='text-xs font-medium text-gray-500 uppercase tracking-wide'>Tasa Bs.</p>
+                        <p class='text-lg font-bold text-gray-900 mt-0.5'>{{tasaStr}}</p>
+                    </div>
+                </div>
+
+                <div class='bg-white rounded-lg border border-gray-200 p-4'>
+                    <p class='text-xs font-medium text-gray-500 uppercase tracking-wide mb-1'>Descripción</p>
+                    <p class='text-sm text-gray-700 whitespace-pre-line'>{{producto.descripcion}}</p>
+                </div>
+
+                <div class='flex flex-wrap gap-3'>
+                    <a
+                        href='/inventory?edit={{producto.id}}'
+                        class='inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors'
+                    >
+                        <span data-ico='edit' class='material-symbols-rounded md-18'></span>
+                        Editar producto
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

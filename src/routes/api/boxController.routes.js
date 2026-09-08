@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import ControlCajaController from '../../controllers/boxController.controller.js';
+import isAuthenticated from '../../middlewares/isAuthenticate.js';
 
 const router = Router();
+router.use(isAuthenticated);
 
 // LISTAR
 router.get('/', ControlCajaController.getAll);

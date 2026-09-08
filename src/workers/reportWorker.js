@@ -22,6 +22,7 @@ const reportWorker = new Worker(
                 },
                 include: [
                     { model: models.Cliente, as: 'cliente' },
+                    { model: models.Iva, as: 'iva' },
                     {
                         model: models.VentaDetalle,
                         as: 'detalles',

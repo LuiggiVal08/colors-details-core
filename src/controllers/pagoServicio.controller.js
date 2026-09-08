@@ -55,6 +55,13 @@ class PagoServicioController {
             }
 
             const balance = Number(String(periodo.amount_balance).replace(',', '.'));
+            if (data.monto > balance) {
+                await t.rollback();
+                return res.status(400).json({
+                    error: true,
+                    message: `El monto excede el saldo pendiente del periodo (Bs. ${balance})`,
+                });
+            }
             const nuevoBalance = Math.max(0, balance - data.monto);
             const nuevoEstado = nuevoBalance <= 0 ? 'paid' : 'partial';
 

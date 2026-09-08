@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import CashMovementController from '../../controllers/boxMovement.controller.js';
+import isAuthenticated from '../../middlewares/isAuthenticate.js';
 
 const router = Router();
+router.use(isAuthenticated);
 
 // ==============================================
 // Create a new cash movement (deposit/withdrawal)

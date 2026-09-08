@@ -12,6 +12,10 @@ export const validateInputElement = (element) => {
 
     element.classList.remove('inputError');
 
+    if (element.type === 'file' && element.files.length === 0) {
+        return true;
+    }
+
     if (regex) {
         if (element.type !== 'file' && !regex.test(element.value)) {
             element.classList.add('inputError');
@@ -19,7 +23,7 @@ export const validateInputElement = (element) => {
             return false;
         }
     } else {
-        if (!element.value) {
+        if (element.required && !element.value) {
             element.classList.add('inputError');
             console.error(`El campo ${name} no debe estar vacío.`);
             return false;

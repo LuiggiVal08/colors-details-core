@@ -78,7 +78,7 @@
                     <p class='text-gray-700'><strong>ID:</strong> {{caja.id}}</p>
                     <p class='text-gray-700'><strong>Nombre:</strong> {{caja.nombre}}</p>
                     <p class='text-gray-700'><strong>Ubicación:</strong> {{caja.ubicacion}}</p>
-                    <p class='text-gray-700'><strong>Monto Actual:</strong> {{caja.monto}} Bs.</p>
+                    <p class='text-gray-700'><strong>Monto Actual:</strong> {{caja.monto}} Bs. · ${{caja.monto_usd}}</p>
                 </div>
 
                 <!-- Empresa -->
@@ -114,44 +114,6 @@
             </div>
         </div>
 
-        <!-- SECCIÓN CONTROLES DE CAJA -->
-        <div class='bg-white rounded-xl shadow-lg border border-blue-100'>
-
-            <!-- Barra superior -->
-            <div
-                class='border-b border-blue-200 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4'
-            >
-                <h2 class='text-xl font-bold text-gray-800 flex items-center gap-2'>
-                    <span class='material-symbols-rounded text-blue-600 md-28' data-ico='monitor_heart'></span>
-                    Controles de Caja
-                </h2>
-            </div>
-
-            <!-- Tabla -->
-            <div class='overflow-x-auto scrollbar p-6'>
-                <table class='w-full border-collapse rounded-lg overflow-hidden'>
-                    <thead class='bg-blue-50'>
-                        <tr class='border-b border-blue-200'>
-                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Apertura</th>
-                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Cierre</th>
-                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto Apertura</th>
-                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto Cierre</th>
-                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Usuario</th>
-                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Estado</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id='table-control-caja'>
-                        <tr>
-                            <td colspan='6' class='text-center p-4 text-gray-600'>Cargando...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            {{> components/pagination id='paginador-control-caja' disablePrev=true disableNext=true}}
-        </div>
-
         <!-- MOVIMIENTOS -->
         <div class='bg-white rounded-xl shadow-lg border border-blue-100'>
 
@@ -180,19 +142,61 @@
                             <th class='p-3 text-nowrap text-gray-800 font-medium' align="start">Descripción</th>
                             <th class='p-3 text-nowrap text-gray-800 font-medium' align="center">Usuario</th>
                             <th class='p-3 text-nowrap text-gray-800 font-medium' >Fecha</th>
-                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto (Bs)</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto ($)</th>
                             <th class='p-3 text-nowrap text-gray-800 font-medium'>Tipo</th>
                         </tr>
                     </thead>
 
                     <tbody id='table-movimientos-caja'>
                         <tr>
-                            <td colspan='4' class='text-center p-4 text-gray-600'>Cargando...</td>
+                            <td colspan='6' class='text-center p-4 text-gray-600'>Cargando...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+
             {{> components/pagination id='paginador-movimientos-caja' disablePrev=true disableNext=true}}
+        </div>
+
+        <!-- SECCIÓN CONTROLES DE CAJA -->
+        <div class='bg-white rounded-xl shadow-lg border border-blue-100'>
+
+            <!-- Barra superior -->
+            <div
+                class='border-b border-blue-200 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4'
+            >
+                <h2 class='text-xl font-bold text-gray-800 flex items-center gap-2'>
+                    <span class='material-symbols-rounded text-blue-600 md-28' data-ico='monitor_heart'></span>
+                    Controles de Caja
+                </h2>
+            </div>
+
+            <!-- Tabla -->
+            <div class='overflow-x-auto scrollbar p-6'>
+                <table class='w-full border-collapse rounded-lg overflow-hidden'>
+                    <thead class='bg-blue-50'>
+                        <tr class='border-b border-blue-200'>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Apertura</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Cierre</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto Apertura (Bs)</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto Apertura ($)</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto Cierre (Bs)</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto Cierre ($)</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Usuario</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Estado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id='table-control-caja'>
+                        <tr>
+                            <td colspan='8' class='text-center p-4 text-gray-600'>Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {{> components/pagination id='paginador-control-caja' disablePrev=true disableNext=true}}
         </div>
 
     </div>
@@ -204,7 +208,9 @@
         <td class='p-4 text-nowrap text-gray-700' data-key='fecha_apertura'></td>
         <td class='p-4 text-nowrap text-gray-700' data-key='fecha_cierre'></td>
         <td class='p-4 text-nowrap text-gray-700 text-center' data-key='monto_apertura'></td>
+        <td class='p-4 text-nowrap text-gray-700 text-center' data-key='monto_apertura_usd'></td>
         <td class='p-4 text-nowrap text-gray-700 text-center' data-key='monto_cierre'></td>
+        <td class='p-4 text-nowrap text-gray-700 text-center' data-key='monto_cierre_usd'></td>
         <td class='p-4 text-nowrap text-gray-700' data-key='usuario'></td>
         <td class='p-4 text-nowrap text-gray-700' data-key='estado'></td>
     </tr>
@@ -216,6 +222,7 @@
         <td class='p-4 text-nowrap text-gray-700' data-key='usuario' align="center"></td>
         <td class='p-4 text-nowrap text-gray-700' data-key='fecha' align="center"></td>
         <td class='p-4 text-nowrap text-gray-700 text-center' data-key='monto'></td>
+        <td class='p-4 text-nowrap text-gray-700 text-center' data-key='monto_usd'></td>
         <td class='p-4 text-nowrap text-gray-700 text-center' data-key='tipo'></td>
     </tr>
 </template>

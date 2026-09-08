@@ -2,6 +2,7 @@ import { models } from '../models/index.js';
 import bcrypt from 'bcryptjs';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 import { z } from 'zod';
+import { verificarPassword } from '../helpers/password.js';
 
 const questionsSchema = z.object({
     pregunta: z.string().min(1, 'La pregunta es obligatoria'),
@@ -25,7 +26,8 @@ class QuestionsController {
             const { password } = data;
             const user = await models.Usuario.findByPk(userId);
             if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
-            if (user.password !== password) return res.status(401).json({ message: 'Contraseña incorrecta' });
+            if (!(await verificarPassword(password, user)))
+                return res.status(401).json({ message: 'Contraseña incorrecta' });
 
             const questionsUser = await models.PreguntaSeguridadUsuario.findAll({
                 where: { usuario_id: userId },

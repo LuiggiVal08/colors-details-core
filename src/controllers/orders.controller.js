@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Op } from 'sequelize';
 import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 
@@ -91,6 +92,7 @@ class PedidoController {
                 (fecha_entrega && new Date(fecha_entrega) < fechaPedido) ||
                 new Date(fecha_entrega).toDateString() === fechaPedido.toDateString()
             ) {
+                await t.rollback();
                 return res.status(400).json({
                     message:
                         'La fecha de entrega no puede ser anterior a la fecha del pedido o igual a la fecha del pedido',
@@ -115,9 +117,13 @@ class PedidoController {
                     transaction: t,
                     lock: t.LOCK.UPDATE,
                 });
-                if (!producto) return res.status(404).json({ message: `Producto con ID ${productoId} no encontrado` });
+                if (!producto) {
+                    await t.rollback();
+                    return res.status(404).json({ message: `Producto con ID ${productoId} no encontrado` });
+                }
 
                 if (producto.stock < cantidadTotal) {
+                    await t.rollback();
                     return res.status(400).json({
                         message: `Stock insuficiente para el producto ${producto.nombre}. Disponible: ${producto.stock}, Requerido: ${cantidadTotal}`,
                     });
@@ -176,14 +182,39 @@ class PedidoController {
         const { id } = req.params;
         const t = await models.sequelize.transaction();
         try {
-            const pedido = await models.Pedido.findByPk(id);
-            if (!pedido) return res.status(404).json({ message: 'Pedido no encontrado' });
+            const pedido = await models.Pedido.findByPk(id, {
+                include: [{ model: models.PedidoDetalle, as: 'detalles' }],
+                transaction: t,
+            });
+            if (!pedido) {
+                await t.rollback();
+                return res.status(404).json({ message: 'Pedido no encontrado' });
+            }
+
+            // Restaurar el stock de los productos del pedido
+            for (const detalle of pedido.detalles || []) {
+                const producto = await models.Producto.findByPk(detalle.producto_id, {
+                    transaction: t,
+                    lock: t.LOCK.UPDATE,
+                });
+                if (producto) {
+                    const stockActual = Number(producto.stock) || 0;
+                    await producto.update(
+                        { stock: stockActual + Number(detalle.cantidad) },
+                        { transaction: t },
+                    );
+                }
+            }
 
             await models.PedidoDetalle.destroy({ where: { pedido_id: id }, transaction: t });
+            await models.MovimientoProducto.destroy(
+                { where: { observacion: { [Op.like]: `Pedido #${id} %` } } },
+                { transaction: t },
+            );
             await pedido.destroy({ transaction: t });
 
             await t.commit();
-            res.json({ message: 'Pedido y detalles eliminados correctamente' });
+            res.json({ message: 'Pedido y detalles eliminados correctamente. Stock restaurado.' });
         } catch (error) {
             await t.rollback();
             handleErrorsController(error, res, req);

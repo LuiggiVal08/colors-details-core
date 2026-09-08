@@ -169,6 +169,8 @@ class ControlCajaController {
         try {
             const { caja_id } = req.params;
             const usuario_id = res.locals.user.id;
+            const role = res.locals.user.tipo_usuario_name;
+            const nota = req.body?.nota || req.body?.nota_cierre || null;
 
             const caja = await models.Caja.findByPk(caja_id);
             if (!caja) return res.status(404).json({ message: 'Caja no encontrada' });
@@ -182,11 +184,21 @@ class ControlCajaController {
                 return res.status(400).json({ message: 'La caja no tiene una apertura activa' });
             }
 
+            // Solo el usuario que abrió la caja, o un rol superior, puede cerrarla.
+            const esDueño = controlAbierto.usuario_id === usuario_id;
+            const esSuperior = role === 'admin' || role === 'superadmin';
+            if (!esDueño && !esSuperior) {
+                return res.status(403).json({
+                    message: 'Solo el usuario que abrió esta caja puede cerrarla (o un administrador)',
+                });
+            }
+
             await controlAbierto.update({
                 fecha_cierre: new Date(),
                 monto_cierre: caja.monto,
                 estado: 'cerrado',
-                usuario_id,
+                cerrado_por_id: usuario_id,
+                nota_cierre: nota,
             });
 
             const controlCerrado = await models.ControlCaja.findByPk(controlAbierto.id, {

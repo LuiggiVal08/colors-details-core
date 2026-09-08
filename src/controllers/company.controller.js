@@ -56,6 +56,9 @@ class CompanyController {
             if (!empresa) return res.status(404).json({ message: 'Empresa no encontrada' });
 
             const data = companySchema.parse(req.body);
+            if (req.file?.filename) {
+                data.logo = `/uploads/${req.file.filename}`;
+            }
 
             await empresa.update(data);
             res.json({ empresa, message: 'Empresa actualizada con éxito' });

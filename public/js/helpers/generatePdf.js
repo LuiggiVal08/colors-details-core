@@ -13,6 +13,16 @@ export const generarPDF = async (selector, nombre = 'documento', config = {}) =>
     const cloned = elemento.cloneNode(true);
     cloned.classList.add('fallback-pdf');
 
+    // 🔹 Quitar atributos/estado que puedan romper el renderizado de html2canvas
+    cloned.removeAttribute('inert');
+    cloned.removeAttribute('hidden');
+    cloned.querySelectorAll('[inert]').forEach((el) => el.removeAttribute('inert'));
+    cloned.querySelectorAll('[hidden]').forEach((el) => el.removeAttribute('hidden'));
+
+    // Fijar un ancho explícito para que html2canvas no colapse el layout
+    const width = elemento.offsetWidth || elemento.getBoundingClientRect().width || 600;
+    cloned.style.width = `${width}px`;
+
     // 🔹 Mapa de clases conflictivas → clases fallback
     const replacements = {
         'bg-gray-100': 'fallback-bg-gray-100',
@@ -47,7 +57,13 @@ export const generarPDF = async (selector, nombre = 'documento', config = {}) =>
         margin: 8,
         filename: nombreFinal,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+        },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     };
 
@@ -57,6 +73,8 @@ export const generarPDF = async (selector, nombre = 'documento', config = {}) =>
     const wrapper = document.createElement('div');
     wrapper.style.position = 'fixed';
     wrapper.style.left = '-9999px';
+    wrapper.style.top = '0';
+    wrapper.style.width = `${width}px`;
     wrapper.appendChild(cloned);
     document.body.appendChild(wrapper);
 

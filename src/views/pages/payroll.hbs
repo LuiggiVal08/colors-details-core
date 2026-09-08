@@ -29,6 +29,7 @@
             </div>
         </div>
 
+        {{#if user.admin}}
         <div class='rounded-lg p-4 border border-red-200'>
             <h3 class='text-base font-medium text-gray-900 mb-4'>Generar nueva nómina</h3>
             <form id='form-generar-nomina' class='flex flex-col md:flex-row gap-4 items-end'>
@@ -47,6 +48,7 @@
 {{> components/submit-btn icon='add' label='Generar Nómina' id='btn-generar-nomina' class='text-nowrap'}}
             </form>
         </div>
+        {{/if}}
 
         <div class='flex flex-col gap-2'>
             <h3 class='text-base font-medium text-gray-900'>Historial de nóminas</h3>

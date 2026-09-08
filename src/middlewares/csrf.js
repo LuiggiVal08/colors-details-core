@@ -36,6 +36,13 @@ const csrf = ({ excludedRoutes = [] }) => {
                 return void next();
             }
 
+            // La autenticación por token Bearer (app mobile / API) no depende de
+            // cookies, por lo que no es vulnerable a CSRF: se salta la validación
+            // y la protección la aporta isAuthenticated en el router.
+            if (req.headers.authorization?.startsWith('Bearer ')) {
+                return void next();
+            }
+
             if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
                 const csrfTokenClient = req.headers['x-csrf-token'] || req.cookies['s_tkc'];
                 const csrfTokenServer = req.cookies['s_tk'];

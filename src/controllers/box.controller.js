@@ -14,15 +14,24 @@ class CajaRegistradoraController {
         try {
             const cajas = await models.Caja.findAll();
 
-            const results = await Promise.all(
-                cajas.map(async (caja) => {
-                    const ultimoControl = await models.ControlCaja.findOne({
-                        where: { caja_id: caja.id },
-                        order: [['id', 'DESC']],
-                    });
-                    return { ...caja.toJSON(), controlActual: ultimoControl };
-                }),
-            );
+            const cajaIds = cajas.map((caja) => caja.id);
+            const controles = cajaIds.length
+                ? await models.ControlCaja.findAll({
+                      where: { caja_id: cajaIds },
+                      order: [['id', 'DESC']],
+                  })
+                : [];
+
+            // Último control por caja (el de mayor id)
+            const porCaja = new Map();
+            for (const control of controles) {
+                if (!porCaja.has(control.caja_id)) porCaja.set(control.caja_id, control);
+            }
+
+            const results = cajas.map((caja) => ({
+                ...caja.toJSON(),
+                controlActual: porCaja.get(caja.id) || null,
+            }));
 
             res.json(results);
         } catch (error) {

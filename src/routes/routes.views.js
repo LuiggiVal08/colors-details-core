@@ -110,8 +110,8 @@ router.get('/orders', isAuthenticatedView, async (req, res) => {
                 coutOrdersTotal,
             },
             orders,
-            iva: iva.toJSON(),
-            tasaDolar: tasaDolar.toJSON(),
+            iva: iva ? iva.toJSON() : null,
+            tasaDolar: tasaDolar ? tasaDolar.toJSON() : null,
             clients: clients.map((cliente) => cliente.toJSON()),
             productos: productos.map((producto) => producto.toJSON()),
             methodsPayment: methodsPayment.map((metodo) => metodo.toJSON()),
@@ -159,10 +159,18 @@ router.get('/box-register/:id', isAuthenticatedView, validRole([]), async (req, 
         order: [['fecha_apertura', 'DESC']],
     });
 
+    const tasaDolar = await models.TasaDolar.findOne({ where: { activa: true } });
+
     res.render(basePath('box-register'), {
         title: 'Registro de Caja',
+        tasaDolar: tasaDolar ? tasaDolar.toJSON() : null,
         caja: {
             ...(caja ? caja.toJSON() : null),
+
+            monto_usd:
+                caja && tasaDolar && Number(tasaDolar.tasa)
+                    ? (Number(caja.monto) / Number(tasaDolar.tasa)).toFixed(2)
+                    : null,
 
             ultimo_control: cajaUltimoControl
                 ? {
@@ -190,8 +198,6 @@ router.get('/profile', isAuthenticatedView, async (req, res) => {
             { model: models.TipoUsuario, as: 'tipo' },
         ],
     });
-    console.log(req.cookies?.role === 'superadmin');
-    console.log(req.cookies);
 
     const empresa = await models.Empresa.findOne();
     const sueldoBase = new Intl.NumberFormat('es-VE', {
@@ -314,8 +320,54 @@ router.get('/settings/employe/:id', isAuthenticatedView, async (req, res) => {
         employe: employe ? employe.toJSON() : null,
     });
 });
-router.get('/payroll', isAuthenticatedView, validRole(['admin', 'superadmin']), (req, res) => {
+router.get('/payroll', isAuthenticatedView, (req, res) => {
     res.render(basePath('payroll'), { title: 'Nómina' });
+});
+router.get('/product/:id', isAuthenticatedView, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const producto = await models.Producto.findByPk(id, {
+            include: [{ model: models.CategoriaProducto, as: 'categoria' }],
+        });
+        if (!producto) return res.redirect('/inventory');
+
+        const tasaDolar = await models.TasaDolar.findOne({ where: { activa: true } });
+        const iva = await models.Iva.findOne({ where: { activa: true } });
+
+        const fmt = (n) =>
+            new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+        const precioUsd = Number(producto.precio) || 0;
+        const tasa = tasaDolar ? Number(tasaDolar.tasa) || 0 : 0;
+        const ivaPct = iva ? Number(iva.porcentaje) || 0 : 0;
+        const conIva = precioUsd * (1 + ivaPct / 100);
+
+        let estado = 'En Stock';
+        let estadoClass = 'bg-green-500';
+        if (!producto.stock) {
+            estado = 'No Disponible';
+            estadoClass = 'bg-red-500';
+        } else if (producto.stock < 10) {
+            estado = 'Poco Stock';
+            estadoClass = 'bg-yellow-500';
+        }
+
+        res.render(basePath('product-detail'), {
+            title: producto.nombre,
+            producto: producto.toJSON(),
+            inicial: (producto.nombre.trim().charAt(0) || '?').toUpperCase(),
+            precioUsd: `$${fmt(precioUsd)}`,
+            precioBs: `${fmt(precioUsd * tasa)} Bs.`,
+            ivaUsd: `$${fmt(conIva)}`,
+            ivaBs: `${fmt(conIva * tasa)} Bs.`,
+            tasaStr: fmt(tasa),
+            estado,
+            estadoClass,
+            categoria: producto.categoria || null,
+        });
+    } catch (error) {
+        logger.error(error);
+        res.redirect('/inventory');
+    }
 });
 router.get('/settings/*splat', (req, res) => {
     return res.redirect('/settings');
