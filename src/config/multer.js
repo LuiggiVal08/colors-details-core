@@ -65,4 +65,38 @@ const upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 }, // Límite de tamaño de archivo: 10 MB
 });
 
-export { upload };
+const storagePedidoDetalle = multer.diskStorage({
+    destination: (_req, _file, cb) => {
+        try {
+            const uploadDir = path.resolve(cwd(), 'public', 'uploads', 'pedidos');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+            cb(null, uploadDir);
+        } catch (error) {
+            logger.error(error);
+        }
+    },
+    filename: (_req, file, cb) => {
+        try {
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const ext = path.extname(file.originalname);
+            cb(null, 'pedido_detalle_' + uniqueSuffix + ext);
+        } catch (error) {
+            logger.error(error);
+        }
+    },
+});
+
+/**
+ * Multer para imágenes de detalle de pedido (diseños/sublimado por producto).
+ * Acepta archivos con fieldname dinamico `detalle_imagen_<token>`.
+ * @type {multer.Instance}
+ */
+const uploadPedidoDetalle = multer({
+    storage: storagePedidoDetalle,
+    fileFilter: fileFilter,
+    limits: { fileSize: 10 * 1024 * 1024, files: 30 },
+});
+
+export { upload, uploadPedidoDetalle };

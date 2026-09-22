@@ -4,6 +4,7 @@
         action='/orders'
         data-method='POST'
         id='pedido-form'
+        enctype='multipart/form-data'
     >
         <div
             role='heading'
@@ -179,6 +180,7 @@
 <!-- TEMPLATE PARA DETALLES DE PEDIDO -->
 <template id='template-detalle-producto'>
     <div class='detalle-item grid grid-cols-1 gap-2 rounded-md border border-dashed border-blue-500 bg-blue-400/10 p-3 shadow-sm md:grid-cols-[2.2fr_0.8fr_0.9fr_1.2fr_0.9fr_auto] items-center'>
+        <input type='hidden' name='detalles[][__row]' class='row-token-input' />
         <div class='relative md:col-span-1'>
             <label class='sr-only'>Código o nombre del producto</label>
             <input
@@ -254,6 +256,10 @@
                     />
                 </div>
             </div>
+        </div>
+
+        <div class='md:col-span-4' data-dropzone-wrap>
+            {{> components/image-dropzone id='detalle-imagen' name='detalle_imagen' label='Imagen / Diseño (opcional)'}}
         </div>
 
         <button

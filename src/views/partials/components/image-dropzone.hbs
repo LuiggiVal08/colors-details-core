@@ -13,7 +13,7 @@
         </div>
         <input
             type='file'
-            name='imagen'
+            name='{{#if name}}{{name}}{{else}}imagen{{/if}}'
             id='{{id}}'
             accept='image/png,image/jpeg,image/gif'
             class='hidden'

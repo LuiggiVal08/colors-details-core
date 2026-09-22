@@ -247,6 +247,7 @@ CREATE TABLE IF NOT EXISTS `pedido_detalle` (
   `cantidad` int(11) DEFAULT NULL,
   `precio_unitario` decimal(10, 2) DEFAULT NULL,
   `subtotal` decimal(10, 2) DEFAULT NULL,
+  `imagen` varchar(255) DEFAULT NULL,
   `creado_en` datetime NOT NULL,
   `actualizado_en` datetime NOT NULL,
   PRIMARY KEY (`id`),

@@ -9,6 +9,7 @@ import intoIcon from '../helpers/intoIcon.js';
 import badge from '../helpers/badge.js';
 import { generarPDF } from '../helpers/generatePdf.js';
 import { initStatusBar } from '../components/statusBar.js';
+import setupImageDropzone from '../helpers/imageDropzone.js';
 
 const removeOrderUrlParam = () => {
     const url = new URL(window.location);
@@ -314,6 +315,34 @@ const viewOrder = async (id) => {
                     precio_unitario: (d) => `$${Format.float(d.precio_unitario)}`,
                     precio_pedido_producto: (d) => `$${Format.float(d.precio_pedido_producto)}`,
                     subtotal: (d) => `$${Format.float(d.subtotal)}`,
+                    imagen: (d) => {
+                        if (!d.imagen) return 'Sin imagen';
+                        const src = `/uploads/pedidos/${d.imagen}`;
+
+                        const wrapper = document.createElement('div');
+                        wrapper.classList.add('flex', 'flex-row', 'items-center', 'justify-center', 'gap-2');
+
+                        const img = document.createElement('img');
+                        img.src = src;
+                        img.alt = 'Imagen del diseño';
+                        img.title = 'Ver imagen ampliada';
+                        img.classList.add('miniatura', 'cursor-zoom-in');
+                        img.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            window.open(src, '_blank');
+                        });
+
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = src;
+                        downloadLink.download = d.imagen;
+                        downloadLink.title = 'Descargar imagen';
+                        downloadLink.classList.add('cursor-pointer');
+                        downloadLink.appendChild(intoIcon('download', { classes: ['md-18', 'text-blue-500'] }));
+
+                        wrapper.appendChild(img);
+                        wrapper.appendChild(downloadLink);
+                        return wrapper;
+                    },
                 },
             },
         });
@@ -505,10 +534,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const hiddenProductoId = clone.querySelector('.producto-id-hidden');
                 const dataProducto = clone.querySelector('[data-producto]');
                 const precioInput = clone.querySelector('input[name*="[precio_unitario]"]');
+                const rowTokenInput = clone.querySelector('.row-token-input');
+                const dropzoneInput = clone.querySelector('[data-dropzone-input]');
 
                 if (!item || !inputCodigo || !hiddenProductoId || !dataProducto || !precioInput) {
                     throw new Error('❌ Faltan elementos dentro del template.');
                 }
+
+                if (rowTokenInput) rowTokenInput.value = id;
+                if (dropzoneInput) dropzoneInput.name = `detalle_imagen_${id}`;
 
                 dataProducto.classList.add('hidden'); // oculto hasta seleccionar producto
 
@@ -593,7 +627,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 });
 
+                const dropzone = clone.querySelector('[data-dropzone]');
+
                 containerDetalles.appendChild(clone);
+
+                if (dropzone) setupImageDropzone(dropzone);
             } catch (err) {
                 console.error('❌ Error al agregar nuevo detalle de producto:', err);
             }

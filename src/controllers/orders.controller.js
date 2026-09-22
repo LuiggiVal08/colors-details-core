@@ -1,5 +1,8 @@
 import { z } from 'zod';
 import { Op } from 'sequelize';
+import fs from 'fs';
+import path from 'path';
+import { cwd } from 'node:process';
 import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 
@@ -10,6 +13,7 @@ const detalleSchema = z.object({
     precio_unitario: z.string(),
     precio_pedido_producto: z.string(),
     subtotal: z.string(),
+    imagen: z.string().optional().nullable(),
 });
 
 const pedidoSchema = z.object({
@@ -23,6 +27,38 @@ const pedidoSchema = z.object({
     observaciones: z.string().optional(),
     detalles: z.array(detalleSchema),
 });
+
+/** Reconstruye el arreglo `detalles[]` desde el body multipart de multer. */
+const buildDetalles = (body) => {
+    const re = /^detalles\[\]\[([a-zA-Z0-9_]+)\]$/;
+    const map = {};
+    for (const key in body) {
+        const match = key.match(re);
+        if (!match) continue;
+        const field = match[1];
+        const values = Array.isArray(body[key]) ? body[key] : [body[key]];
+        values.forEach((value, index) => {
+            if (!map[index]) map[index] = {};
+            map[index][field] = value;
+        });
+    }
+    return Object.values(map);
+};
+
+/** Campos escalares del pedido (todo lo que no es `detalles[...]`). */
+const scalarBody = (body) => {
+    const scalar = {};
+    for (const key in body) {
+        if (!key.startsWith('detalles[')) scalar[key] = body[key];
+    }
+    return scalar;
+};
+
+const eliminarArchivoImagen = (imagen) => {
+    if (!imagen) return;
+    const filePath = path.resolve(cwd(), 'public', 'uploads', 'pedidos', path.basename(imagen));
+    fs.unlink(filePath, () => {});
+};
 
 class PedidoController {
     static async getAll(req, res) {
@@ -73,11 +109,29 @@ class PedidoController {
 
     static async create(req, res) {
         const normalizeDecimal = (val) => String(val).replace(/\./g, '').replace(',', '.');
+        const filesImagenes = req.files || [];
 
         const t = await models.sequelize.transaction();
         try {
             const fechaPedido = new Date();
-            const data = pedidoSchema.parse({ ...req.body, fecha: fechaPedido, estado: 'pendiente' });
+
+            const detallesRaw = buildDetalles(req.body);
+
+            // Asociar cada archivo subido a su fila mediante el token único de la fila
+            for (const file of filesImagenes) {
+                const prefix = 'detalle_imagen_';
+                if (!file.fieldname.startsWith(prefix)) continue;
+                const token = file.fieldname.slice(prefix.length);
+                const fila = detallesRaw.find((d) => d.__row === token);
+                if (fila) fila.imagen = file.filename;
+            }
+
+            const data = pedidoSchema.parse({
+                ...scalarBody(req.body),
+                fecha: fechaPedido,
+                estado: 'pendiente',
+                detalles: detallesRaw,
+            });
 
             const { cliente_id, usuario_id, fecha, fecha_entrega, estado, observaciones, iva_id } =
                 data;
@@ -174,6 +228,7 @@ class PedidoController {
             res.status(201).json({ pedido: pedidoNew, message: 'Pedido creado correctamente' });
         } catch (error) {
             await t.rollback();
+            for (const file of filesImagenes) eliminarArchivoImagen(file.filename);
             handleErrorsController(error, res, req);
         }
     }
@@ -207,6 +262,7 @@ class PedidoController {
             }
 
             await models.PedidoDetalle.destroy({ where: { pedido_id: id }, transaction: t });
+            for (const detalle of pedido.detalles || []) eliminarArchivoImagen(detalle.imagen);
             await models.MovimientoProducto.destroy(
                 { where: { observacion: { [Op.like]: `Pedido #${id} %` } } },
                 { transaction: t },

@@ -24,6 +24,7 @@ PedidoDetalle.init(
         precio_unitario: DataTypes.DECIMAL(10, 2),
         precio_pedido_producto: DataTypes.DECIMAL(10, 2),
         subtotal: DataTypes.DECIMAL(10, 2),
+        imagen: DataTypes.STRING,
     },
     {
         sequelize,
