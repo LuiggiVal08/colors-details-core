@@ -16,6 +16,11 @@ Caja.init(
             allowNull: false,
             defaultValue: 0,
         },
+        monto_usd: {
+            type: DataTypes.DECIMAL(10, 2),
+            allowNull: false,
+            defaultValue: 0,
+        },
     },
     {
         sequelize,
@@ -23,7 +28,10 @@ Caja.init(
         tableName: 'caja',
         hooks: {
             beforeUpdate: async (caja) => {
-                if (caja.monto) caja.monto = formatearPrecio(caja.monto);
+                if (caja.changed('monto') && caja.monto != null) caja.monto = formatearPrecio(caja.monto);
+                if (caja.changed('monto_usd') && caja.monto_usd != null) {
+                    caja.monto_usd = formatearPrecio(caja.monto_usd);
+                }
             },
         },
     },

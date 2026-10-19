@@ -45,6 +45,23 @@
                 </select>
             </div>
 
+            <!-- Moneda -->
+            <div>
+                <label for='moneda' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                    Moneda
+                </label>
+                <select
+                    name='moneda'
+                    id='moneda'
+                    data-valid='text'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    required
+                >
+                    <option value='VES' selected>Bolívares (Bs)</option>
+                    <option value='USD'>Dólares ($)</option>
+                </select>
+            </div>
+
             <!-- Monto -->
             <div>
                 <label for='monto' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
@@ -54,8 +71,9 @@
                     type='text'
                     id='monto'
                     name='monto'
+                    data-valid='float'
                     class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-                    placeholder='Ej. 25.50'
+                    placeholder='Ej. 25,50'
                     required
                 />
             </div>

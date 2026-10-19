@@ -20,12 +20,6 @@ const getTasa = () => {
         });
 };
 
-const formatUsd = (monto) => {
-    const tasa = Number(tasaDolar?.tasa);
-    if (!tasa) return null;
-    return parseFloat(Number(monto) / tasa).toFixed(2);
-};
-
 document.getElementById('btnControlCaja').addEventListener('click', async (e) => {
     const cajaId = e.currentTarget.getAttribute('data-idmodel');
     const modal = document.getElementById('modal-control-caja');
@@ -73,16 +67,15 @@ document.getElementById('btnControlCaja').addEventListener('click', async (e) =>
         ).toLocaleString();
 
         const montoAperturaBs = parseFloat(control.monto_apertura ?? 0).toFixed(2);
-        const montoAperturaUsd = formatUsd(control.monto_apertura ?? 0);
-        document.getElementById('controlCajaMontoApertura').textContent = montoAperturaUsd
-            ? `${montoAperturaBs} Bs · $${montoAperturaUsd}`
-            : `${montoAperturaBs} Bs`;
+        const montoAperturaUsd = parseFloat(control.monto_apertura_usd ?? 0).toFixed(2);
+        document.getElementById('controlCajaMontoApertura').textContent =
+            `${montoAperturaBs} Bs · $${montoAperturaUsd}`;
 
         const montoCajaBs = parseFloat(control?.caja?.monto ?? 0).toFixed(2);
-        const montoCajaUsd = formatUsd(control?.caja?.monto ?? 0);
-        document.getElementById('controlCajaMonto').textContent = montoCajaUsd
-            ? `${montoCajaBs} Bs · $${montoCajaUsd}`
-            : `${montoCajaBs} Bs`;
+        const montoCajaUsd = parseFloat(control?.caja?.monto_usd ?? 0).toFixed(2);
+        document.getElementById('controlCajaMonto').textContent = `${montoCajaBs} Bs · $${montoCajaUsd}`;
+
+        document.getElementById('aperturaCountContainer')?.classList.add('hidden');
         infoControl.classList.remove('hidden');
 
         mensaje.innerHTML = `
@@ -103,6 +96,15 @@ document.getElementById('btnControlCaja').addEventListener('click', async (e) =>
         if (notaInput) notaInput.value = '';
 
         infoControl.classList.add('hidden');
+
+        const aperturaContainer = document.getElementById('aperturaCountContainer');
+        if (aperturaContainer) {
+            aperturaContainer.classList.remove('hidden');
+            const apBs = document.getElementById('monto_apertura');
+            const apUsd = document.getElementById('monto_apertura_usd');
+            if (apBs) apBs.value = Number(control?.caja?.monto ?? 0).toFixed(2).replace('.', ',');
+            if (apUsd) apUsd.value = Number(control?.caja?.monto_usd ?? 0).toFixed(2).replace('.', ',');
+        }
 
         mensaje.innerHTML = `
             Esta acción <strong>abrirá la caja registradora</strong> y registrará la fecha de apertura.
@@ -150,16 +152,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             formatters: {
                 fecha_apertura: (c) => (c.fecha_apertura ? new Date(c.fecha_apertura).toLocaleString() : '—'),
                 fecha_cierre: (c) => (c.fecha_cierre ? new Date(c.fecha_cierre).toLocaleString() : '—'),
-                monto_apertura: (c) => (c.monto_apertura != null ? `${c.monto_apertura} Bs` : '—'),
-                monto_cierre: (c) => (c.monto_cierre != null ? `${c.monto_cierre} Bs` : '—'),
-                monto_apertura_usd: (c) => {
-                    const usd = formatUsd(c.monto_apertura);
-                    return usd != null ? `$${usd}` : '—';
-                },
-                monto_cierre_usd: (c) => {
-                    const usd = formatUsd(c.monto_cierre);
-                    return usd != null ? `$${usd}` : '—';
-                },
+                monto_apertura: (c) =>
+                    c.monto_apertura != null ? `${Number(c.monto_apertura).toFixed(2)} Bs` : '—',
+                monto_cierre: (c) =>
+                    c.monto_cierre != null ? `${Number(c.monto_cierre).toFixed(2)} Bs` : '—',
+                monto_apertura_usd: (c) =>
+                    c.monto_apertura_usd != null ? `$${Number(c.monto_apertura_usd).toFixed(2)}` : '—',
+                monto_cierre_usd: (c) =>
+                    c.monto_cierre_usd != null ? `$${Number(c.monto_cierre_usd).toFixed(2)}` : '—',
                 usuario: (c) => c.usuario?.username ?? '—',
                 estado: (c) => {
                     const span = document.createElement('span');

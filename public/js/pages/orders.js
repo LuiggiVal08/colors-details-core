@@ -139,7 +139,10 @@ const addOrderPayment = async (id) => {
 
         // 📊 Calcular totales
         const totalMasIVA = Number(total) + (Number(total) * Number(iva.porcentaje)) / 100;
-        const totalPagos = pagos.reduce((acum, pago) => acum + Number(pago.monto), 0);
+        const totalPagos = (pagos || []).reduce(
+            (acum, pago) => acum + Number(pago.monto_usd ?? pago.monto ?? 0),
+            0,
+        );
         const totalPendiente = totalMasIVA - totalPagos;
 
         // 🧾 Llenar información del pedido
@@ -154,22 +157,38 @@ const addOrderPayment = async (id) => {
             Format.float((totalPendiente * tasa).toFixed(2)) + ' Bs';
 
         modalOrder.querySelector('input[name="pedido_id"]').value = pedido.id;
+        const fechaInput = modalOrder.querySelector('input[name="fecha"]');
+        if (fechaInput && !fechaInput.value) fechaInput.value = new Date().toISOString().slice(0, 10);
 
          // 🧩 Elementos del formulario
          const methodPaymentSelect = modalOrder.querySelector('select[name="metodo_pago_id"]');
-         const montoPaymentInput = modalOrder.querySelector('input[name="monto_payment"]'); // Bs
-         const montoUSDInput = modalOrder.querySelector('input[name="monto"]'); // $
+         const monedaSelect = modalOrder.querySelector('select[name="moneda"]');
+         const montoInput = modalOrder.querySelector('input[name="monto"]');
+         const vueltoInput = modalOrder.querySelector('[data-role="vuelto"]');
          const referenciaContainer = modalOrder.querySelector('[data-referencia-container]');
          const referenciaInput = modalOrder.querySelector('input[name="referencia_pago"]');
          const lblPendienteUSD = modalOrder.querySelector('[data-pedido-pendiente]');
          const lblPendienteBS = modalOrder.querySelector('[data-pedido-pendiente-bs]');
 
+        const parseMonto = (valor) => {
+            const str = String(valor ?? '').trim();
+            if (!str) return 0;
+            if (/^-?\d+(\.\d{1,2})?$/.test(str)) return Number(str);
+            return Number(str.replace(/\./g, '').replace(',', '.')) || 0;
+        };
+
+        const esMetodoEfectivo = () => {
+            const opcion = methodPaymentSelect?.options?.[methodPaymentSelect.selectedIndex];
+            return String(opcion?.dataset?.tipo || '')
+                .toLowerCase()
+                .includes('efectivo');
+        };
+
         const toggleReferencia = () => {
             const methodsAccep = ['transferencia', 'digital'];
             const metodoSeleccionado = methodPaymentSelect.options[methodPaymentSelect.selectedIndex];
-            const metodoTexto = metodoSeleccionado?.dataset?.tipo.toLowerCase() || '';
+            const metodoTexto = metodoSeleccionado?.dataset?.tipo?.toLowerCase() || '';
             const requiereReferencia = methodsAccep.some((m) => metodoTexto.includes(m));
-            console.log(metodoTexto);
 
             if (referenciaContainer) referenciaContainer.classList.toggle('hidden', !requiereReferencia);
             if (referenciaInput) {
@@ -184,34 +203,24 @@ const addOrderPayment = async (id) => {
         };
 
          // 🧹 Limpieza inicial
-         montoPaymentInput.value = '';
-         montoUSDInput.value = '0,00';
+         montoInput.value = '0,00';
+         if (vueltoInput) vueltoInput.value = '0,00';
 
         Format.formatEventInput({ elements: modalOrder.querySelectorAll('input, select') });
 
-        // 🔢 Calcular valores (bidireccional)
-        const calcularValores = (origen = 'bs') => {
-            let montoBS = 0;
-            let montoUSD = 0;
+        // 🔢 Calcular valores según la moneda elegida
+        const calcularValores = () => {
+            const codigo = monedaSelect?.value === 'VES' ? 'VES' : 'USD';
+            const recibido = parseMonto(montoInput.value);
+            const recibidoUsd = codigo === 'USD' ? recibido : tasa > 0 ? recibido / tasa : 0;
+            const pendiente = Math.max(0, totalPendiente - 0);
+            const aplicadoUsd = Math.min(recibidoUsd, pendiente);
+            const aplicadoMoneda = codigo === 'USD' ? aplicadoUsd : aplicadoUsd * tasa;
+            const vuelto = esMetodoEfectivo() ? Math.max(0, recibido - aplicadoMoneda) : 0;
 
-            if (origen === 'bs') {
-                // 💵 Usuario ingresó monto en bolívares
-                const montoIngresado = parseFloat(montoPaymentInput.value.replace(/\./g, '').replace(',', '.')) || 0;
-                montoBS = montoIngresado;
-                montoUSD = montoIngresado / tasa;
-            } else if (origen === 'usd') {
-                // 💵 Usuario ingresó monto en dólares
-                const montoIngresadoUSD = parseFloat(montoUSDInput.value.replace(/\./g, '').replace(',', '.')) || 0;
-                montoUSD = montoIngresadoUSD;
-                montoBS = montoIngresadoUSD * tasa;
-            }
+            if (vueltoInput) vueltoInput.value = Format.float(vuelto.toFixed(2));
 
-            // 🧾 Actualizar campos
-            montoPaymentInput.value = Format.float(montoBS.toFixed(2));
-            montoUSDInput.value = Format.float(montoUSD.toFixed(2));
-
-            // 🔹 Recalcular pendiente visualmente
-            const nuevoPendiente = totalPendiente - montoUSD;
+            const nuevoPendiente = pendiente - aplicadoUsd;
             const nuevoPendienteBs = nuevoPendiente * tasa;
             lblPendienteUSD.textContent = '$ ' + Format.float(nuevoPendiente.toFixed(2));
             lblPendienteBS.textContent = Format.float(nuevoPendienteBs.toFixed(2)) + ' Bs';
@@ -222,15 +231,15 @@ const addOrderPayment = async (id) => {
             lblPendienteBS.classList.toggle('text-green-600', nuevoPendienteBs <= 0);
         };
 
-        // 📌 Eventos sincronizados
-        methodPaymentSelect.addEventListener('change', () => {
-            calcularValores('bs');
+        // 📌 Eventos (on* para no duplicar listeners al reabrir el modal)
+        methodPaymentSelect.onchange = () => {
             toggleReferencia();
-        });
-        montoPaymentInput.addEventListener('input', () => calcularValores('bs')); // Bs → USD
-        montoUSDInput.addEventListener('input', () => calcularValores('usd')); // USD → Bs
+            calcularValores();
+        };
+        if (monedaSelect) monedaSelect.onchange = calcularValores;
+        montoInput.oninput = calcularValores;
 
-        // Ejecutar cálculo inicial
+        toggleReferencia();
         calcularValores();
     }
 

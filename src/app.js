@@ -10,7 +10,7 @@ import { cwd } from 'process';
 import logger from './config/logger.js';
 import csrf from './middlewares/csrf.js';
 import cookieParser from 'cookie-parser';
-import { APP_SECRET } from './constants.js';
+import { APP_SECRET, DEV_ORIGINS } from './constants.js';
 import fs from 'fs';
 import { session } from './middlewares/session.js';
 
@@ -42,34 +42,73 @@ const devOrigins = [
     'http://localhost:19006', // Puerto antiguo de Expo Web
     'https://colors-details-core-production.up.railway.app', // URL de producción
 ];
+
+// Orígenes adicionales declarados en el entorno (DEV_ORIGINS), separados por coma.
+const allowedOrigins = [
+    ...devOrigins,
+    ...DEV_ORIGINS.split(',')
+        .map((value) => value.trim())
+        .filter(Boolean),
+];
+
+/**
+ * El navegador envía la cabecera 'Origin' incluso en peticiones same-origin
+ * (POST, PUT, DELETE). El callback de CORS no puede saber si la petición viene
+ * del propio servidor, así que terminaba rechazando el acceso desde el teléfono
+ * (http://192.168.x.x) con un 500. Comparar contra el Host de la petición
+ * permite reconocer el mismo origen y saltarse CORS por completo: no hace falta
+ * porque el navegador no aplica CORS cuando el origen coincide.
+ * @param {string|undefined} origin Cabecera Origin de la petición.
+ * @param {import('express').Request} req Petición entrante.
+ * @returns {boolean} true si la petición viene del mismo origen que el servidor.
+ */
+const isSameOrigin = (origin, req) => {
+    if (!origin || !req.headers.host) return false;
+    try {
+        return new URL(origin).host === req.headers.host;
+    } catch {
+        return false;
+    }
+};
+
+/**
+ * Comprueba si un origen puede realizar peticiones a la API.
+ * @param {string|undefined} origin Cabecera Origin de la petición.
+ * @returns {boolean} true si el origen está permitido.
+ */
+const isAllowedOrigin = (origin) => {
+    // 1. Peticiones sin origen (móvil nativo, Postman, curl)
+    if (!origin) return true;
+    // 2. Lista explícita (Expo Web, producción, DEV_ORIGINS)
+    if (allowedOrigins.includes(origin)) return true;
+    // 3. Cualquier localhost/127.0.0.1 con cualquier puerto (dev)
+    return origin.includes('localhost') || origin.includes('127.0.0.1');
+};
+
+const corsMiddleware = cors({
+    origin: (origin, callback) => callback(null, isAllowedOrigin(origin)),
+    exposedHeaders: ['Authorization'],
+    credentials: true,
+});
+
 app.use(express.static(path.join(cwd(), 'public')));
 
-app.use(
-    cors({
-        origin: function (origin, callback) {
-            // 1. Permitir peticiones sin origen (Móvil nativo, Postman, etc.)
-            if (!origin) return callback(null, true);
+// 5. Mismo origen (localhost, IP de la LAN, hostname) → CORS no aplica, se salta.
+app.use((req, res, next) => {
+    const { origin } = req.headers;
 
-            // Agregamos un log temporal para ver qué origin está llegando y compararlo
-            // console.log("Origin intentando conectar:", origin);
+    if (isSameOrigin(origin, req)) return next();
 
-            // 2. Comprobar si el origen está en la lista permitida
-            if (devOrigins.includes(origin)) {
-                return callback(null, true);
-            }
+    // 6. Origen no permitido: 403 explícito en lugar del 500 genérico de Express.
+    // El log va aquí porque CORS corta la cadena antes de morgan, así que un
+    // rechazo thrown nunca aparecería en el access log.
+    if (!isAllowedOrigin(origin)) {
+        logger.warn(`Origen bloqueado por CORS: ${origin} (host: ${req.headers.host})`);
+        return res.status(403).json({ message: 'Origen no permitido por las reglas de CORS' });
+    }
 
-            // 3. IMPORTANTE: Si es el mismo servidor (localhost), a veces llega como origin
-            // Puedes agregar una validación extra aquí si devOrigins no lo tiene
-            if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-                return callback(null, true);
-            }
-
-            return callback(new Error('No permitido por las reglas de CORS'));
-        },
-        exposedHeaders: ['Authorization'],
-        credentials: true,
-    }),
-);
+    return corsMiddleware(req, res, next);
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(APP_SECRET));

@@ -27,85 +27,6 @@ async function renderSummary(nominas) {
     }
 }
 
-function renderDetailsModal(nomina) {
-    const modal = document.getElementById('modal-global');
-    if (!modal) return;
-    const body = modal.querySelector('.modal-body');
-    if (!body) return;
-
-    const desde = new Date(nomina.periodo_inicio).toLocaleDateString('es-VE');
-    const hasta = new Date(nomina.periodo_fin).toLocaleDateString('es-VE');
-    const tasa = nomina.tasa?.tasa || 0;
-    const usdTotal = tasa > 0 ? (parseFloat(nomina.total_monto) || 0) / parseFloat(tasa) : 0;
-
-    let html = `
-        <div class='p-4 space-y-4'>
-            <div class='grid grid-cols-2 md:grid-cols-4 gap-3'>
-                <div class='bg-gray-50 rounded p-2'>
-                    <p class='text-xs text-gray-500'>Período</p>
-                    <p class='font-semibold'>${desde} - ${hasta}</p>
-                </div>
-                <div class='bg-gray-50 rounded p-2'>
-                    <p class='text-xs text-gray-500'>Tasa Bs.</p>
-                    <p class='font-semibold'>${fmt(tasa)} Bs.</p>
-                </div>
-                <div class='bg-gray-50 rounded p-2'>
-                    <p class='text-xs text-gray-500'>Total USD</p>
-                    <p class='font-semibold text-green-600'>$${fmt(usdTotal)}</p>
-                    <p class='text-xs text-gray-500'>${fmt(nomina.total_monto)} Bs.</p>
-                </div>
-                <div class='bg-gray-50 rounded p-2'>
-                    <p class='text-xs text-gray-500'>Estado</p>
-                    <p class='font-semibold'>${nomina.estado === 'completed' ? 'Completado' : nomina.estado}</p>
-                </div>
-            </div>
-            <div class='overflow-x-auto'>
-                <table class='w-full border-collapse'>
-                    <thead>
-                        <tr class='border-b border-gray-200'>
-                            <th class='text-left p-2 text-sm font-medium text-gray-700'>Empleado</th>
-                            <th class='text-right p-2 text-sm font-medium text-gray-700'>Salario Base</th>
-                            <th class='text-right p-2 text-sm font-medium text-gray-700'>Bono</th>
-                            <th class='text-right p-2 text-sm font-medium text-gray-700'>Deducción</th>
-                            <th class='text-right p-2 text-sm font-medium text-gray-700'>Total USD</th>
-                            <th class='text-right p-2 text-sm font-medium text-gray-700'>Total Bs.</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-    `;
-
-    const detalles = nomina.detalles || [];
-    if (detalles.length === 0) {
-        html += '<tr><td colspan="6" class="text-center p-4 text-gray-400">Sin detalles</td></tr>';
-    } else {
-        detalles.forEach((d) => {
-            const nombre = d.empleado ? `${d.empleado.nombre} ${d.empleado.apellido}` : `Empleado #${d.empleado_id}`;
-            html += `
-                <tr class='border-b border-gray-100 hover:bg-gray-50'>
-                    <td class='p-2 text-sm'>${nombre}</td>
-                    <td class='p-2 text-sm text-right'>$${fmt(d.salario_base)}</td>
-                    <td class='p-2 text-sm text-right text-green-600'>$${fmt(d.bono)}</td>
-                    <td class='p-2 text-sm text-right text-red-500'>$${fmt(d.deduccion)}</td>
-                    <td class='p-2 text-sm text-right font-medium'>$${fmt(d.monto_usd)}</td>
-                    <td class='p-2 text-sm text-right text-gray-500'>${fmt(d.monto_total)} Bs.</td>
-                </tr>
-            `;
-        });
-    }
-
-    html += `
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
-
-    body.innerHTML = html;
-    modal.classList.remove('hidden');
-    modal.removeAttribute('inert');
-    setupModalLifecycle(modal);
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
     const form = document.getElementById('form-generar-nomina');
     const tbody = document.getElementById('table-nomina');
@@ -158,19 +79,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     cell.textContent = nom.usuario?.username || '-';
                 }
             });
-            const viewBtn = row.querySelector('[data-btn="view"]');
-            if (viewBtn) {
-                viewBtn.dataset.idModel = nom.id;
-                viewBtn.addEventListener('click', async () => {
-                    try {
-                        const resp = await httpClient.get(`/nomina/${nom.id}`);
-                        const detalle = resp?.data || resp;
-                        renderDetailsModal(detalle);
-                    } catch (err) {
-                        showToast({ title: 'Error', message: 'No se pudo cargar el detalle', type: 'error', duration: 5000 });
-                    }
-                });
-            }
             tbody.appendChild(row);
         });
     }

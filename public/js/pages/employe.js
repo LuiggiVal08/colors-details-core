@@ -49,11 +49,11 @@ function renderPendingPeriods(periodos) {
         el.innerHTML = `
             <div>
                 <p class='text-sm font-medium'>${new Date(p.fecha_inicio).toLocaleDateString('es-VE')} - ${new Date(p.fecha_fin).toLocaleDateString('es-VE')}</p>
-                <p class='text-xs text-gray-600'>Esperado: $${fmt(p.monto_esperado)}</p>
+                <p class='text-xs text-gray-600'>Esperado: $${fmt(p.monto_esperado)} · Pagado: $${fmt(p.monto_pagado)}</p>
             </div>
             <div class='text-right'>
-                <p class='text-sm font-semibold text-red-600'>$${fmt(p.monto_esperado)}</p>
-                <p class='text-xs text-red-500'>Vencido</p>
+                <p class='text-sm font-semibold text-red-600'>$${fmt(p.saldo ?? p.monto_esperado)}</p>
+                <p class='text-xs text-red-500'>Saldo vencido</p>
             </div>
         `;
         list.appendChild(el);
@@ -76,8 +76,7 @@ function autoFillFifoPeriod(periodos) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const locationPage = location.href;
-    const id = locationPage.split('/').pop();
+    const id = location.pathname.split('/').filter(Boolean).pop();
 
     const [employeResp, deudaResp] = await Promise.all([
         httpClient.get(`/employe/${id}`),

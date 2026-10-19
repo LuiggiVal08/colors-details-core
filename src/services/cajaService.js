@@ -2,16 +2,10 @@ import { BadRequestError } from '../errors/BadRequestError.js';
 import { NotFoundError } from '../errors/NotFoundError.js';
 import { formatearPrecio } from '../helpers/format.js';
 import { models } from '../models/index.js';
+import { getMoneda, normalizarCodigoMoneda } from './monedaService.js';
 
 /**
- * Realiza un movimiento en una caja.
- * @param {Object} params - Parámetros para el movimiento.
- * @param {number} params.caja_id - ID de la caja.
- * @param {number} params.monto - Monto del movimiento.
- * @param {string} params.descripcion - Descripción del movimiento.
- * @param {string} params.tipo - Tipo del movimiento (ingreso o egreso).
- * @param {number} params.usuario_id - ID del usuario que realiza el movimiento.
- * @param {Object} transaction - Transacción a utilizar.
+ * Obtiene el control de caja abierto del usuario.
  */
 const obtenerCajaActivaPorUsuario = async (usuario_id, transaction) => {
     const control = await models.ControlCaja.findOne({
@@ -30,27 +24,52 @@ const obtenerCajaActivaPorUsuario = async (usuario_id, transaction) => {
     return { control, caja: control.caja };
 };
 
-async function realizarMovimiento({ usuario_id, monto, descripcion, tipo, transaction }) {
+/**
+ * Realiza un movimiento en una caja.
+ * @param {Object} params
+ * @param {number} params.usuario_id
+ * @param {number|string} params.monto Monto en la moneda indicada.
+ * @param {string} params.descripcion
+ * @param {'ingreso'|'egreso'} params.tipo
+ * @param {'USD'|'VES'} [params.moneda] Moneda del movimiento (VES por compatibilidad).
+ * @param {number|string} [params.tasa] Tasa usada para convertir a la otra moneda.
+ * @param {Object} [params.transaction]
+ */
+async function realizarMovimiento({
+    usuario_id,
+    monto,
+    descripcion,
+    tipo,
+    moneda = 'VES',
+    tasa = null,
+    transaction,
+}) {
     const t = transaction || (await models.sequelize.transaction());
 
     try {
         const { control, caja } = await obtenerCajaActivaPorUsuario(usuario_id, t);
 
-        const parseNum = (v) => {
-            const s = String(v || '0');
-            if (/^-?\d+(\.\d{1,2})?$/.test(s)) return Number(s);
-            return Number(s.replace(/\./g, '').replace(',', '.'));
-        };
-        const montoBox = parseNum(caja.monto);
-        const montoMovement = parseNum(monto);
+        const codigo = normalizarCodigoMoneda(moneda);
+        const monedaDoc = await getMoneda(codigo, t);
+        if (!monedaDoc) throw new BadRequestError(`Moneda no registrada: ${codigo}`);
 
-        if (tipo === 'egreso' && montoMovement > montoBox) throw new BadRequestError('Fondos insuficientes en caja');
+        const campoSaldo = codigo === 'USD' ? 'monto_usd' : 'monto';
+        const saldoActual = formatearPrecio(caja[campoSaldo] ?? 0);
+        const montoMovimiento = formatearPrecio(monto);
+
+        if (tipo === 'egreso' && montoMovimiento > saldoActual) {
+            throw new BadRequestError(
+                `Fondos insuficientes en caja (${codigo}): disponible ${saldoActual.toFixed(2)}`,
+            );
+        }
 
         const mov = await models.MovimientoCaja.create(
             {
                 control_caja_id: control.id,
                 usuario_id,
-                monto: montoMovement.toFixed(2),
+                monto: montoMovimiento.toFixed(2),
+                moneda_id: monedaDoc.id,
+                tasa: tasa != null && tasa !== '' ? Number(tasa) : null,
                 tipo,
                 descripcion: descripcion || '',
                 fecha: new Date(),
@@ -58,11 +77,12 @@ async function realizarMovimiento({ usuario_id, monto, descripcion, tipo, transa
             { transaction: t },
         );
 
-        const newBoxAmount = tipo === 'ingreso' ? montoBox + montoMovement : montoBox - montoMovement;
+        const nuevoSaldo =
+            tipo === 'ingreso' ? saldoActual + montoMovimiento : saldoActual - montoMovimiento;
 
         await caja.update(
             {
-                monto: newBoxAmount.toFixed(2),
+                [campoSaldo]: nuevoSaldo.toFixed(2),
             },
             { transaction: t },
         );

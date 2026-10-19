@@ -1,5 +1,6 @@
 import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
+import { formatearPrecio } from '../helpers/format.js';
 
 class ControlCajaController {
     // =======================
@@ -138,11 +139,25 @@ class ControlCajaController {
                 return res.status(400).json({ message: 'La caja ya tiene una apertura activa' });
             }
 
+            const tieneValor = (valor) => valor !== undefined && valor !== null && String(valor).trim() !== '';
+            const { monto_apertura, monto_apertura_usd } = req.body || {};
+
+            let saldoBs = formatearPrecio(caja.monto ?? 0);
+            let saldoUsd = formatearPrecio(caja.monto_usd ?? 0);
+
+            // Si el usuario indica el conteo físico inicial, ese pasa a ser el saldo del turno.
+            if (tieneValor(monto_apertura) || tieneValor(monto_apertura_usd)) {
+                if (tieneValor(monto_apertura)) saldoBs = formatearPrecio(monto_apertura);
+                if (tieneValor(monto_apertura_usd)) saldoUsd = formatearPrecio(monto_apertura_usd);
+                await caja.update({ monto: saldoBs.toFixed(2), monto_usd: saldoUsd.toFixed(2) });
+            }
+
             const control = await models.ControlCaja.create({
                 caja_id,
                 usuario_id,
                 fecha_apertura: new Date(),
-                monto_apertura: caja.monto,
+                monto_apertura: saldoBs.toFixed(2),
+                monto_apertura_usd: saldoUsd.toFixed(2),
                 estado: 'abierto',
             });
 
@@ -196,6 +211,7 @@ class ControlCajaController {
             await controlAbierto.update({
                 fecha_cierre: new Date(),
                 monto_cierre: caja.monto,
+                monto_cierre_usd: caja.monto_usd,
                 estado: 'cerrado',
                 cerrado_por_id: usuario_id,
                 nota_cierre: nota,

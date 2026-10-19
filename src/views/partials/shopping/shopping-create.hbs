@@ -313,7 +313,19 @@
 
             <div class='flex flex-col md:flex-row gap-4 items-center w-full'>
                 <div class='w-full parent'>
-                    <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Pago ($)</label>
+                    <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Moneda</label>
+                    <select
+                        name='pagos[][moneda]'
+                        data-valid='text'
+                        class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        required
+                    >
+                        <option value='USD' selected>$ · USD</option>
+                        <option value='VES'>Bs · VES</option>
+                    </select>
+                </div>
+                <div class='w-full parent'>
+                    <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Monto recibido</label>
                     <input
                         type='text'
                         name='pagos[][monto]'
@@ -322,18 +334,17 @@
                         placeholder='0,00'
                         value='0,00'
                         required=''
-                        {{! readonly='' }}
                     />
                 </div>
                 <div class='w-full parent'>
-                    <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Monto (Bs.)</label>
+                    <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Vuelto</label>
                     <input
                         type='text'
-                        name='pagos[][monto_payment]'
-                        data-valid='float'
-                        class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none inputError'
+                        data-role='vuelto'
+                        readonly
+                        class='bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 outline-none'
                         placeholder='0,00'
-                        required
+                        value='0,00'
                     />
                 </div>
             </div>

@@ -134,7 +134,11 @@ routerApp.get('/reports/download/:fileName', isAuthenticated, (req, res) => {
         res.status(404).send('El archivo ya no está disponible o no existe.');
     }
 });
-routerApp.use('/health', (req, res) => res.status(200).json({ message: 'ok' }));
+// Usado por el healthcheck de Docker: 503 mientras sequelize.sync() sigue
+// alterando el esquema, para que Nginx no envíe tráfico antes de tiempo.
+routerApp.use('/health', (req, res) =>
+    req.app.get('ready') ? res.status(200).json({ message: 'ok' }) : res.status(503).json({ message: 'starting' }),
+);
 routerApp.all('/*splat', (req, res) => res.status(404).json({ message: 'Resource not found' }));
 
 export default routerApp;

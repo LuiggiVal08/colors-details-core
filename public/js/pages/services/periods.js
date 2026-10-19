@@ -1,11 +1,17 @@
 import { httpClient } from '../../index.js';
 import { setupModalLifecycle } from '../../helpers/handleModalEvents.js';
 
+function parseMoney(value) {
+    const s = String(value ?? '').trim();
+    if (/^-?\d+(\.\d{1,2})?$/.test(s)) return Number(s);
+    return Number(s.replace(/\./g, '').replace(',', '.'));
+}
+
 function formatMoney(value) {
-    if (value === null || value === undefined) return '-';
-    const n = Number(String(value).replace(',', '.'));
+    if (value === null || value === undefined || value === '') return '-';
+    const n = parseMoney(value);
     if (Number.isNaN(n)) return value;
-    return new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n) + ' Bs.';
+    return '$' + new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 }
 
 function mapEstado(e) {

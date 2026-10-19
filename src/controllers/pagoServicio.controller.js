@@ -2,6 +2,8 @@ import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 import { z } from 'zod';
 import { NotFoundError } from '../errors/NotFoundError.js';
+import { formatearPrecio } from '../helpers/format.js';
+import { getMonedaId } from '../services/monedaService.js';
 
 const schemaPago = z.object({
     periodo_id: z.number(),
@@ -10,15 +12,43 @@ const schemaPago = z.object({
 });
 
 class PagoServicioController {
+    static async getByServicio(req, res) {
+        try {
+            const { id } = req.params;
+            const pagos = await models.PagoServicio.findAll({
+                include: [
+                    {
+                        model: models.ServicioPeriodo,
+                        as: 'periodo',
+                        where: { servicio_id: id },
+                        required: true,
+                    },
+                    {
+                        model: models.Usuario,
+                        as: 'usuario',
+                        attributes: ['id', 'username'],
+                        required: false,
+                    },
+                    {
+                        model: models.Moneda,
+                        as: 'moneda',
+                        attributes: ['id', 'codigo', 'simbolo'],
+                        required: false,
+                    },
+                ],
+                order: [['creado_en', 'DESC']],
+            });
+
+            return res.status(200).json({ error: false, data: pagos });
+        } catch (error) {
+            return handleErrorsController(error, res, req);
+        }
+    }
+
     static async create(req, res) {
         const t = await models.sequelize.transaction();
         try {
-            const monto = (() => {
-                const m = req.body.monto;
-                if (typeof m === 'number') return m;
-                if (!m) return 0;
-                return Number(String(m).replace(',', '.'));
-            })();
+            const monto = formatearPrecio(req.body.monto);
 
             let periodoId = Number(req.body.periodo_id ?? req.body.payment_periodo_id);
             if (!periodoId || isNaN(periodoId)) {
@@ -54,12 +84,12 @@ class PagoServicioController {
                 return res.status(400).json({ error: true, message: 'El periodo ya está pagado o cancelado' });
             }
 
-            const balance = Number(String(periodo.amount_balance).replace(',', '.'));
+            const balance = formatearPrecio(periodo.amount_balance);
             if (data.monto > balance) {
                 await t.rollback();
                 return res.status(400).json({
                     error: true,
-                    message: `El monto excede el saldo pendiente del periodo (Bs. ${balance})`,
+                    message: `El monto excede el saldo pendiente del periodo (USD $${balance})`,
                 });
             }
             const nuevoBalance = Math.max(0, balance - data.monto);
@@ -69,6 +99,7 @@ class PagoServicioController {
                 {
                     periodo_id: data.periodo_id,
                     monto: data.monto,
+                    moneda_id: await getMonedaId('USD', t),
                     descripcion: data.descripcion ?? '',
                     usuario_id,
                 },

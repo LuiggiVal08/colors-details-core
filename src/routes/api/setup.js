@@ -2,15 +2,15 @@ import { Router } from 'express';
 import { models } from '../../models/index.js';
 import handleErrorsController from '../../helpers/handdleErrorsController.js';
 import { DB_NAME, DB_PASSWORD, DB_URL, DB_USER } from '../../constants.js';
-import { unlink, writeFile } from 'fs/promises';
 import fs from 'fs'; // el viejo confiable, para sync
 import bcrypt from 'bcryptjs';
-import { exec, spawn } from 'child_process';
-import { execSync } from 'child_process';
+import { execFileSync, spawn } from 'child_process';
 import path from 'path';
 import { tmpdir } from 'os';
+import { randomUUID } from 'crypto';
 import multer from 'multer';
 import isAuthenticated from '../../middlewares/isAuthenticate.js';
+import logger from '../../config/logger.js';
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
         }
     },
     filename: (req, file, cb) => {
-        cb(null, 'restore.sql');
+        cb(null, `restore-${Date.now()}-${randomUUID()}.sql`);
     },
 });
 const fileFilter = (req, file, cb) => {
@@ -42,17 +42,44 @@ const uploadMiddleware = (req, res, next) => {
 };
 const router = Router();
 
-// Resuelve la ruta de un binario de MySQL de forma portable (env o PATH).
+// Resuelve la ruta de un binario de MySQL de forma portable (env, PATH o XAMPP).
 const resolveBin = (name, envKey) => {
     const fromEnv = process.env[envKey];
     if (fromEnv) return fromEnv;
-    try {
-        return execSync(`command -v ${name} 2>/dev/null || which ${name} 2>/dev/null`)
-            .toString()
-            .trim();
-    } catch {
-        return name; // que falle con el nombre y dé un error claro
+
+    const candidatos = [];
+
+    if (process.platform === 'win32') {
+        try {
+            const encontrados = execFileSync('where', [name], {
+                stdio: ['ignore', 'pipe', 'ignore'],
+            })
+                .toString()
+                .split(/\r?\n/)
+                .filter(Boolean);
+            candidatos.push(...encontrados);
+        } catch {
+            /* no está en PATH */
+        }
+        candidatos.push(
+            `C:\\xampp\\mysql\\bin\\${name}.exe`,
+            `C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\${name}.exe`,
+            `C:\\Program Files\\MySQL\\MySQL Server 8.4\\bin\\${name}.exe`,
+        );
+    } else {
+        try {
+            candidatos.push(
+                execFileSync('which', [name], { stdio: ['ignore', 'pipe', 'ignore'] })
+                    .toString()
+                    .trim(),
+            );
+        } catch {
+            /* no está en PATH */
+        }
+        candidatos.push(`/usr/bin/${name}`, `/usr/local/bin/${name}`, `/opt/homebrew/bin/${name}`);
     }
+
+    return candidatos.find((ruta) => ruta && fs.existsSync(ruta)) || name;
 };
 
 // Middleware de autorización para operaciones de base de datos (solo admin/superadmin).
@@ -141,57 +168,135 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/db/dump', isAuthenticated, requireAdmin, async (req, res) => {
-    try {
-        const mysqldump = resolveBin('mysqldump', 'DB_MYSQL_DUMP');
-        const { host, port, user, password } = mysqlCredentials();
-        // --ssl-verify-server-cert=0: el servidor MySQL 8.4 trae certificado
-        // self-signed; el cliente CLI (MariaDB/Alpine) exige verificarlo.
-        const command = `"${mysqldump}" --ssl-verify-server-cert=0 -h${host} -P${port} -u${user} --password=${password} ${DB_NAME}`;
+    const mysqldump = resolveBin('mysqldump', 'DB_MYSQL_DUMP');
+    const { host, port, user, password } = mysqlCredentials();
+    const filePath = path.join(tmpdir(), `${DB_NAME}_backup_${randomUUID()}.sql`);
+    const out = fs.createWriteStream(filePath);
+    const args = ['--ssl-verify-server-cert=0', `-h${host}`, `-P${port}`, `-u${user}`, DB_NAME];
+    const env = { ...process.env, ...(password ? { MYSQL_PWD: password } : {}) };
 
-        exec(command, async (error, stdout, stderr) => {
-            if (error) {
-                return handleErrorsController(`Error al generar dump: ${stderr || error.message}`, res, req);
-            }
-            const filePath = path.join(tmpdir(), `${DB_NAME}_backup.sql`);
-            try {
-                await writeFile(filePath, stdout);
-                res.download(filePath, `${DB_NAME}_backup.sql`, async (err) => {
-                    if (err) return handleErrorsController(err, res, req);
-                    await unlink(filePath);
-                });
-            } catch (err) {
-                handleErrorsController(err, res, req);
-            }
+    const child = spawn(mysqldump, args, { env });
+    let stderr = '';
+    let exitCode = null;
+    let finished = false;
+    let respondido = false;
+
+    const limpiar = () => {
+        try {
+            fs.unlinkSync(filePath);
+        } catch {
+            /* el archivo puede no existir */
+        }
+    };
+
+    const fallar = (mensaje) => {
+        if (respondido) return;
+        respondido = true;
+        limpiar();
+        logger.error(`Error al generar dump: ${mensaje}`);
+        if (!res.headersSent) {
+            handleErrorsController(`Error al generar dump: ${mensaje}`, res, req);
+        }
+    };
+
+    const descargar = () => {
+        if (respondido) return;
+        respondido = true;
+        res.download(filePath, `${DB_NAME}_backup.sql`, (err) => {
+            if (err) logger.error(`Error al descargar dump: ${err.message}`);
+            limpiar();
         });
-    } catch (error) {
-        handleErrorsController(error, res, req);
-    }
+    };
+
+    child.on('error', (err) => fallar(err.message));
+    child.on('close', (code) => {
+        exitCode = code;
+        if (code !== 0) return fallar(stderr || `mysqldump terminó con código ${code}`);
+        if (finished) descargar();
+    });
+    child.stderr.on('data', (data) => {
+        stderr += data.toString();
+    });
+    child.stdout.pipe(out);
+    out.on('error', (err) => fallar(err.message));
+    out.on('finish', () => {
+        finished = true;
+        if (exitCode === 0) descargar();
+        else if (exitCode !== null) fallar(stderr || `mysqldump terminó con código ${exitCode}`);
+    });
 });
+
+let restauracionEnCurso = false;
 
 router.post('/db/restore', isAuthenticated, requireAdmin, uploadMiddleware, async (req, res) => {
-    try {
-        const filePath = path.resolve('tmp', 'restore.sql');
-        const mysql = resolveBin('mysql', 'DB_MYSQL');
-        const { host, port, user, password } = mysqlCredentials();
-
-        const restoreProcess = spawn(mysql, [`--ssl-verify-server-cert=0`, `-h${host}`, `-P${port}`, `-u${user}`, `--password=${password}`, DB_NAME]);
-
-        const sqlStream = fs.createReadStream(filePath);
-        sqlStream.pipe(restoreProcess.stdin);
-
-        restoreProcess.stderr.on('data', (data) => {
-            console.error('Error al restaurar DB:', data.toString());
-        });
-
-        restoreProcess.on('close', async (code) => {
-            if (code !== 0) {
-                return handleErrorsController(`Falló la restauración con código: ${code}`, res, req);
-            }
-            await fs.promises.unlink(filePath);
-            res.status(200).json({ message: 'Base de datos restaurada con éxito' });
-        });
-    } catch (error) {
-        handleErrorsController(error, res, req);
+    const filePath = req.file?.path;
+    if (!filePath) {
+        return res.status(400).json({ message: 'Debes adjuntar un archivo .sql' });
     }
+
+    if (restauracionEnCurso) {
+        try {
+            fs.unlinkSync(filePath);
+        } catch {
+            /* noop */
+        }
+        return res.status(409).json({ message: 'Ya hay una restauración de base de datos en curso' });
+    }
+
+    restauracionEnCurso = true;
+
+    const mysql = resolveBin('mysql', 'DB_MYSQL');
+    const { host, port, user, password } = mysqlCredentials();
+    const args = ['--ssl-verify-server-cert=0', `-h${host}`, `-P${port}`, `-u${user}`, DB_NAME];
+    const env = { ...process.env, ...(password ? { MYSQL_PWD: password } : {}) };
+
+    let respondido = false;
+    let stderr = '';
+
+    const limpiar = () => {
+        try {
+            fs.unlinkSync(filePath);
+        } catch {
+            /* el archivo puede no existir */
+        }
+    };
+
+    const finalizar = (status, mensaje) => {
+        if (respondido) return;
+        respondido = true;
+        restauracionEnCurso = false;
+        limpiar();
+        if (!res.headersSent) res.status(status).json({ message: mensaje });
+    };
+
+    const restoreProcess = spawn(mysql, args, { env });
+    const sqlStream = fs.createReadStream(filePath);
+
+    restoreProcess.on('error', (err) => {
+        logger.error(`No se pudo ejecutar mysql: ${err.message}`);
+        finalizar(500, `No se pudo ejecutar mysql: ${err.message}`);
+    });
+    sqlStream.on('error', (err) => {
+        logger.error(`No se pudo leer el archivo SQL: ${err.message}`);
+        finalizar(500, `No se pudo leer el archivo SQL: ${err.message}`);
+    });
+    restoreProcess.stdin.on('error', (err) => {
+        logger.error(`Error al enviar el SQL a mysql: ${err.message}`);
+        if (err.code === 'EPIPE') finalizar(500, `Mysql cerró la conexión: ${stderr || err.message}`);
+    });
+    restoreProcess.stderr.on('data', (data) => {
+        stderr += data.toString();
+        logger.warn(`mysql: ${data.toString().trim()}`);
+    });
+    restoreProcess.on('close', (code) => {
+        if (code !== 0) {
+            logger.error(`Falló la restauración con código ${code}: ${stderr}`);
+            return finalizar(500, `Falló la restauración con código: ${code}. ${stderr}`.trim());
+        }
+        finalizar(200, 'Base de datos restaurada con éxito');
+    });
+
+    sqlStream.pipe(restoreProcess.stdin);
 });
+
 export default router;

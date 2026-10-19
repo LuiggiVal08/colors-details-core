@@ -11,6 +11,9 @@ const envSchema = z.object({
     DB_USER: z.string(),
     DB_PASSWORD: z.string(),
     REDIS_URL: z.string(),
+    // Orígenes extra permitidos por CORS, separados por coma.
+    // Útil al probar desde un teléfono en la LAN: http://192.168.1.50
+    DEV_ORIGINS: z.string().optional(),
     // NODE_ENV: z.string(),
 });
 

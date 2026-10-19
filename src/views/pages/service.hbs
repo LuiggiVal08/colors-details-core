@@ -104,10 +104,9 @@
                         >
                             <div class='flex items-center gap-3'>
                                 <span
+                                    data-ico='{{#if vencido}}warning{{else if pagado}}check_circle{{else}}schedule{{/if}}'
                                     class='material-symbols-rounded {{#if vencido}}text-red-500{{else if pagado}}text-green-500{{else}}text-amber-500{{/if}}'
-                                >
-                                    {{#if vencido}}warning{{else if pagado}}check_circle{{else}}schedule{{/if}}
-                                </span>
+                                ></span>
                                 <div>
                                     <p class='font-medium text-sm text-gray-900'>{{mes}}/{{anualidad}}</p>
                                     <p class='text-xs text-gray-600'>Corte: {{fecha_corte}}</p>
@@ -120,11 +119,13 @@
                                     {{#if vencido}}Vencido{{else if pagado}}Pagado{{else if parcial}}Parcial{{else}}Pendiente{{/if}}
                                 </p>
                                 {{#if diff_dias}}
-                                    <p
-                                        class='text-xs {{#if vencido}}text-red-500{{else}}text-gray-500{{/if}}'
-                                    >
-                                        {{#if vencido}}{{diff_dias}} días vencido{{else}}{{diff_dias}} días restante{{/if}}
-                                    </p>
+                                    {{#unless pagado}}
+                                        <p
+                                            class='text-xs {{#if vencido}}text-red-500{{else}}text-gray-500{{/if}}'
+                                        >
+                                            {{#if vencido}}{{diff_dias}} días vencido{{else}}{{diff_dias}} días restante{{/if}}
+                                        </p>
+                                    {{/unless}}
                                 {{/if}}
                             </div>
                         </div>
@@ -132,7 +133,7 @@
                     </div>
                 {{else}}
                     <div class='text-center py-8 text-gray-400'>
-                        <span class='material-symbols-rounded text-4xl'>receipt_long</span>
+                        <span data-ico='receipt_long' class='material-symbols-rounded text-4xl'></span>
                         <p class='mt-2 text-sm'>No hay periodos registrados</p>
                     </div>
                 {{/if}}
@@ -180,12 +181,11 @@
                             <th class='text-gray-900 font-medium p-3'>Monto </th>
                             <th class='text-gray-900 font-medium p-3'>Pago Tardío</th>
                             <th class='text-gray-900 font-medium p-3'>Pagado</th>
-                            <th class='text-gray-900 font-medium p-3'>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id='table-service-pagos' class='[&_tr:last-child]:border-0'>
                         <tr>
-                            <td colspan='8' class='text-center p-3'>Cargando...</td>
+                            <td colspan='6' class='text-center p-3'>Cargando...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -204,15 +204,5 @@
         <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='monto'></td>
         <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='pago_tardio'></td>
         <td align='center' class='p-4 align-middle max-w-xs truncate text-nowrap' data-key='pagado'></td>
-        <td align='center' class='px-3 py-1 text-nowrap'>
-            <div class='flex gap-2 flex-row items-center justify-center'>
-                <button
-                    data-ico='edit'
-                    data-btn='editar'
-                    data-idfield='id'
-                    class='cursor-pointer material-symbols-rounded fill-solid wght-normal md-28 text-gray-700 hover:text-gray-500 duration-300'
-                ></button>
-            </div>
-        </td>
     </tr>
 </template>

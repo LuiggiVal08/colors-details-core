@@ -21,7 +21,9 @@ ControlCaja.init(
         fecha_apertura: DataTypes.DATE,
         fecha_cierre: DataTypes.DATE,
         monto_apertura: DataTypes.DECIMAL(10, 2),
+        monto_apertura_usd: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
         monto_cierre: DataTypes.DECIMAL(10, 2),
+        monto_cierre_usd: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
         estado: DataTypes.STRING,
         cerrado_por_id: {
             type: DataTypes.INTEGER,

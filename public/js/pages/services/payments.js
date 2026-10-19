@@ -1,11 +1,20 @@
 import { httpClient } from '../../index.js';
 import { setupModalLifecycle } from '../../helpers/handleModalEvents.js';
 
-function formatMoney(value) {
-    if (value === null || value === undefined) return '-';
-    const n = Number(String(value).replace(',', '.'));
+function parseMoney(value) {
+    const s = String(value ?? '').trim();
+    if (/^-?\d+(\.\d{1,2})?$/.test(s)) return Number(s);
+    return Number(s.replace(/\./g, '').replace(',', '.'));
+}
+
+function formatMoney(value, moneda) {
+    if (value === null || value === undefined || value === '') return '-';
+    const n = parseMoney(value);
     if (Number.isNaN(n)) return value;
-    return new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n) + ' Bs.';
+    const codigo = String(moneda?.codigo ?? 'USD').toUpperCase();
+    const simbolo = moneda?.simbolo ?? (codigo === 'VES' ? 'Bs' : '$');
+    const numero = new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+    return codigo === 'VES' ? `${numero} ${simbolo}` : `${simbolo}${numero}`;
 }
 
 export async function initPayments(serviceId) {
@@ -20,20 +29,12 @@ export async function initPayments(serviceId) {
 
         wrap.innerHTML = '<div class="text-sm text-gray-600">Cargando historial...</div>';
         try {
-            // Intentar varias fuentes: 1) service/:id (campo pagos o transacciones), 2) fallback empty
-            const resp = await httpClient.get(`/service/${serviceId}`);
-            const service = resp?.data ?? resp;
-
-            let pagos = [];
-            if (Array.isArray(service?.pagos) && service.pagos.length) pagos = service.pagos;
-            else if (Array.isArray(service?.transacciones) && service.transacciones.length)
-                pagos = service.transacciones;
-
-            if (!pagos.length) {
-                // Intentamos buscar transacciones directas (si existe un endpoint futuro)
-                // const alt = await httpClient.get(`/service-transactions/${serviceId}`);
-                // pagos = Array.isArray(alt?.data) ? alt.data : pagos;
-            }
+            const resp = await httpClient.get(`/service-payment/by-service/${serviceId}`);
+            const pagos =
+                (Array.isArray(resp?.data?.data) && resp.data.data) ||
+                (Array.isArray(resp?.data) && resp.data) ||
+                (Array.isArray(resp) && resp) ||
+                [];
 
             if (!pagos.length) {
                 wrap.innerHTML = '<div class="text-sm text-gray-600">No hay pagos registrados.</div>';
@@ -59,13 +60,8 @@ export async function initPayments(serviceId) {
             pagos.forEach((p) => {
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-red-400/30 hover:bg-pink-50';
-                const fecha = p.fecha_pago
-                    ? new Date(p.fecha_pago).toLocaleDateString()
-                    : p.fecha_generada
-                    ? new Date(p.fecha_generada).toLocaleDateString()
-                    : p.createdAt
-                    ? new Date(p.createdAt).toLocaleDateString()
-                    : '-';
+                const fechaFuente = p.creado_en ?? p.createdAt;
+                const fecha = fechaFuente ? new Date(fechaFuente).toLocaleDateString('es-VE') : '-';
                 const periodo = p.periodo
                     ? `${p.periodo.mes || '-'} / ${p.periodo.anualidad || '-'}`
                     : p.periodo_id
@@ -78,7 +74,7 @@ export async function initPayments(serviceId) {
                 tr.innerHTML = `
           <td class='p-2'>${fecha}</td>
           <td class='p-2'>${periodo}</td>
-          <td class='p-2 text-right'>${formatMoney(monto)}</td>
+          <td class='p-2 text-right'>${formatMoney(monto, p.moneda)}</td>
           <td class='p-2'>${usuario}</td>
           <td class='p-2'>${ref}</td>
         `;

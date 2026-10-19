@@ -14,7 +14,9 @@ export const {
     DB_USER,
     DB_PASSWORD,
     REDIS_URL,
+    DEV_ORIGINS = '',
 } = {
     ...validSchema(envSchema, process.env),
     PORT: Number(process.env.PORT) || 3000,
+    DEV_ORIGINS: process.env.DEV_ORIGINS || '',
 };

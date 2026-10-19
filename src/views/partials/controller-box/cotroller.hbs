@@ -51,6 +51,35 @@
                 </div>
             </div>
 
+            <div id='aperturaCountContainer' class='hidden mt-4 grid grid-cols-1 md:grid-cols-2 gap-3'>
+                <div>
+                    <label for='monto_apertura' class='block mb-1 text-sm font-medium text-gray-900'>
+                        Saldo inicial (Bs)
+                    </label>
+                    <input
+                        type='text'
+                        name='monto_apertura'
+                        id='monto_apertura'
+                        data-valid='float'
+                        class='w-full p-2 text-sm text-gray-900 rounded-lg border border-gray-300 bg-white focus:ring-red-400 focus:border-red-400 outline-none'
+                        placeholder='0,00'
+                    />
+                </div>
+                <div>
+                    <label for='monto_apertura_usd' class='block mb-1 text-sm font-medium text-gray-900'>
+                        Saldo inicial ($)
+                    </label>
+                    <input
+                        type='text'
+                        name='monto_apertura_usd'
+                        id='monto_apertura_usd'
+                        data-valid='float'
+                        class='w-full p-2 text-sm text-gray-900 rounded-lg border border-gray-300 bg-white focus:ring-red-400 focus:border-red-400 outline-none'
+                        placeholder='0,00'
+                    />
+                </div>
+            </div>
+
             <div class='mt-6 p-4 bg-red-100 border border-red-300 rounded-lg' id='mensajeConfirmacion'>
                 <!-- mensaje dinámico -->
             </div>

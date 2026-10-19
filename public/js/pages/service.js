@@ -39,8 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupTabs('#tabs-service');
 });
 document.addEventListener('DOMContentLoaded', async () => {
-    const locationPage = location.href;
-    const id = locationPage.split('/').pop();
+    const id = location.pathname.split('/').filter(Boolean).pop();
     const responde = await httpClient.get(`/service/${id}`);
 
     const { data: service, error } = responde || {};
@@ -68,11 +67,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         fillTableOptions: {
             templateId: 'fila-ejemplo-pago-servicio',
             tableSelector: '#table-service-pagos',
-            actions: {
-                editar: (e) => {
-                    editPago(e.currentTarget.dataset.idModel);
-                },
-            },
             formatters: {
                 periodo: (dato) => `${dato.mes}/${dato.anualidad}`,
                 fecha_pago: (dato) =>
@@ -82,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         ? new Date(dato.fecha_generada).toLocaleDateString()
                         : 'Pendiente',
                 fecha_corte: (dato) => (dato.fecha_corte ? new Date(dato.fecha_corte).toLocaleDateString() : '-'),
-                monto: (dato) => (dato.amount_due ? `${Format.float(String(dato.amount_due))} Bs.` : '-'),
+                monto: (dato) => (dato.amount_due ? `$${Format.float(String(dato.amount_due))}` : '-'),
                 pago_tardio: (dato) => (dato.pago_tardio ? 'Tardío' : 'No Tardío'),
                 pagado: (dato) =>
                     dato.estado === 'paid' ? 'Pagado' : dato.estado === 'partial' ? 'Parcial' : 'Pendiente',

@@ -3,6 +3,7 @@ import logger from './config/logger.js';
 import { initQueueEvents } from './config/queueEvents.js';
 import { PORT } from './constants.js';
 import { sequelize } from './models/index.js';
+import { seedMonedas, backfillMonedas } from './services/monedaService.js';
 import './workers/reportWorker.js';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -41,6 +42,7 @@ io.use((socket, next) => {
 });
 
 app.set('io', io);
+app.set('ready', false);
 initQueueEvents(app);
 
 io.on('connection', (socket) => {
@@ -57,6 +59,12 @@ io.on('connection', (socket) => {
 setNotifWorkerIO(io);
 setNominaWorkerIO(io);
 
+server.on('error', (error) => logger.error(`Error del servidor HTTP: ${error}`));
+
+// El puerto se abre ANTES de sincronizar el esquema: sequelize.sync({ alter: true })
+// tarda ~13s y mientras tanto Nginx estaba recibiendo "Connection refused" (502).
+server.listen(PORT, HOST, () => logger.info(`Servidor escuchando en http://localhost:${PORT}`));
+
 sequelize
     .authenticate()
     .then(() => logger.info('Base de datos conectada'))
@@ -65,6 +73,8 @@ sequelize
 (async () => {
     try {
         await sequelize.sync({ alter: true, logging: false });
+        await seedMonedas();
+        await backfillMonedas();
 
         await notifQueue.removeRepeatableByKey('notificaciones-diarias');
         await notifQueue.add(
@@ -78,7 +88,8 @@ sequelize
         );
         logger.info('Cron de notificaciones programado (8:00 AM diario)');
 
-        server.listen(PORT, HOST, () => logger.info(`Servidor corriendo en http://localhost:${PORT}`));
+        app.set('ready', true);
+        logger.info('Aplicación lista para recibir tráfico');
     } catch (error) {
         logger.error(`Error al iniciar el servidor: ${error}`);
     }

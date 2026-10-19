@@ -2,8 +2,7 @@ import { initPeriods } from './periods.js';
 import { initPayments } from './payments.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const locationPage = location.href;
-    const id = locationPage.split('/').pop();
+    const id = location.pathname.split('/').filter(Boolean).pop();
 
     try {
         initPeriods(id);

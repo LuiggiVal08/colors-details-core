@@ -9,6 +9,8 @@ const schemaMovimiento = z.object({
     monto: z.string(),
     descripcion: z.string().optional(),
     tipo: z.enum(['ingreso', 'egreso']),
+    moneda: z.string().optional(),
+    tasa: z.string().optional().nullable(),
 });
 class MovimientoCajaController {
     // =============================
@@ -43,7 +45,10 @@ class MovimientoCajaController {
 
             const movimientos = await models.MovimientoCaja.findAll({
                 where: { control_caja_id: control_id },
-                include: [{ model: models.Usuario, as: 'usuario', attributes: ['id', 'username'] }],
+                include: [
+                    { model: models.Usuario, as: 'usuario', attributes: ['id', 'username'] },
+                    { model: models.Moneda, as: 'moneda', attributes: ['id', 'codigo', 'simbolo'] },
+                ],
                 order: [['fecha', 'ASC']],
             });
 
@@ -81,7 +86,10 @@ class MovimientoCajaController {
 
             const movimientos = await models.MovimientoCaja.findAll({
                 where: { control_caja_id: controlActivo.id },
-                include: [{ model: models.Usuario, as: 'usuario', attributes: ['id', 'username'] }],
+                include: [
+                    { model: models.Usuario, as: 'usuario', attributes: ['id', 'username'] },
+                    { model: models.Moneda, as: 'moneda', attributes: ['id', 'codigo', 'simbolo'] },
+                ],
                 order: [['fecha', 'DESC']],
             });
 
@@ -105,7 +113,8 @@ class MovimientoCajaController {
 
             const movimiento = await models.MovimientoCaja.findByPk(id, {
                 include: [
-                    { model: Usuario, as: 'usuario', attributes: ['id', 'username'] },
+                    { model: models.Usuario, as: 'usuario', attributes: ['id', 'username'] },
+                    { model: models.Moneda, as: 'moneda', attributes: ['id', 'codigo', 'simbolo'] },
                     { model: models.ControlCaja, as: 'control' },
                 ],
             });

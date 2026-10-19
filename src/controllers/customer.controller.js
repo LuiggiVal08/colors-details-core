@@ -3,9 +3,15 @@ import handleErrorsController from '../helpers/handdleErrorsController.js';
 import { z } from 'zod';
 import { Op, fn, col, where } from 'sequelize';
 
+// "juan carlos" → "Juan Carlos"; "o'brien" → "O'Brien"; "maría-josé" → "María-José"
+const capitalizarNombre = (valor) => {
+    const limpio = valor.trim().replace(/\s+/g, ' ').toLocaleLowerCase('es-VE');
+    return limpio.replace(/(^|[\s'-])(\p{L})/gu, (_, separador, letra) => separador + letra.toLocaleUpperCase('es-VE'));
+};
+
 const clienteSchema = z.object({
-    nombre: z.string().min(1),
-    apellido: z.string().min(1),
+    nombre: z.string().trim().min(1).transform(capitalizarNombre),
+    apellido: z.string().trim().min(1).transform(capitalizarNombre),
     cedula: z.string().min(1),
     telefono: z.string().min(1),
     email: z.string().email(),

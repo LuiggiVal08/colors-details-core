@@ -8,6 +8,7 @@ import Empleado from './Empleado.js';
 import Empresa from './Empresa.js';
 import Iva from './Iva.js';
 import MetodoPago from './MetodoPago.js';
+import Moneda from './Moneda.js';
 import NominaEmpleado from './NominaEmpleado.js';
 import PagoPedido from './PagoPedido.js';
 import Pedido from './Pedido.js';
@@ -43,6 +44,7 @@ const models = {
     Pedido,
     PedidoDetalle,
     MetodoPago,
+    Moneda,
     Pago: PagoPedido,
     NominaEmpleado,
     ServicioEmpresa,

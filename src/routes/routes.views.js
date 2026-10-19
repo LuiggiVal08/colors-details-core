@@ -167,10 +167,7 @@ router.get('/box-register/:id', isAuthenticatedView, validRole([]), async (req, 
         caja: {
             ...(caja ? caja.toJSON() : null),
 
-            monto_usd:
-                caja && tasaDolar && Number(tasaDolar.tasa)
-                    ? (Number(caja.monto) / Number(tasaDolar.tasa)).toFixed(2)
-                    : null,
+            monto_usd: caja ? Number(caja.monto_usd ?? 0).toFixed(2) : null,
 
             ultimo_control: cajaUltimoControl
                 ? {
@@ -264,7 +261,7 @@ router.get('/settings/service/:id', isAuthenticatedView, async (req, res) => {
     if (proxCorte.getDate() !== diaCorte) {
         proxCorte = new Date(proxCorte.getFullYear(), proxCorte.getMonth() + 1, 0);
     }
-    const proximoCorteStr = proxCorte.toLocaleDateString();
+    const proximoCorteStr = proxCorte.toLocaleDateString('es-VE');
 
     const periodosRaw = await models.ServicioPeriodo.findAll({
         where: { servicio_id: id },
@@ -276,13 +273,13 @@ router.get('/settings/service/:id', isAuthenticatedView, async (req, res) => {
         const pj = r.toJSON ? r.toJSON() : r;
         const fechaCorte = pj.fecha_corte ? new Date(pj.fecha_corte + 'T00:00:00') : null;
         const diffTime = fechaCorte ? fechaCorte - now : null;
-        const diffDias = diffTime ? Math.ceil(diffTime / (1000 * 60 * 60 * 24)) : null;
+        const diffDias = diffTime ? Math.ceil(Math.abs(diffTime) / (1000 * 60 * 60 * 24)) : null;
         const vencido = !!(fechaCorte && fechaCorte < now && pj.estado !== 'paid');
 
         return {
             ...pj,
             fecha_generada: pj.fecha_generada ? new Date(pj.fecha_generada).toLocaleDateString() : null,
-            fecha_corte: fechaCorte ? fechaCorte.toLocaleDateString() : null,
+            fecha_corte: fechaCorte ? fechaCorte.toLocaleDateString('es-VE') : null,
             amount_due: pj.amount_due ?? null,
             amount_balance: pj.amount_balance ?? null,
             diff_dias: diffDias,

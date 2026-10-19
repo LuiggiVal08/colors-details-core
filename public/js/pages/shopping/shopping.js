@@ -246,64 +246,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 //  Pagos de venta
-document.addEventListener('DOMContentLoaded', async () => {
-    const response = await httpClient.get('/exchange-rate/actual');
-    const { data: tasaDolar } = response;
+const parseMoneyInput = (valor) => {
+    const s = String(valor ?? '').trim();
+    if (!s) return 0;
+    if (/^-?\d+(\.\d{1,2})?$/.test(s)) return Number(s);
+    return Number(s.replace(/\./g, '').replace(',', '.')) || 0;
+};
 
+document.addEventListener('DOMContentLoaded', () => {
     const btnAddPago = document.getElementById('btn-add-pago');
     const templatePago = document.getElementById('template-pago');
     const containerPagos = document.getElementById('pagos-venta');
-    const totalPagoInput = document.getElementById('total_pago');
 
-    const tasa = parseFloat(tasaDolar?.tasa) || 0;
-
-    // ✅ FUNCIÓN PRINCIPAL PARA CALCULAR TOTALES
-    const calcularTotales = () => {
-        let totalUSD = 0;
-
-        containerPagos.querySelectorAll('.pago-item').forEach((item) => {
-            const inputUSD = item.querySelector('input[name="pagos[][monto]"]');
-            const valor = parseFloat(inputUSD?.value.replace(/\./g, '').replace(',', '.')) || 0;
-            totalUSD += valor;
-        });
-
-        totalPagoInput.value = Format.float(totalUSD.toFixed(2));
-
-        // 🔹 Calculamos restante (si existe totalMasIVA)
-        const totalMasIVAInput = document.getElementById('totalMasIVA');
-        if (totalMasIVAInput) {
-            const totalVenta = parseFloat(totalMasIVAInput.value.replace(',', '.')) || 0;
-            const restante = totalVenta - totalUSD;
-
-            const lblRestanteGlobal = document.getElementById('total_faltante');
-            if (lblRestanteGlobal) {
-                lblRestanteGlobal.value = Format.float(restante.toFixed(2));
-                lblRestanteGlobal.classList.toggle('text-red-500', restante > 0);
-                lblRestanteGlobal.classList.toggle('text-green-600', restante <= 0);
-            }
-
-            const restanteGlobalBs = restante * tasa;
-            const lblRestanteGlobalBs = document.getElementById('total_faltante_bs');
-            if (lblRestanteGlobalBs) {
-                lblRestanteGlobalBs.value = Format.float(restanteGlobalBs.toFixed(2));
-                lblRestanteGlobalBs.classList.toggle('text-red-500', restanteGlobalBs > 0);
-                lblRestanteGlobalBs.classList.toggle('text-green-600', restanteGlobalBs <= 0);
-            }
-
-            // Actualizar los inputs de "restante" por cada pago
-            containerPagos.querySelectorAll('.restante-input').forEach((input) => {
-                input.value = Format.float(restante.toFixed(2));
-                input.classList.toggle('text-red-500', restante > 0);
-                input.classList.toggle('text-green-600', restante <= 0);
-            });
-        }
-    };
-
-    // ✅ AGREGA LÓGICA DE CÁLCULO A CADA PAGO (bidireccional Bs ↔ USD)
     const agregarLogicaPago = (root) => {
-        const montoPaymentInput = root.querySelector('input[name="pagos[][monto_payment]"]'); // Bs.
         const methodPaymentSelect = root.querySelector('select[name="pagos[][metodo_pago_id]"]');
-        const montoUSDInput = root.querySelector('input[name="pagos[][monto]"]'); // $
+        const monedaSelect = root.querySelector('select[name="pagos[][moneda]"]');
+        const montoInput = root.querySelector('input[name="pagos[][monto]"]');
         const referenciaContainer = root.querySelector('[data-referencia-container]');
         const referenciaInput = root.querySelector('input[name="pagos[][referencia_pago]"]');
 
@@ -312,9 +270,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const toggleReferencia = () => {
             const methodsAccep = ['transferencia', 'digital'];
             const metodoSeleccionado = methodPaymentSelect.options[methodPaymentSelect.selectedIndex];
-            const metodoTexto = metodoSeleccionado?.dataset?.tipo.toLowerCase() || '';
+            const metodoTexto = metodoSeleccionado?.dataset?.tipo?.toLowerCase() || '';
             const requiereReferencia = methodsAccep.some((m) => metodoTexto.includes(m));
-            console.log(metodoTexto);
 
             if (referenciaContainer) referenciaContainer.classList.toggle('hidden', !requiereReferencia);
             if (referenciaInput) {
@@ -328,47 +285,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         };
 
-        // Limpieza inicial
-        montoPaymentInput.value = '0,00';
-        montoUSDInput.value = '0,00';
-
-        const calcularValores = (origen = 'bs') => {
-            let montoBS = 0;
-            let montoUSD = 0;
-
-            if (origen === 'bs') {
-                // 💵 Usuario modificó el campo de bolívares
-                const montoIngresado = parseFloat(montoPaymentInput.value.replace(/\./g, '').replace(',', '.')) || 0;
-                montoBS = montoIngresado;
-                montoUSD = montoIngresado / tasa;
-            } else if (origen === 'usd') {
-                // 💵 Usuario modificó el campo de dólares
-                const montoIngresadoUSD = parseFloat(montoUSDInput.value.replace(/\./g, '').replace(',', '.')) || 0;
-                montoUSD = montoIngresadoUSD;
-                montoBS = montoIngresadoUSD * tasa;
-            }
-
-            // 🧾 Actualizamos campos
-            montoPaymentInput.value = Format.float(montoBS.toFixed(2));
-            montoUSDInput.value = Format.float(montoUSD.toFixed(2));
-
-            calcularTotales();
-        };
-
-        // 📌 Eventos sincronizados
         methodPaymentSelect.addEventListener('change', () => {
-            calcularValores('bs');
             toggleReferencia();
+            calcularTotales();
         });
-        montoPaymentInput.addEventListener('input', () => calcularValores('bs')); // Bs → USD
-        montoUSDInput.addEventListener('input', () => calcularValores('usd')); // USD → Bs
+        monedaSelect?.addEventListener('change', calcularTotales);
+        montoInput?.addEventListener('input', calcularTotales);
 
-        // 🔹 Ejecutar cálculo inicial por si hay valores precargados
+        toggleReferencia();
         calcularTotales();
     };
 
-    // ✅ CUANDO SE AGREGA UN NUEVO PAGO
-    btnAddPago.addEventListener('click', () => {
+    btnAddPago?.addEventListener('click', () => {
         const clone = templatePago.content.cloneNode(true);
         const id = `${uniqueId(10)}-${new Date().getTime()}`;
 
@@ -381,31 +309,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             label?.setAttribute('for', `${name}-${id}`);
         });
 
-        const newPagoItem = clone.querySelector('.pago-item');
         containerPagos.appendChild(clone);
-
-        // 🔹 Aplicar lógica de cálculo al nuevo pago
         agregarLogicaPago(containerPagos.lastElementChild);
-
-        // 🔹 Recalcular totales al agregar
         calcularTotales();
     });
 
-    // ✅ CUANDO SE ELIMINA UN PAGO
-    containerPagos.addEventListener('click', (e) => {
+    containerPagos?.addEventListener('click', (e) => {
         if (e.target.classList.contains('remove-pago')) {
-            const item = e.target.closest('.pago-item');
-            item.remove();
+            e.target.closest('.pago-item').remove();
             calcularTotales();
         }
     });
 
-    // ✅ LÓGICA PARA PAGOS YA EXISTENTES
-    containerPagos.querySelectorAll('.pago-item').forEach((item) => {
+    containerPagos?.querySelectorAll('.pago-item').forEach((item) => {
         agregarLogicaPago(item);
     });
 
-    // 🔹 Calcular totales iniciales al cargar todo
     calcularTotales();
 });
 
@@ -540,60 +459,73 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 const calcularTotales = () => {
     const form = document.getElementById('shopping-form');
+    if (!form) return;
+
     const inputSumaSubtotal = form.querySelector('input[name="total"]');
     const inputTotalMasIVA = form.querySelector('input[name="totalMasIVA"]');
     const inputTotalBS = form.querySelector('input[name="total_bs"]');
+    const inputIvaPorcentaje = form.querySelector('input[name="iva_porcentaje"]');
 
-    // 🔹 Cálculo de subtotales e IVA
     let sumaSubTotal = 0;
     document.querySelectorAll('#detalles-venta input[name*="[subtotal]"]').forEach((input) => {
-        const valor = Number(input.value.replace(',', '.')) || 0;
-        sumaSubTotal += valor;
+        sumaSubTotal += parseMoneyInput(input.value);
     });
 
-    const inputIvaPorcentaje = form.querySelector('input[name="iva_porcentaje"]');
     const porcentajeIva = parseFloat(inputIvaPorcentaje?.value) || 0;
-    const valueTasaDolar = parseFloat(inputTotalBS.dataset.value) || 0;
+    const tasa = parseFloat(inputTotalBS?.dataset.value) || 0;
     const totalConIva = sumaSubTotal + (sumaSubTotal * porcentajeIva) / 100;
-    const totalBS = totalConIva * valueTasaDolar;
 
-    inputSumaSubtotal.value = Format.float(sumaSubTotal.toFixed(2));
-    inputTotalMasIVA.value = Format.float(totalConIva.toFixed(2));
-    inputTotalBS.value = Format.float(totalBS.toFixed(2));
+    if (inputSumaSubtotal) inputSumaSubtotal.value = Format.float(sumaSubTotal.toFixed(2));
+    if (inputTotalMasIVA) inputTotalMasIVA.value = Format.float(totalConIva.toFixed(2));
+    if (inputTotalBS) inputTotalBS.value = Format.float((totalConIva * tasa).toFixed(2));
 
-    // 🔹 Cálculo de los pagos (en dólares)
     const containerPagos = document.getElementById('pagos-venta');
     const totalPagoInput = form.querySelector('input[name="total_pago"]');
-    let totalPagosUSD = 0;
+    let totalPagosUsd = 0;
 
     containerPagos?.querySelectorAll('.pago-item').forEach((item) => {
-        const inputUSD = item.querySelector('input[name="pagos[][monto]"]');
-        const valor = parseFloat(inputUSD?.value.replace(/\./g, '').replace(',', '.')) || 0;
-        totalPagosUSD += valor;
+        const monedaSelect = item.querySelector('select[name="pagos[][moneda]"]');
+        const metodoSelect = item.querySelector('select[name="pagos[][metodo_pago_id]"]');
+        const montoInput = item.querySelector('input[name="pagos[][monto]"]');
+        const vueltoInput = item.querySelector('[data-role="vuelto"]');
+
+        const codigo = monedaSelect?.value === 'VES' ? 'VES' : 'USD';
+        const recibido = parseMoneyInput(montoInput?.value);
+        const recibidoUsd = codigo === 'USD' ? recibido : tasa > 0 ? recibido / tasa : 0;
+        const pendiente = Math.max(0, totalConIva - totalPagosUsd);
+        const aplicadoUsd = Math.min(recibidoUsd, pendiente);
+
+        const opcionMetodo = metodoSelect?.options?.[metodoSelect.selectedIndex];
+        const esEfectivo = String(opcionMetodo?.dataset?.tipo || '')
+            .toLowerCase()
+            .includes('efectivo');
+        const aplicadoMoneda = codigo === 'USD' ? aplicadoUsd : aplicadoUsd * tasa;
+        const vuelto = esEfectivo ? Math.max(0, recibido - aplicadoMoneda) : 0;
+
+        if (vueltoInput) vueltoInput.value = Format.float(vuelto.toFixed(2));
+        totalPagosUsd += aplicadoUsd;
     });
 
-    if (totalPagoInput) totalPagoInput.value = Format.float(totalPagosUSD.toFixed(2));
+    if (totalPagoInput) totalPagoInput.value = Format.float(totalPagosUsd.toFixed(2));
 
-    // 🔹 Calcular restante (lo que falta por pagar)
-    const restanteGlobal = totalConIva - totalPagosUSD;
-    console.log('restante global', restanteGlobal);
-    const restanteGlobalBs = restanteGlobal * valueTasaDolar;
-    // 🔹 Mostrar restante global (si tienes un campo visible)
-    console.log('hola');
+    const restante = totalConIva - totalPagosUsd;
+    const restanteBs = restante * tasa;
+
     const lblRestanteGlobal = document.getElementById('total_faltante');
     if (lblRestanteGlobal) {
-        lblRestanteGlobal.value = Format.float(restanteGlobal.toFixed(2));
-        lblRestanteGlobal.classList.toggle('text-red-500', restanteGlobal > 0);
-        lblRestanteGlobal.classList.toggle('text-green-600', restanteGlobal <= 0);
+        lblRestanteGlobal.value = Format.float(restante.toFixed(2));
+        lblRestanteGlobal.classList.toggle('text-red-500', restante > 0);
+        lblRestanteGlobal.classList.toggle('text-green-600', restante <= 0);
     }
+
     const lblRestanteGlobalBs = document.getElementById('total_faltante_bs');
-    console.log('hola');
     if (lblRestanteGlobalBs) {
-        lblRestanteGlobalBs.value = Format.float(restanteGlobalBs.toFixed(2));
-        lblRestanteGlobalBs.classList.toggle('text-red-500', restanteGlobalBs > 0);
-        lblRestanteGlobalBs.classList.toggle('text-green-600', restanteGlobalBs <= 0);
+        lblRestanteGlobalBs.value = Format.float(restanteBs.toFixed(2));
+        lblRestanteGlobalBs.classList.toggle('text-red-500', restanteBs > 0);
+        lblRestanteGlobalBs.classList.toggle('text-green-600', restanteBs <= 0);
     }
 };
+
 document.getElementById('generate_pdf_shopping').addEventListener('click', () => {
     generarPDF('#purchase-info-container', 'detalle_compra');
 });

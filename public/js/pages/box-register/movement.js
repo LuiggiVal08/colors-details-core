@@ -26,9 +26,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         httpClient.get('/exchange-rate/actual').then((res) => res.data).catch(() => null),
     ]);
 
-    const tasa = Number(tasaDolar?.tasa);
-    const formatUsd = (monto) =>
-        tasa ? `$${parseFloat(Number(monto) / tasa).toFixed(2)}` : '—';
+    const tasaActual = Number(tasaDolar?.tasa) || 0;
+
+    const convertir = (m) => {
+        const codigo = m.moneda?.codigo === 'USD' ? 'USD' : 'VES';
+        const monto = Number(m.monto) || 0;
+        const tasa = Number(m.tasa) || tasaActual;
+        const bs = codigo === 'VES' ? monto : monto * tasa;
+        const usd = codigo === 'USD' ? monto : tasa > 0 ? monto / tasa : null;
+        return { bs, usd };
+    };
 
     // 3️⃣ Construir tabla
     setupFilteredTable({
@@ -48,19 +55,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 monto: (m) => {
                     const span = document.createElement('span');
                     span.classList.add(m.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600');
-                    span.innerHTML =
-                        m.monto != null
-                            ? `${m.tipo === 'ingreso' ? '' : '-'}${parseFloat(m.monto).toFixed(2)} Bs`
-                            : '—';
+                    const { bs } = convertir(m);
+                    span.innerText = `${m.tipo === 'ingreso' ? '' : '-'}${bs.toFixed(2)} Bs`;
                     return span;
                 },
                 monto_usd: (m) => {
                     const span = document.createElement('span');
                     span.classList.add(m.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600');
+                    const { usd } = convertir(m);
                     span.innerText =
-                        m.monto != null
-                            ? `${m.tipo === 'ingreso' ? '' : '-'}${formatUsd(m.monto)}`
-                            : '—';
+                        usd != null ? `${m.tipo === 'ingreso' ? '' : '-'}$${usd.toFixed(2)}` : '—';
                     return span;
                 },
                 tipo: (m) => (m.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'),

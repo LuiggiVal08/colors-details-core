@@ -104,6 +104,24 @@ class NominaEmpleadoController {
 
             const data = nominaEmpleadoSchema.parse(req.body);
 
+            const parseNum = (v) => Number(String(v ?? '0').replace(/\./g, '').replace(',', '.'));
+            const exchangeRate = await models.TasaDolar.findOne({ where: { activa: true } });
+            const tasaNum = exchangeRate ? parseNum(exchangeRate.tasa) : 0;
+
+            const montoNum = parseNum(data.monto);
+            const bonoNum = parseNum(data.bono);
+            const deduccionNum = parseNum(data.deduccion);
+            const montoTotal = montoNum + bonoNum - deduccionNum;
+
+            data.monto = String(montoTotal);
+            data.bono = String(bonoNum);
+            data.deduccion = String(deduccionNum);
+            if (data.monto_usd !== undefined && data.monto_usd !== '') {
+                data.monto_usd = String(parseNum(data.monto_usd));
+            } else if (tasaNum > 0) {
+                data.monto_usd = String(Math.round((montoTotal / tasaNum) * 100) / 100);
+            }
+
             await nomina.update(data);
             res.json({ nomina });
         } catch (error) {

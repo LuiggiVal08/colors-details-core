@@ -4,6 +4,7 @@ import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 import { formatearPrecio } from '../helpers/format.js';
 import cajaService from '../services/cajaService.js';
+import { getMonedaId, normalizarCodigoMoneda } from '../services/monedaService.js';
 import { queue } from '../config/queueConfig.js';
 
 const detalleSchema = z.object({
@@ -18,6 +19,8 @@ const pagoSchema = z.object({
     metodo_pago_id: z.string(),
     fecha: z.coerce.date(),
     monto: z.string(),
+    moneda: z.string().optional(),
+    monto_recibido: z.string().optional(),
     referencia_pago: z.string().optional(),
 });
 
@@ -51,6 +54,7 @@ class VentaController {
                         include: [
                             { model: models.TasaDolar, as: 'tasa' },
                             { model: models.MetodoPago, as: 'metodo_pago' },
+                            { model: models.Moneda, as: 'moneda' },
                         ],
                     },
                 ],
@@ -105,6 +109,7 @@ class VentaController {
                         include: [
                             { model: models.TasaDolar, as: 'tasa' },
                             { model: models.MetodoPago, as: 'metodo_pago' },
+                            { model: models.Moneda, as: 'moneda' },
                         ],
                     },
                 ],
@@ -203,6 +208,7 @@ class VentaController {
             );
 
             const redondear = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+            const TOLERANCIA = 0.01;
             let totalPagado = 0;
 
             for (const pago of pagos) {
@@ -219,31 +225,80 @@ class VentaController {
                     return res.status(404).json({ message: `Tasa con ID ${pago.tasa_id} no encontrada` });
                 }
 
-                const monto = formatearPrecio(String(pago.monto).replace(',', '.'));
-
-                totalPagado = redondear(totalPagado + monto);
-
-                if (totalPagado > redondear(totalConIVA)) {
+                const pendiente = redondear(totalConIVA - totalPagado);
+                if (pendiente <= TOLERANCIA) {
                     await t.rollback();
-                    return res
-                        .status(400)
-                        .json({ message: 'La suma de los pagos excede el total de la venta con IVA' });
+                    return res.status(400).json({ message: 'La venta ya está completamente pagada' });
                 }
-                await models.PagoVenta.create({ venta_id: venta.id, ...pago, fecha: fechaVenta }, { transaction: t });
-                const montoBs = monto * Number(tasa.tasa);
 
-                if (metodo.tipo === 'efectivo') {
+                const codigo = pago.moneda ? normalizarCodigoMoneda(pago.moneda) : 'USD';
+                const monedaId = await getMonedaId(codigo, t);
+                if (!monedaId) {
+                    await t.rollback();
+                    return res.status(400).json({ message: `Moneda no registrada: ${codigo}` });
+                }
+
+                const tasaValor = Number(tasa.tasa) || 0;
+                const montoRecibido = formatearPrecio(
+                    pago.monto_recibido !== undefined ? pago.monto_recibido : pago.monto,
+                );
+                if (montoRecibido <= 0) {
+                    await t.rollback();
+                    return res.status(400).json({ message: 'El monto del pago debe ser mayor a 0' });
+                }
+
+                const montoUsdBruto =
+                    codigo === 'USD' ? montoRecibido : tasaValor > 0 ? montoRecibido / tasaValor : 0;
+                const esEfectivo = metodo.tipo === 'efectivo';
+
+                if (!esEfectivo && montoUsdBruto > pendiente + TOLERANCIA) {
+                    await t.rollback();
+                    return res.status(400).json({ message: 'El pago excede el monto pendiente de la venta' });
+                }
+
+                const aplicadoUsd = esEfectivo ? Math.min(montoUsdBruto, pendiente) : montoUsdBruto;
+                const aplicadoMoneda =
+                    codigo === 'USD' ? aplicadoUsd : tasaValor > 0 ? aplicadoUsd * tasaValor : 0;
+                const vueltoMoneda = esEfectivo
+                    ? Math.max(0, codigo === 'USD' ? montoRecibido - aplicadoUsd : montoRecibido - aplicadoMoneda)
+                    : 0;
+
+                totalPagado = redondear(totalPagado + aplicadoUsd);
+
+                await models.PagoVenta.create(
+                    {
+                        venta_id: venta.id,
+                        tasa_id: pago.tasa_id,
+                        metodo_pago_id: pago.metodo_pago_id,
+                        fecha: fechaVenta,
+                        moneda_id: monedaId,
+                        monto: aplicadoMoneda.toFixed(2),
+                        monto_usd: aplicadoUsd.toFixed(2),
+                        monto_recibido: montoRecibido.toFixed(2),
+                        vuelto: vueltoMoneda.toFixed(2),
+                        referencia_pago: pago.referencia_pago ?? 'N/A',
+                    },
+                    { transaction: t },
+                );
+
+                if (esEfectivo) {
+                    const detalleVuelto =
+                        vueltoMoneda > 0
+                            ? ` (recibido ${montoRecibido.toFixed(2)} ${codigo}, vuelto ${vueltoMoneda.toFixed(2)} ${codigo})`
+                            : '';
                     await cajaService.realizarMovimiento({
                         usuario_id,
-                        monto: montoBs.toFixed(2),
-                        descripcion: `Pago de venta #${venta.id} por ${metodo.nombre}`,
+                        monto: aplicadoMoneda.toFixed(2),
+                        moneda: codigo,
+                        tasa: tasaValor,
+                        descripcion: `Pago de venta #${venta.id} por ${metodo.nombre}${detalleVuelto}`,
                         tipo: 'ingreso',
                         transaction: t,
                     });
                 }
             }
 
-            if (redondear(totalPagado) !== redondear(totalConIVA)) {
+            if (Math.abs(redondear(totalPagado) - redondear(totalConIVA)) > TOLERANCIA) {
                 await t.rollback();
                 return res.status(400).json({ message: `Los pagos no concuerdan con el total de la venta con IVA` });
             }

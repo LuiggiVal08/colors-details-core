@@ -2,6 +2,7 @@ import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/sequelize.js';
 import ServicioPeriodo from './ServicioPeriodo.js';
 import Usuario from './Usuario.js';
+import Moneda from './Moneda.js';
 
 class PagoServicio extends Model {}
 
@@ -19,6 +20,7 @@ PagoServicio.init(
             references: { model: Usuario, key: 'id' },
         },
         monto: { type: DataTypes.DECIMAL(12, 2), allowNull: false },
+        moneda_id: { type: DataTypes.INTEGER, allowNull: true, references: { model: Moneda, key: 'id' } },
         descripcion: { type: DataTypes.TEXT, allowNull: true },
     },
     {
@@ -36,5 +38,8 @@ ServicioPeriodo.hasMany(PagoServicio, { foreignKey: 'periodo_id', as: 'pagos' })
 
 PagoServicio.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 Usuario.hasMany(PagoServicio, { foreignKey: 'usuario_id', as: 'pagos_servicio' });
+
+PagoServicio.belongsTo(Moneda, { foreignKey: 'moneda_id', as: 'moneda' });
+Moneda.hasMany(PagoServicio, { foreignKey: 'moneda_id', as: 'pagos_servicio' });
 
 export default PagoServicio;
