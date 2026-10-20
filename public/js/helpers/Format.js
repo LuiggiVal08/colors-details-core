@@ -58,7 +58,7 @@ export class Format {
             // Verificar si el input es de tipo file
 
             const eventHandler =
-                input.type === 'file' && input.dataset.valid === 'img'
+                input.type === 'file' && input.dataset.valid === 'image'
                     ? this.image
                     : input.dataset.valid === 'file'
                     ? this.file
@@ -82,6 +82,13 @@ export class Format {
         const file = input.target.files[0]; // Obtener el archivo seleccionado
 
         if (!file) return; // Si no hay archivo, salir
+
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('La imagen es demasiado grande. El tamaño máximo permitido es 10 MB.');
+            input.target.value = '';
+            return;
+        }
 
         const allowedExtensions = /\.(jpe?g|png|gif|bmp|webp)$/i;
         const isValid = allowedExtensions.test(file.name);

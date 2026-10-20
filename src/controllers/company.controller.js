@@ -9,6 +9,10 @@ const companySchema = z.object({
     telefono: z.string().min(1),
     email: z.string().email(),
     logo: z.string().optional(), // opcional si no lo mandan al crear
+    descripcion: z.string().optional(),
+    ciudad: z.string().min(1),
+    sitio_web: z.string().url().optional(),
+    slogan: z.string().optional(),
 });
 
 class CompanyController {
