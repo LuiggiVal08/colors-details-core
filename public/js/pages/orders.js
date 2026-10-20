@@ -74,9 +74,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 estado: (order) => {
                     const estado = order.estado.toLowerCase();
                     const classMapIco = {
-                        pendiente: ['!text-yellow-600', '!bg-yellow-400/10'],
-                        procesado: ['!text-blue-600', '!bg-blue-400/10'],
-                        completado: ['!text-green-600', '!bg-green-400/10'],
+                        pendiente: ['!text-yellow-600', '!bg-[rgba(250,204,21,0.1)]'],
+                        procesado: ['!text-blue-600', '!bg-[rgba(96,165,250,0.1)]'],
+                        completado: ['!text-green-600', '!bg-[rgba(74,222,128,0.1)]'],
                     };
                     const iconMap = { pendiente: 'hourglass_bottom', procesado: 'cached', completado: 'done_all' };
 
@@ -97,7 +97,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 },
                 estado_pago: (order) => {
                     if (order.pagos.length === 0)
-                        return badge('Pendiente', { html: false, classes: ['!text-yellow-600', '!bg-yellow-400/10'] });
+                        return badge('Pendiente', {
+                            html: false,
+                            classes: ['!text-yellow-600', '!bg-[rgba(250,204,21,0.1)]'],
+                        });
 
                     const ivaPorcentaje = Number(order.iva.porcentaje);
                     const total = Number(order.total);
@@ -107,7 +110,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     return badge(`${Format.float(porcentajePago.toFixed(2))}%`, {
                         html: false,
-                        classes: ['!text-green-600', '!bg-green-400/10'],
+                        classes: ['!text-green-600', '!bg-[rgba(74,222,128,0.1)]'],
                     });
                 },
                 total: (order) => `$${Format.float(order.total)}`,

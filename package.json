@@ -6,7 +6,9 @@
     "scripts": {
         "start": "node src/index.js",
         "dev": "node --watch src/index.js ",
-        "build:css": "npx @tailwindcss/cli -i ./public/css/tailwind.css -o ./public/css/index.css --watch"
+        "build:css": "npx @tailwindcss/cli -i ./public/css/tailwind.css -o ./public/css/index.css && node scripts/fix-css-colors.mjs public/css/index.css",
+        "build:css:watch": "npx @tailwindcss/cli -i ./public/css/tailwind.css -o ./public/css/index.css --watch",
+        "fix:css": "node scripts/fix-css-colors.mjs public/css/index.css"
     },
     "keywords": [],
     "author": "",

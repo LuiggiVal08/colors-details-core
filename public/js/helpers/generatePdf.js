@@ -1,7 +1,126 @@
 /**
  * Genera un PDF desde un elemento HTML,
- * clonando su contenido y aplicando fallbacks para evitar errores de color.
+ * clonando su contenido y neutralizando funciones de color modernas
+ * (oklch, lab, lch...) que html2canvas no sabe parsear.
  */
+
+// html2canvas (vía html2pdf) no soporta oklch()/lab()/lch(). Tailwind v4 compila
+// su paleta a oklch(), lo que rompe el render. Convertimos cualquier color
+// problemático a su equivalente rgb() antes de generar el PDF.
+const COLOR_FUNCIONES_NO_SOPORTADAS = /\b(oklch|oklab|lab|lch|color-mix)\s*\(/i;
+
+// Convierte un color arbitrario (oklch, lab, etc.) a rgb() usando el propio
+// motor del navegador: pintamos el valor en un canvas y leemos el pixel.
+const colorARgb = (color) => {
+    try {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+
+        // Si el navegador no entiende el color, el fillStyle se ignora. Usamos
+        // dos centinelas distintos para detectar el rechazo de forma fiable.
+        ctx.fillStyle = 'rgb(1, 1, 1)';
+        ctx.fillStyle = color;
+        if (ctx.fillStyle === 'rgb(1, 1, 1)' || ctx.fillStyle === '#010101') {
+            ctx.fillStyle = 'rgb(254, 254, 254)';
+            ctx.fillStyle = color;
+            if (ctx.fillStyle === 'rgb(254, 254, 254)' || ctx.fillStyle === '#fefefe') return null;
+        }
+
+        // Se pinta sobre un canvas transparente para conservar el canal alfa
+        // (color-mix(..., transparent) produce colores con alpha < 1).
+        ctx.clearRect(0, 0, 1, 1);
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, 1, 1);
+        const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+        if (a === 255) return `rgb(${r}, ${g}, ${b})`;
+        return `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`;
+    } catch {
+        return null;
+    }
+};
+
+// Propiedades de color que html2canvas lee del estilo computado.
+const PROPIEDADES_COLOR = [
+    'color',
+    'background-color',
+    'border-top-color',
+    'border-right-color',
+    'border-bottom-color',
+    'border-left-color',
+    'outline-color',
+    'text-decoration-color',
+    'caret-color',
+    'column-rule-color',
+    '-webkit-text-fill-color',
+    'fill',
+    'stroke',
+];
+
+// Copia los colores ya resueltos (getComputedStyle los devuelve en rgb())
+// como estilos inline en el clon. Así html2canvas no necesita interpretar
+// oklch()/lab() del stylesheet: el valor inline gana y ya viene en rgb().
+const inlineColoresComputados = (originales, clonados) => {
+    const aplicar = (original, clon) => {
+        if (!(original instanceof Element) || !(clon instanceof Element)) return;
+        const computado = window.getComputedStyle(original);
+        for (const propiedad of PROPIEDADES_COLOR) {
+            const valor = computado.getPropertyValue(propiedad);
+            if (valor && !COLOR_FUNCIONES_NO_SOPORTADAS.test(valor)) {
+                clon.style.setProperty(propiedad, valor);
+            }
+        }
+        const hijosOriginales = original.children;
+        const hijosClonados = clon.children;
+        for (let i = 0; i < hijosOriginales.length; i++) {
+            aplicar(hijosOriginales[i], hijosClonados[i]);
+        }
+    };
+    aplicar(originales, clonados);
+};
+
+// Recorre las hojas de estilo y reemplaza los valores de color no soportados
+// por su equivalente rgb(). Devuelve una función para restaurar los originales.
+const neutralizarColores = () => {
+    const restaurar = [];
+
+    for (const hoja of Array.from(document.styleSheets)) {
+        let reglas;
+        try {
+            reglas = hoja.cssRules;
+        } catch {
+            // Hoja de otro origen (CDN sin CORS): no se puede leer, se ignora.
+            continue;
+        }
+        if (!reglas) continue;
+
+        for (const regla of Array.from(reglas)) {
+            if (!regla.style) continue;
+
+            for (let i = regla.style.length - 1; i >= 0; i--) {
+                const propiedad = regla.style[i];
+                const valor = regla.style.getPropertyValue(propiedad);
+                if (!COLOR_FUNCIONES_NO_SOPORTADAS.test(valor)) continue;
+
+                const rgb = colorARgb(valor);
+                if (!rgb) continue;
+
+                const prioridad = regla.style.getPropertyPriority(propiedad);
+                regla.style.removeProperty(propiedad);
+                regla.style.setProperty(propiedad, rgb, prioridad);
+                restaurar.push({ regla, propiedad, valor, prioridad });
+            }
+        }
+    }
+
+    return () => {
+        for (const { regla, propiedad, valor, prioridad } of restaurar) {
+            regla.style.removeProperty(propiedad);
+            regla.style.setProperty(propiedad, valor, prioridad);
+        }
+    };
+};
+
 export const generarPDF = async (selector, nombre = 'documento', config = {}) => {
     const elemento = document.querySelector(selector);
     if (!elemento) {
@@ -11,7 +130,6 @@ export const generarPDF = async (selector, nombre = 'documento', config = {}) =>
 
     // 🔹 Clonar el nodo para no alterar el DOM original
     const cloned = elemento.cloneNode(true);
-    cloned.classList.add('fallback-pdf');
 
     // 🔹 Quitar atributos/estado que puedan romper el renderizado de html2canvas
     cloned.removeAttribute('inert');
@@ -22,30 +140,7 @@ export const generarPDF = async (selector, nombre = 'documento', config = {}) =>
     // Fijar un ancho explícito para que html2canvas no colapse el layout
     const width = elemento.offsetWidth || elemento.getBoundingClientRect().width || 600;
     cloned.style.width = `${width}px`;
-
-    // 🔹 Mapa de clases conflictivas → clases fallback
-    const replacements = {
-        'bg-gray-100': 'fallback-bg-gray-100',
-        'bg-gray-50': 'fallback-bg-gray-50',
-        'bg-red-400': 'fallback-bg-red-400',
-        'bg-red-500': 'fallback-bg-red-500',
-        'bg-blue-400': 'fallback-bg-blue-400',
-        'bg-blue-500': 'fallback-bg-blue-500',
-        'text-gray-800': 'fallback-text-gray-800',
-        'text-gray-900': 'fallback-text-gray-900',
-        'border-gray-200': 'fallback-border-gray-200',
-        'border-gray-400/50': 'fallback-border-gray-400',
-        'shadow-lg': 'fallback-shadow-lg',
-    };
-
-    // 🔹 Función para escapar correctamente nombres de clases para querySelectorAll
-    const escapeClass = (cls) => cls.replace(/([!\"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, '\\$1');
-
-    // 🔹 Reemplazar todas las clases conflictivas en el clon
-    for (const [tw, fb] of Object.entries(replacements)) {
-        const selectorSeguro = '.' + escapeClass(tw);
-        cloned.querySelectorAll(selectorSeguro).forEach((el) => el.classList.add(fb));
-    }
+    cloned.style.background = '#ffffff';
 
     // 🔹 Crear nombre único para el archivo
     const fecha = new Date();
@@ -78,7 +173,17 @@ export const generarPDF = async (selector, nombre = 'documento', config = {}) =>
     wrapper.appendChild(cloned);
     document.body.appendChild(wrapper);
 
+    let restaurarColores = () => {};
+
     try {
+        // 1) Neutraliza oklch()/lab()/color-mix() en todas las hojas legibles,
+        //    reescribiendo los valores por su equivalente rgb().
+        restaurarColores = neutralizarColores();
+
+        // 2) Con las hojas ya saneadas, copia los colores resueltos como inline
+        //    (rgb) en el clon: html2canvas usará el inline y no releerá nada raro.
+        inlineColoresComputados(elemento, cloned);
+
         console.log('Generando PDF...');
         await html2pdf().set(opciones).from(cloned).save();
         console.log(`✅ PDF "${opciones.filename}" generado con éxito.`);
@@ -86,6 +191,7 @@ export const generarPDF = async (selector, nombre = 'documento', config = {}) =>
         console.error('❌ Error al generar el PDF:', error);
         alert('Error al generar el PDF. Intenta nuevamente.');
     } finally {
+        restaurarColores();
         wrapper.remove();
     }
 };
