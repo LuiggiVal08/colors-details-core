@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import { models } from '../models/index.js';
-import handleErrorsController from '../helpers/handlleErrorsController.js';
+import handleErrorsController from '../helpers/handdleErrorsController.js';
 import { z } from 'zod';
 import { nominaQueue } from '../config/nominaQueue.js';
 import cajaService from '../services/cajaService.js';
