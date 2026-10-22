@@ -28,6 +28,8 @@ const editCaja = async (id) => {
         form.querySelector('[name="ubicacion"]').value = data.ubicacion;
         form.querySelector('[name="activo"]').checked = data.activo;
         form.querySelector('[name="empresa_id"]').value = data.empresa_id;
+        form.querySelector('[name="tipo"]').value = data.tipo || 'fisica';
+        form.querySelector('[name="cuenta_receptora"]').value = data.cuenta_receptora || '';
     }
     setupModalLifecycle(modalEdit);
 };

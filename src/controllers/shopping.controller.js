@@ -27,6 +27,8 @@ const pagoSchema = z.object({
     moneda: z.string().optional(),
     monto_recibido: z.string().optional(),
     referencia_pago: z.string().optional(),
+    vuelto_usd: z.string().optional(),
+    vuelto_bs: z.string().optional(),
 });
 
 const ventaSchema = z.object({
@@ -215,9 +217,17 @@ class VentaController {
             const redondear = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
             const TOLERANCIA = 0.01;
             let totalPagado = 0;
+            const pagosConMetodo = await Promise.all(
+                pagos.map(async (pago) => ({
+                    pago,
+                    metodo: await models.MetodoPago.findByPk(pago.metodo_pago_id, { transaction: t }),
+                })),
+            );
+            const pagosOrdenados = pagosConMetodo.sort(
+                (a, b) => Number(esMetodoEfectivo(a.metodo)) - Number(esMetodoEfectivo(b.metodo)),
+            );
 
-            for (const pago of pagos) {
-                const metodo = await models.MetodoPago.findByPk(pago.metodo_pago_id);
+            for (const { pago, metodo } of pagosOrdenados) {
                 if (!metodo) {
                     await t.rollback();
                     return res
@@ -273,10 +283,37 @@ class VentaController {
                 const vueltoMoneda = esEfectivo
                     ? Math.max(0, codigo === 'USD' ? montoRecibido - aplicadoUsd : montoRecibido - aplicadoMoneda)
                     : 0;
+                const tieneDistribucion = pago.vuelto_usd !== undefined || pago.vuelto_bs !== undefined;
+                let vueltoUsd = esEfectivo
+                    ? tieneDistribucion
+                        ? formatearPrecio(pago.vuelto_usd || 0)
+                        : codigo === 'USD' ? vueltoMoneda : tasaValor > 0 ? vueltoMoneda / tasaValor : 0
+                    : 0;
+                let vueltoBs = esEfectivo
+                    ? tieneDistribucion
+                        ? formatearPrecio(pago.vuelto_bs || 0)
+                        : 0
+                    : 0;
+                const vueltoUsdCalculado =
+                    codigo === 'USD' ? vueltoMoneda : tasaValor > 0 ? vueltoMoneda / tasaValor : 0;
+
+                if (esEfectivo && vueltoMoneda > 0) {
+                    if (vueltoUsdCalculado < 1) {
+                        vueltoUsd = 0;
+                        vueltoBs = redondear(vueltoUsdCalculado * tasaValor);
+                    } else if (redondear(vueltoUsd + (tasaValor > 0 ? vueltoBs / tasaValor : 0)) !== redondear(vueltoMoneda)) {
+                        await t.rollback();
+                        return res.status(400).json({ message: 'La distribución del vuelto no coincide con el vuelto calculado' });
+                    }
+                    if (vueltoUsd < 0 || vueltoBs < 0) {
+                        await t.rollback();
+                        return res.status(400).json({ message: 'La distribución del vuelto no puede ser negativa' });
+                    }
+                }
 
                 totalPagado = redondear(totalPagado + aplicadoUsd);
 
-                await models.PagoVenta.create(
+                const nuevoPago = await models.PagoVenta.create(
                     {
                         venta_id: venta.id,
                         tasa_id: pago.tasa_id,
@@ -286,24 +323,53 @@ class VentaController {
                         monto: aplicadoMoneda.toFixed(2),
                         monto_usd: aplicadoUsd.toFixed(2),
                         monto_recibido: montoRecibido.toFixed(2),
-                        vuelto: vueltoMoneda.toFixed(2),
+                        vuelto: (codigo === 'USD' ? vueltoUsd : vueltoBs).toFixed(2),
+                        vuelto_usd: vueltoUsd.toFixed(2),
+                        vuelto_bs: vueltoBs.toFixed(2),
                         referencia_pago: pago.referencia_pago ?? 'N/A',
                     },
                     { transaction: t },
                 );
 
-                if (esEfectivo) {
-                    const detalleVuelto =
-                        vueltoMoneda > 0
-                            ? ` (recibido ${montoRecibido.toFixed(2)} ${codigo}, vuelto ${vueltoMoneda.toFixed(2)} ${codigo})`
-                            : '';
+                const detalleVuelto =
+                    vueltoMoneda > 0
+                        ? ` (recibido ${montoRecibido.toFixed(2)} ${codigo}, vuelto ${vueltoMoneda.toFixed(2)} ${codigo})`
+                        : '';
+                const cajaMovimiento = esEfectivo
+                    ? {}
+                    : {
+                          caja_id: (await cajaService.obtenerCajaActivaPorUsuario(usuario_id, t)).caja.id,
+                          medio_pago: 'digital',
+                          metodo_pago_id: metodo.id,
+                          referencia: pago.referencia_pago ?? `Pago #${nuevoPago.id}`,
+                      };
+                await cajaService.realizarMovimiento({
+                    usuario_id,
+                    monto: aplicadoMoneda.toFixed(2),
+                    moneda: codigo,
+                    tasa: tasaValor,
+                    descripcion: `Pago de venta #${venta.id} por ${metodo.nombre}${detalleVuelto}`,
+                    tipo: 'ingreso',
+                    ...cajaMovimiento,
+                    transaction: t,
+                });
+                if (vueltoUsd > 0) {
                     await cajaService.realizarMovimiento({
                         usuario_id,
-                        monto: aplicadoMoneda.toFixed(2),
-                        moneda: codigo,
-                        tasa: tasaValor,
-                        descripcion: `Pago de venta #${venta.id} por ${metodo.nombre}${detalleVuelto}`,
-                        tipo: 'ingreso',
+                        monto: vueltoUsd.toFixed(2),
+                        moneda: 'USD',
+                        descripcion: `Vuelto de venta #${venta.id}`,
+                        tipo: 'egreso',
+                        transaction: t,
+                    });
+                }
+                if (vueltoBs > 0) {
+                    await cajaService.realizarMovimiento({
+                        usuario_id,
+                        monto: vueltoBs.toFixed(2),
+                        moneda: 'VES',
+                        descripcion: `Vuelto de venta #${venta.id}`,
+                        tipo: 'egreso',
                         transaction: t,
                     });
                 }

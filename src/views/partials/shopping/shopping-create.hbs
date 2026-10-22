@@ -1,6 +1,6 @@
 <div id='modal-create-shopping' class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden' inert>
     <form
-        class='bg-white rounded-lg shadow-lg max-w-3xl w-full m-auto overflow-auto max-h-[100vh] relative'
+        class='bg-white w-full max-w-none min-h-screen m-0 overflow-auto max-h-[100vh] relative'
         action='/shopping'
         data-method='POST'
         id='shopping-form'
@@ -317,7 +317,7 @@
                     <select
                         name='pagos[][moneda]'
                         data-valid='text'
-                        class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                        class='flex bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
                         required
                     >
                         <option value='USD' selected>$ · USD</option>
@@ -348,6 +348,11 @@
                         placeholder='0,00'
                         value='0,00'
                     />
+                    <div data-vuelto-distribucion class='hidden mt-2 grid grid-cols-2 gap-2'>
+                        <input type='text' name='pagos[][vuelto_usd]' data-role='vuelto-usd' class='w-full bg-white border border-gray-300 text-sm rounded-lg p-2 outline-none' placeholder='Vuelto $' />
+                        <input type='text' name='pagos[][vuelto_bs]' data-role='vuelto-bs' class='w-full bg-white border border-gray-300 text-sm rounded-lg p-2 outline-none' placeholder='Vuelto Bs' />
+                    </div>
+                    <p data-role='vuelto-resumen' class='mt-1 text-xs text-gray-600'></p>
                 </div>
             </div>
 

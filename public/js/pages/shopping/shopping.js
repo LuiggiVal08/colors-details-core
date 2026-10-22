@@ -267,6 +267,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const monedaContainer = root.querySelector('[data-moneda-container]');
         const vueltoContainer = root.querySelector('[data-vuelto-container]');
         const montoLabel = root.querySelector('[data-monto-label]');
+        const vueltoUsdInput = root.querySelector('[data-role="vuelto-usd"]');
+        const vueltoBsInput = root.querySelector('[data-role="vuelto-bs"]');
 
         Format.formatEventInput({ elements: root.querySelectorAll('input, select') });
 
@@ -298,21 +300,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // Solo el efectivo permite elegir moneda (USD/VES) y genera vuelto
         const toggleMoneda = () => {
             const efectivo = esEfectivo();
+            const tipoMetodo = methodPaymentSelect?.selectedOptions?.[0]?.dataset?.tipo?.toLowerCase() || '';
+            const esSoloBs = ['tarjeta', 'transferencia'].includes(tipoMetodo);
 
-            if (monedaContainer) monedaContainer.classList.toggle('hidden', !efectivo);
+            if (monedaContainer) monedaContainer.classList.remove('hidden');
             if (vueltoContainer) vueltoContainer.classList.toggle('hidden', !efectivo);
-
-            if (!efectivo && monedaSelect) {
-                monedaSelect.value = 'VES';
-            }
+            monedaSelect?.querySelector('option[value="USD"]')?.toggleAttribute('disabled', esSoloBs);
+            if (esSoloBs && monedaSelect) monedaSelect.value = 'VES';
 
             if (montoLabel) {
-                if (!efectivo) {
-                    montoLabel.textContent = 'Monto a pagar (Bs.)';
-                } else {
-                    const codigo = monedaSelect?.value === 'VES' ? 'Bs.' : '$';
-                    montoLabel.textContent = `Monto recibido (${codigo})`;
-                }
+                const codigo = monedaSelect?.value === 'VES' ? 'Bs.' : '$';
+                montoLabel.textContent = `Monto recibido (${codigo})`;
+            }
+            if (vueltoResumen) {
+                const usd = parseMoneyInput(vueltoUsdInput?.value);
+                const bs = parseMoneyInput(vueltoBsInput?.value);
+                vueltoResumen.textContent = esEfectivo && vuelto > 0
+                    ? `Entregar: $${Format.float(usd.toFixed(2))} + ${Format.float(bs.toFixed(2))} Bs`
+                    : '';
             }
         };
 
@@ -323,6 +328,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         monedaSelect?.addEventListener('change', calcularTotales);
         montoInput?.addEventListener('input', calcularTotales);
+        const actualizarDistribucion = (campoEditado) => {
+            const vuelto = parseMoneyInput(root.querySelector('[data-role="vuelto"]')?.value);
+            const tasaActual = parseFloat(document.querySelector('#shopping-form input[name="total_bs"]')?.dataset.value) || 0;
+            if (!vueltoUsdInput || !vueltoBsInput || vuelto <= 0 || tasaActual <= 0) return;
+
+            const vueltoUsd = campoEditado === 'usd'
+                ? Math.min(vuelto, Math.max(0, parseMoneyInput(vueltoUsdInput.value)))
+                : Math.max(0, vuelto - parseMoneyInput(vueltoBsInput.value) / tasaActual);
+            vueltoUsdInput.value = Format.float(vueltoUsd.toFixed(2));
+            vueltoBsInput.value = Format.float(Math.max(0, (vuelto - vueltoUsd) * tasaActual).toFixed(2));
+            root.dataset.vueltoEditado = 'true';
+            if (vueltoResumen) {
+                vueltoResumen.textContent = `Entregar: $${Format.float(vueltoUsd.toFixed(2))} + ${Format.float(
+                    Math.max(0, (vuelto - vueltoUsd) * tasaActual).toFixed(2),
+                )} Bs`;
+            }
+        };
+        vueltoUsdInput?.addEventListener('input', () => actualizarDistribucion('usd'));
+        vueltoBsInput?.addEventListener('input', () => actualizarDistribucion('bs'));
 
         toggleReferencia();
         toggleMoneda();
@@ -516,11 +540,22 @@ const calcularTotales = () => {
     const totalPagoInput = form.querySelector('input[name="total_pago"]');
     let totalPagosUsd = 0;
 
-    containerPagos?.querySelectorAll('.pago-item').forEach((item) => {
+    const itemsPago = Array.from(containerPagos?.querySelectorAll('.pago-item') || []);
+    itemsPago
+        .sort((a, b) => {
+            const efectivoA = String(a.querySelector('select[name="pagos[][metodo_pago_id]"]')?.selectedOptions?.[0]?.dataset?.tipo || '').toLowerCase().trim() === 'efectivo';
+            const efectivoB = String(b.querySelector('select[name="pagos[][metodo_pago_id]"]')?.selectedOptions?.[0]?.dataset?.tipo || '').toLowerCase().trim() === 'efectivo';
+            return Number(efectivoA) - Number(efectivoB);
+        })
+        .forEach((item) => {
         const monedaSelect = item.querySelector('select[name="pagos[][moneda]"]');
         const metodoSelect = item.querySelector('select[name="pagos[][metodo_pago_id]"]');
         const montoInput = item.querySelector('input[name="pagos[][monto]"]');
         const vueltoInput = item.querySelector('[data-role="vuelto"]');
+        const vueltoUsdInput = item.querySelector('[data-role="vuelto-usd"]');
+        const vueltoBsInput = item.querySelector('[data-role="vuelto-bs"]');
+        const vueltoResumen = item.querySelector('[data-role="vuelto-resumen"]');
+        const distribucion = item.querySelector('[data-vuelto-distribucion]');
 
         const opcionMetodo = metodoSelect?.options?.[metodoSelect.selectedIndex];
         const esEfectivo = String(opcionMetodo?.dataset?.tipo || '')
@@ -528,23 +563,39 @@ const calcularTotales = () => {
             .trim() === 'efectivo';
 
         // Los métodos que no son efectivo solo se pagan en bolívares
-        const codigo = esEfectivo && monedaSelect?.value === 'VES' ? 'VES' : esEfectivo ? 'USD' : 'VES';
+        const codigo = monedaSelect?.value === 'USD' ? 'USD' : 'VES';
+        const tipoMetodo = metodoSelect?.selectedOptions?.[0]?.dataset?.tipo?.toLowerCase() || '';
+        const monedaAplicada = ['tarjeta', 'transferencia'].includes(tipoMetodo) ? 'VES' : codigo;
         const recibido = parseMoneyInput(montoInput?.value);
-        const recibidoUsd = codigo === 'USD' ? recibido : tasa > 0 ? recibido / tasa : 0;
+        const recibidoUsd = monedaAplicada === 'USD' ? recibido : tasa > 0 ? recibido / tasa : 0;
         const pendiente = Math.max(0, totalConIva - totalPagosUsd);
         // El efectivo se recorta al pendiente (admite vuelto); el resto no admite excedente
         const aplicadoUsd = esEfectivo ? Math.min(recibidoUsd, pendiente) : recibidoUsd;
-        const aplicadoMoneda = codigo === 'USD' ? aplicadoUsd : aplicadoUsd * tasa;
+        const aplicadoMoneda = monedaAplicada === 'USD' ? aplicadoUsd : aplicadoUsd * tasa;
         const vuelto = esEfectivo ? Math.max(0, recibido - aplicadoMoneda) : 0;
+        const vueltoUsdCalculado = monedaAplicada === 'USD' ? vuelto : tasa > 0 ? vuelto / tasa : 0;
 
         if (vueltoInput) vueltoInput.value = Format.float(vuelto.toFixed(2));
+        if (distribucion) distribucion.classList.toggle('hidden', !esEfectivo || vuelto <= 0);
+        if (vueltoUsdInput && vueltoBsInput && !item.dataset.vueltoEditado) {
+            if (vuelto > 0 && vueltoUsdCalculado < 1) {
+                vueltoUsdInput.value = '0,00';
+                vueltoBsInput.value = Format.float((vueltoUsdCalculado * tasa).toFixed(2));
+            } else if (vuelto > 0) {
+                vueltoUsdInput.value = Format.float(vueltoUsdCalculado.toFixed(2));
+                vueltoBsInput.value = '0,00';
+            } else {
+                vueltoUsdInput.value = '0,00';
+                vueltoBsInput.value = '0,00';
+            }
+        }
         if (montoInput && !esEfectivo && recibidoUsd > pendiente + 0.01) {
             montoInput.classList.add('inputError');
         } else if (montoInput) {
             montoInput.classList.remove('inputError');
         }
         totalPagosUsd += aplicadoUsd;
-    });
+        });
 
     if (totalPagoInput) totalPagoInput.value = Format.float(totalPagosUsd.toFixed(2));
 

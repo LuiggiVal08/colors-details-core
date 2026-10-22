@@ -54,6 +54,32 @@
                 ></textarea>
             </div>
             <div class='mt-4'>
+                <label for='tipo_box_edit' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                    Fuente de fondos
+                </label>
+                <select
+                    name='tipo'
+                    id='tipo_box_edit'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    required
+                >
+                    <option value='fisica'>Efectivo físico</option>
+                    <option value='digital'>Digital / Banco</option>
+                </select>
+            </div>
+            <div class='mt-4'>
+                <label for='cuenta_receptora_box_edit' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                    Cuenta receptora <span class='font-normal text-gray-500'>(para caja digital)</span>
+                </label>
+                <input
+                    type='text'
+                    name='cuenta_receptora'
+                    id='cuenta_receptora_box_edit'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    placeholder='Ej. Banco / teléfono Pago Móvil / Zelle'
+                />
+            </div>
+            <div class='mt-4'>
                 <label for='activo_box_edit' class='block mb-2 text-sm font-medium text-gray-900'>
                     Caja registradora activa
                 </label>

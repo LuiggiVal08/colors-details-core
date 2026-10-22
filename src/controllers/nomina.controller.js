@@ -13,6 +13,10 @@ const generateSchema = z.object({
 
 const pagarSchema = z.object({
     monto: z.string().optional(),
+    caja_id: z.coerce.number().int().positive().optional(),
+    medio_pago: z.enum(['efectivo', 'digital']).optional(),
+    referencia: z.string().max(120).optional().nullable(),
+    cuenta_receptora: z.string().max(160).optional().nullable(),
 });
 
 class NominaController {
@@ -162,6 +166,10 @@ class NominaController {
                 tasa: tasaValor > 0 ? tasaValor : null,
                 descripcion: `Pago de nómina #${nomina.id} (${nomina.periodo_inicio} - ${nomina.periodo_fin})`,
                 tipo: 'egreso',
+                caja_id: data.caja_id,
+                medio_pago: data.medio_pago,
+                referencia: data.referencia,
+                cuenta_receptora: data.cuenta_receptora,
                 transaction: t,
             });
 

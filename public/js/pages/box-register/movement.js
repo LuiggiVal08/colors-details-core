@@ -5,6 +5,29 @@ import { setupModalLifecycle } from '../../helpers/handleModalEvents.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const boxId = parseInt(location.pathname.split('/').pop());
+    const modal = document.getElementById('modal-create-cash-movement');
+    const metodoPago = modal?.querySelector('[name="metodo_pago_id"]');
+    const camposDigitales = document.getElementById('campos-digital-movimiento');
+    const referencia = modal?.querySelector('[name="referencia"]');
+    const moneda = modal?.querySelector('[name="moneda"]');
+
+    const actualizarCamposDigitales = () => {
+        const tipo = metodoPago?.selectedOptions?.[0]?.dataset?.tipo?.toLowerCase() || '';
+        const esDigital = tipo !== '' && tipo !== 'efectivo';
+        camposDigitales?.classList.toggle('hidden', !esDigital);
+        if (referencia) referencia.required = esDigital;
+        if (moneda) {
+            const esSoloBs = ['tarjeta', 'transferencia'].includes(tipo);
+            moneda.querySelector('option[value="USD"]')?.toggleAttribute('disabled', esSoloBs);
+            if (esSoloBs) moneda.value = 'VES';
+        }
+    };
+
+    if (metodoPago) {
+        metodoPago.addEventListener('change', actualizarCamposDigitales);
+        moneda?.addEventListener('change', actualizarCamposDigitales);
+        actualizarCamposDigitales();
+    }
 
     // 2️⃣ Consultar movimientos del control activo
     const [movimientos, tasaDolar] = await Promise.all([
@@ -26,6 +49,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         httpClient.get('/exchange-rate/actual').then((res) => res.data).catch(() => null),
     ]);
 
+    try {
+        const controlResponse = await httpClient.get(`/box-register-control/actual/${boxId}`);
+        const resumen = controlResponse.data?.resumen;
+        const formatTotal = (grupo) => {
+            const ves = Number(resumen?.ingresos?.[grupo]?.VES ?? 0).toFixed(2);
+            const usd = Number(resumen?.ingresos?.[grupo]?.USD ?? 0).toFixed(2);
+            return `${ves} Bs · $${usd}`;
+        };
+        document.getElementById('generado-digital').textContent = formatTotal('digital');
+        document.getElementById('recibido-fisico').textContent = formatTotal('efectivo');
+        document.getElementById('recibido-otros').textContent = formatTotal('otros');
+    } catch (error) {
+        ['generado-digital', 'recibido-fisico', 'recibido-otros'].forEach((id) => {
+            document.getElementById(id).textContent = 'No disponible';
+        });
+        console.error('No se pudo cargar el resumen del turno', error);
+    }
+
     const tasaActual = Number(tasaDolar?.tasa) || 0;
 
     const convertir = (m) => {
@@ -43,8 +84,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         filterInputs: {
             search: null,
+            medioPago: document.getElementById('filtro-medio-pago'),
         },
-        filterFn: (item) => true,
+        filterFn: (item, inputs) => {
+            const medioSeleccionado = inputs.medioPago?.value || 'todos';
+            return medioSeleccionado === 'todos' || item.medio_pago === medioSeleccionado;
+        },
 
         fillTableOptions: {
             templateId: 'fila-movimiento-caja',
@@ -68,6 +113,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     return span;
                 },
                 tipo: (m) => (m.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'),
+                medio_pago: (m) => m.medio_pago === 'digital' ? 'Digital / Banco' : 'Efectivo',
+                referencia: (m) => m.referencia ?? '—',
 
                 descripcion: (m) => m.descripcion ?? '—',
                 usuario: (m) => m.usuario?.username ?? '—',
@@ -81,6 +128,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         itemsPerPage: 5,
     });
+
+    const empresaId = modal?.dataset.empresaId;
+    if (empresaId) {
+        try {
+            const response = await httpClient.get(
+                `/cash-movements/global-balance?empresa_id=${empresaId}&caja_id=${boxId}`,
+            );
+            const balance = response.data?.data ?? response.data;
+            const formatBs = (value) => `${Number(value ?? 0).toFixed(2)} Bs`;
+            const formatUsd = (value) => `$${Number(value ?? 0).toFixed(2)}`;
+            document.getElementById('saldo-caja').textContent = formatBs(balance?.caja?.VES);
+            document.getElementById('saldo-caja-usd').textContent = formatUsd(balance?.caja?.USD);
+        } catch (error) {
+            document.getElementById('saldo-caja').textContent = 'No disponible';
+            document.getElementById('saldo-caja-usd').textContent = '—';
+            console.error('No se pudo cargar el saldo consolidado', error);
+        }
+    }
 });
 
 document.getElementById('btnAgregarMovimientoCaja').addEventListener('click', () => {

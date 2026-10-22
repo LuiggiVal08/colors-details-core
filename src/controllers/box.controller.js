@@ -7,6 +7,8 @@ const cajaSchema = z.object({
     nombre: z.string().min(1, 'El nombre es obligatorio'),
     ubicacion: z.string(),
     activo: z.boolean(),
+    tipo: z.enum(['fisica', 'digital']).default('fisica'),
+    cuenta_receptora: z.string().max(160).optional().nullable(),
 });
 
 class CajaRegistradoraController {

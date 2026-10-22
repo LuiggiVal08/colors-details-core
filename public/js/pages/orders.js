@@ -188,29 +188,61 @@ const addOrderPayment = async (id) => {
         const calcularValores = () => {
             let acumuladoUsd = 0;
 
-            containerPagos?.querySelectorAll('.pago-item').forEach((item) => {
+            const itemsPago = Array.from(containerPagos?.querySelectorAll('.pago-item') || []);
+            itemsPago
+                .sort((a, b) => Number(esEfectivoMetodo(a.querySelector('select[name="pagos[][metodo_pago_id]"]'))) -
+                    Number(esEfectivoMetodo(b.querySelector('select[name="pagos[][metodo_pago_id]"]'))))
+                .forEach((item) => {
                 const metodoSelect = item.querySelector('select[name="pagos[][metodo_pago_id]"]');
                 const monedaSelect = item.querySelector('select[name="pagos[][moneda]"]');
                 const montoInput = item.querySelector('input[name="pagos[][monto]"]');
                 const vueltoInput = item.querySelector('[data-role="vuelto"]');
+                const vueltoUsdInput = item.querySelector('[data-role="vuelto-usd"]');
+                const vueltoBsInput = item.querySelector('[data-role="vuelto-bs"]');
+                const vueltoResumen = item.querySelector('[data-role="vuelto-resumen"]');
+                const distribucion = item.querySelector('[data-vuelto-distribucion]');
 
                 const esEfectivo = esEfectivoMetodo(metodoSelect);
-                const codigo = esEfectivo ? (monedaSelect?.value === 'VES' ? 'VES' : 'USD') : 'VES';
+                const tipoMetodo = metodoSelect?.selectedOptions?.[0]?.dataset?.tipo?.toLowerCase() || '';
+                const codigo = ['tarjeta', 'transferencia'].includes(tipoMetodo)
+                    ? 'VES'
+                    : monedaSelect?.value === 'USD' ? 'USD' : 'VES';
                 const recibido = parseMonto(montoInput?.value);
                 const recibidoUsd = codigo === 'USD' ? recibido : tasa > 0 ? recibido / tasa : 0;
                 const pendiente = Math.max(0, totalPendiente - acumuladoUsd);
                 const aplicadoUsd = esEfectivo ? Math.min(recibidoUsd, pendiente) : recibidoUsd;
                 const aplicadoMoneda = codigo === 'USD' ? aplicadoUsd : aplicadoUsd * tasa;
                 const vuelto = esEfectivo ? Math.max(0, recibido - aplicadoMoneda) : 0;
+                const vueltoUsdCalculado = codigo === 'USD' ? vuelto : tasa > 0 ? vuelto / tasa : 0;
 
                 if (vueltoInput) vueltoInput.value = Format.float(vuelto.toFixed(2));
+                if (distribucion) distribucion.classList.toggle('hidden', !esEfectivo || vuelto <= 0);
+                if (vueltoUsdInput && vueltoBsInput && !item.dataset.vueltoEditado) {
+                    if (vuelto > 0 && vueltoUsdCalculado < 1) {
+                        vueltoUsdInput.value = '0,00';
+                        vueltoBsInput.value = Format.float((vueltoUsdCalculado * tasa).toFixed(2));
+                    } else if (vuelto > 0) {
+                        vueltoUsdInput.value = Format.float(vueltoUsdCalculado.toFixed(2));
+                        vueltoBsInput.value = '0,00';
+                    } else {
+                        vueltoUsdInput.value = '0,00';
+                        vueltoBsInput.value = '0,00';
+                    }
+                }
+                if (vueltoResumen) {
+                    const usd = parseMonto(vueltoUsdInput?.value);
+                    const bs = parseMonto(vueltoBsInput?.value);
+                    vueltoResumen.textContent = esEfectivo && vuelto > 0
+                        ? `Entregar: $${Format.float(usd.toFixed(2))} + ${Format.float(bs.toFixed(2))} Bs`
+                        : '';
+                }
                 if (montoInput) {
                     const excede = !esEfectivo && recibidoUsd > pendiente + 0.01;
                     montoInput.classList.toggle('inputError', excede);
                 }
 
                 acumuladoUsd += aplicadoUsd;
-            });
+                });
 
             if (lblAplicado) lblAplicado.textContent = '$ ' + Format.float(acumuladoUsd.toFixed(2));
             if (lblRestante) {
@@ -225,6 +257,8 @@ const addOrderPayment = async (id) => {
             const methodPaymentSelect = root.querySelector('select[name="pagos[][metodo_pago_id]"]');
             const monedaSelect = root.querySelector('select[name="pagos[][moneda]"]');
             const montoInput = root.querySelector('input[name="pagos[][monto]"]');
+            const vueltoUsdInput = root.querySelector('[data-role="vuelto-usd"]');
+            const vueltoBsInput = root.querySelector('[data-role="vuelto-bs"]');
             const referenciaContainer = root.querySelector('[data-referencia-container]');
             const referenciaInput = root.querySelector('input[name="pagos[][referencia_pago]"]');
             const monedaContainer = root.querySelector('[data-moneda-container]');
@@ -251,22 +285,23 @@ const addOrderPayment = async (id) => {
                 }
             };
 
-            // Solo el efectivo permite elegir moneda (USD/VES) y genera vuelto
+            // Todos los métodos permiten elegir moneda; solo el efectivo genera vuelto.
             const toggleMoneda = () => {
                 const efectivo = esEfectivoMetodo(methodPaymentSelect);
+                const tipoMetodo = methodPaymentSelect?.selectedOptions?.[0]?.dataset?.tipo?.toLowerCase() || '';
+                const esSoloBs = ['tarjeta', 'transferencia'].includes(tipoMetodo);
+                if (monedaSelect) {
+                    monedaSelect.querySelector('option[value="USD"]')?.toggleAttribute('disabled', esSoloBs);
+                    if (esSoloBs) monedaSelect.value = 'VES';
+                }
 
-                if (monedaContainer) monedaContainer.classList.toggle('hidden', !efectivo);
+                if (monedaContainer) monedaContainer.classList.remove('hidden');
                 if (vueltoContainer) vueltoContainer.classList.toggle('hidden', !efectivo);
-
-                if (!efectivo && monedaSelect) monedaSelect.value = 'VES';
+                root.querySelector('[data-vuelto-distribucion]')?.classList.toggle('hidden', !efectivo);
 
                 if (montoLabel) {
-                    if (!efectivo) {
-                        montoLabel.textContent = 'Monto a pagar (Bs.)';
-                    } else {
-                        const codigo = monedaSelect?.value === 'VES' ? 'Bs.' : '$';
-                        montoLabel.textContent = `Monto recibido (${codigo})`;
-                    }
+                    const codigo = monedaSelect?.value === 'VES' ? 'Bs.' : '$';
+                    montoLabel.textContent = efectivo ? `Monto recibido (${codigo})` : `Monto recibido (${codigo})`;
                 }
             };
 
@@ -277,6 +312,26 @@ const addOrderPayment = async (id) => {
             });
             monedaSelect?.addEventListener('change', calcularValores);
             montoInput?.addEventListener('input', calcularValores);
+            const actualizarDistribucion = (campoEditado) => {
+                const vuelto = parseMonto(root.querySelector('[data-role="vuelto"]')?.value);
+                const vueltoUsd = root.querySelector('[data-role="vuelto-usd"]');
+                const vueltoBs = root.querySelector('[data-role="vuelto-bs"]');
+                if (!vueltoUsd || !vueltoBs || vuelto <= 0 || tasa <= 0) return;
+
+                const tasaVuelto = campoEditado === 'usd'
+                    ? Math.min(vuelto, Math.max(0, parseMonto(vueltoUsd.value)))
+                    : Math.max(0, vuelto - parseMonto(vueltoBs.value) / tasa);
+                vueltoUsd.value = Format.float(tasaVuelto.toFixed(2));
+                vueltoBs.value = Format.float(Math.max(0, (vuelto - tasaVuelto) * tasa).toFixed(2));
+                root.dataset.vueltoEditado = 'true';
+                root.querySelector('[data-role="vuelto-resumen"]')?.replaceChildren(
+                    `Entregar: $${Format.float(tasaVuelto.toFixed(2))} + ${Format.float(
+                        Math.max(0, (vuelto - tasaVuelto) * tasa).toFixed(2),
+                    )} Bs`,
+                );
+            };
+            vueltoUsdInput?.addEventListener('input', () => actualizarDistribucion('usd'));
+            vueltoBsInput?.addEventListener('input', () => actualizarDistribucion('bs'));
 
             toggleReferencia();
             toggleMoneda();

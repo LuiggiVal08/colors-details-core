@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             },
             formatters: {
                 nombre: (dato) => dato.nombre,
+                tipo: (dato) => dato.tipo === 'digital' ? 'Digital / Banco' : 'Efectivo físico',
+                saldo: (dato) => `${Number(dato.monto ?? 0).toFixed(2)} Bs · $${Number(dato.monto_usd ?? 0).toFixed(2)}`,
                 estado: (dato) => {
                     const activo = dato.activo ? 'Activo' : 'Inactivo';
                     return badge(activo, {
@@ -82,6 +84,8 @@ const editBoxRegister = async (id) => {
         form.querySelector('[name="nombre"]').value = data.nombre;
         form.querySelector('[name="ubicacion"]').value = data.ubicacion;
         form.querySelector('[name="activo"]').checked = data.activo;
+        form.querySelector('[name="tipo"]').value = data.tipo || 'fisica';
+        form.querySelector('[name="cuenta_receptora"]').value = data.cuenta_receptora || '';
         form.querySelector('[name="empresa_id"]').value = data.empresa_id;
     }
     setupModalLifecycle(modalEdit);

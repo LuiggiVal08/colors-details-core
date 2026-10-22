@@ -21,6 +21,15 @@
                             {{caja.nombre}}
                         </h1>
 
+                        {{#if caja.es_digital}}
+                            <span class='px-4 py-1 text-sm bg-blue-100 text-blue-700 font-medium rounded-full'>
+                                Digital / Banco
+                            </span>
+                        {{else}}
+                            <span class='px-4 py-1 text-sm bg-amber-100 text-amber-700 font-medium rounded-full'>
+                                Efectivo físico
+                            </span>
+                        {{/if}}
                         {{#if caja.activo}}
                             <span class='px-4 py-1 text-sm bg-green-100 text-green-700 font-medium rounded-full'>
                                 Caja Activa
@@ -36,23 +45,30 @@
                 <!-- Acciones -->
                 <div class='flex items-center justify-start md:justify-end gap-4'>
 
-                    <button
-                        id='btnControlCaja'
-                        data-idmodel='{{caja.id}}'
-                        type='button'
-                        class='material-symbols-rounded flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg shadow transition cursor-pointer'
-                        data-ico='power_settings_new'
-                    >
-                        {{#if caja.ultimo_control}}
-                            {{#if caja.ultimo_control.fecha_cierre}}
-                                Abrir Caja
+                    {{#if caja.es_digital}}
+                        <span class='flex items-center gap-2 bg-blue-100 text-blue-700 px-5 py-2 rounded-lg'>
+                            <span class='material-symbols-rounded md-20' data-ico='account_balance'></span>
+                            Sin apertura física
+                        </span>
+                    {{else}}
+                        <button
+                            id='btnControlCaja'
+                            data-idmodel='{{caja.id}}'
+                            type='button'
+                            class='material-symbols-rounded flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg shadow transition cursor-pointer'
+                            data-ico='power_settings_new'
+                        >
+                            {{#if caja.ultimo_control}}
+                                {{#if caja.ultimo_control.fecha_cierre}}
+                                    Abrir Caja
+                                {{else}}
+                                    Cerrar Caja
+                                {{/if}}
                             {{else}}
-                                Cerrar Caja
+                                Abrir Caja
                             {{/if}}
-                        {{else}}
-                            Abrir Caja
-                        {{/if}}
-                    </button>
+                        </button>
+                    {{/if}}
                     <button
                         id='btnEditCaja'
                         data-idmodel='{{caja.id}}'
@@ -62,6 +78,42 @@
                     >
                         Editar Caja
                     </button>
+                </div>
+            </div>
+
+            <!-- SALDO CONSOLIDADO -->
+            <div class='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4'>
+                <div class='rounded-lg border border-violet-200 bg-violet-50 p-5'>
+                    <p class='text-sm font-medium text-violet-800 flex items-center gap-2'>
+                        <span class='material-symbols-rounded md-20' data-ico='payments'></span>
+                        Saldo de esta caja
+                    </p>
+                    <p id='saldo-caja' class='mt-2 text-2xl font-bold text-gray-900'>Cargando...</p>
+                    <p id='saldo-caja-usd' class='text-sm text-gray-600'>—</p>
+                </div>
+                <div class='rounded-lg border border-blue-200 bg-blue-50 p-5'>
+                    <p class='text-sm font-medium text-blue-800 flex items-center gap-2'>
+                        <span class='material-symbols-rounded md-20' data-ico='account_balance'></span>
+                        Generado en digital
+                    </p>
+                    <p id='generado-digital' class='mt-2 text-2xl font-bold text-gray-900'>Cargando...</p>
+                    <p class='text-xs text-gray-500'>Control actual</p>
+                </div>
+                <div class='rounded-lg border border-amber-200 bg-amber-50 p-5'>
+                    <p class='text-sm font-medium text-amber-800 flex items-center gap-2'>
+                        <span class='material-symbols-rounded md-20' data-ico='payments'></span>
+                        Recibido en físico
+                    </p>
+                    <p id='recibido-fisico' class='mt-2 text-2xl font-bold text-gray-900'>Cargando...</p>
+                    <p class='text-xs text-gray-500'>Control actual</p>
+                </div>
+                <div class='rounded-lg border border-violet-200 bg-violet-50 p-5'>
+                    <p class='text-sm font-medium text-violet-800 flex items-center gap-2'>
+                        <span class='material-symbols-rounded md-20' data-ico='more_horiz'></span>
+                        Recibido en otros modos
+                    </p>
+                    <p id='recibido-otros' class='mt-2 text-2xl font-bold text-gray-900'>Cargando...</p>
+                    <p class='text-xs text-gray-500'>Control actual</p>
                 </div>
             </div>
 
@@ -78,6 +130,8 @@
                     <p class='text-gray-700'><strong>ID:</strong> {{caja.id}}</p>
                     <p class='text-gray-700'><strong>Nombre:</strong> {{caja.nombre}}</p>
                     <p class='text-gray-700'><strong>Ubicación:</strong> {{caja.ubicacion}}</p>
+                    <p class='text-gray-700'><strong>Tipo:</strong> {{caja.tipo_label}}</p>
+                    <p class='text-gray-700'><strong>Cuenta:</strong> {{caja.cuenta_receptora}}</p>
                     <p class='text-gray-700'><strong>Monto Actual:</strong> {{caja.monto}} Bs. · ${{caja.monto_usd}}</p>
                 </div>
 
@@ -122,7 +176,16 @@
                     <span class='material-symbols-rounded text-blue-600 md-28' data-ico='receipt_long'></span>
                     Movimientos de Caja del día
                 </h2>
-                <div class="flex flex-row gap-2">
+                <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                    <label for='filtro-medio-pago' class='sr-only'>Filtrar por fuente de fondos</label>
+                    <select
+                        id='filtro-medio-pago'
+                        class='bg-white border border-blue-200 text-gray-700 text-sm rounded-lg focus:ring-blue-400 focus:border-blue-400 p-2 outline-none'
+                    >
+                        <option value='todos'>Todos los movimientos</option>
+                        <option value='efectivo'>Efectivo físico</option>
+                        <option value='digital'>Digital / Banco</option>
+                    </select>
                     <button
                         id='btnAgregarMovimientoCaja'
                         data-idmodel='{{caja.id}}'
@@ -145,12 +208,14 @@
                             <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto (Bs)</th>
                             <th class='p-3 text-nowrap text-gray-800 font-medium'>Monto ($)</th>
                             <th class='p-3 text-nowrap text-gray-800 font-medium'>Tipo</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Fuente</th>
+                            <th class='p-3 text-nowrap text-gray-800 font-medium'>Referencia</th>
                         </tr>
                     </thead>
 
                     <tbody id='table-movimientos-caja'>
                         <tr>
-                            <td colspan='6' class='text-center p-4 text-gray-600'>Cargando...</td>
+                            <td colspan='8' class='text-center p-4 text-gray-600'>Cargando...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -224,6 +289,8 @@
         <td class='p-4 text-nowrap text-gray-700 text-center' data-key='monto'></td>
         <td class='p-4 text-nowrap text-gray-700 text-center' data-key='monto_usd'></td>
         <td class='p-4 text-nowrap text-gray-700 text-center' data-key='tipo'></td>
+        <td class='p-4 text-nowrap text-gray-700 text-center' data-key='medio_pago'></td>
+        <td class='p-4 text-nowrap text-gray-700 text-center' data-key='referencia'></td>
     </tr>
 </template>
 

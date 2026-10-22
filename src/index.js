@@ -59,6 +59,71 @@ io.on('connection', (socket) => {
 setNotifWorkerIO(io);
 setNominaWorkerIO(io);
 
+const prepareMovimientoCajaSchema = async () => {
+    const [tables] = await sequelize.query(`
+        SELECT TABLE_NAME
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'movimiento_caja'
+    `);
+
+    if (!tables.length) return;
+
+    const [foreignKeys] = await sequelize.query(`
+        SELECT DISTINCT CONSTRAINT_NAME
+        FROM information_schema.KEY_COLUMN_USAGE
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'movimiento_caja'
+          AND COLUMN_NAME = 'control_caja_id'
+          AND REFERENCED_TABLE_NAME = 'control_caja'
+    `);
+
+    for (const foreignKey of foreignKeys) {
+        const constraintName = foreignKey.CONSTRAINT_NAME || foreignKey.constraint_name;
+        if (!constraintName) continue;
+        await sequelize.query(`ALTER TABLE movimiento_caja DROP FOREIGN KEY \`${constraintName}\``);
+    }
+
+    await sequelize.query(`
+        ALTER TABLE movimiento_caja
+        MODIFY COLUMN control_caja_id INT NULL
+    `);
+};
+
+const preparePaymentChangeSchema = async () => {
+    const [tables] = await sequelize.query(`
+        SELECT TABLE_NAME
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME IN ('pago_venta', 'pago_pedido')
+    `);
+
+    for (const table of tables) {
+        const tableName = table.TABLE_NAME || table.table_name;
+        const [columns] = await sequelize.query(`
+            SELECT COLUMN_NAME
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = :tableName
+              AND COLUMN_NAME IN ('vuelto_usd', 'vuelto_bs')
+        `, { replacements: { tableName } });
+        const existing = new Set(columns.map((column) => column.COLUMN_NAME || column.column_name));
+
+        if (!existing.has('vuelto_usd')) {
+            await sequelize.query(`
+                ALTER TABLE \`${tableName}\`
+                ADD COLUMN vuelto_usd DECIMAL(10, 2) NOT NULL DEFAULT 0
+            `);
+        }
+        if (!existing.has('vuelto_bs')) {
+            await sequelize.query(`
+                ALTER TABLE \`${tableName}\`
+                ADD COLUMN vuelto_bs DECIMAL(10, 2) NOT NULL DEFAULT 0
+            `);
+        }
+    }
+};
+
 server.on('error', (error) => logger.error(`Error del servidor HTTP: ${error}`));
 
 // El puerto se abre ANTES de sincronizar el esquema: sequelize.sync({ alter: true })
@@ -72,6 +137,8 @@ sequelize
 
 (async () => {
     try {
+        await prepareMovimientoCajaSchema();
+        await preparePaymentChangeSchema();
         await sequelize.sync({ alter: true, logging: false });
         await seedMonedas();
         await backfillMonedas();

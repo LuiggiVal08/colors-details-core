@@ -22,6 +22,8 @@ const schemaPago = z.object({
     moneda: z.string().optional(),
     monto_recibido: z.string().optional(),
     referencia_pago: z.string().optional().nullable(),
+    vuelto_usd: z.string().optional(),
+    vuelto_bs: z.string().optional(),
 });
 
 const schemaPagos = z.object({
@@ -180,9 +182,17 @@ class PagoController {
 
             const pagosCreados = [];
             let acumuladoUsd = 0;
+            const pagosConMetodo = await Promise.all(
+                data.pagos.map(async (pago) => ({
+                    pago,
+                    metodo: await models.MetodoPago.findByPk(pago.metodo_pago_id, { transaction: t }),
+                })),
+            );
+            const pagosOrdenados = pagosConMetodo.sort(
+                (a, b) => Number(esMetodoEfectivo(a.metodo)) - Number(esMetodoEfectivo(b.metodo)),
+            );
 
-            for (const pago of data.pagos) {
-                const metodo = await models.MetodoPago.findByPk(pago.metodo_pago_id, { transaction: t });
+            for (const { pago, metodo } of pagosOrdenados) {
                 if (!metodo) {
                     await t.rollback();
                     return res
@@ -236,6 +246,31 @@ class PagoController {
                     : montoUsdBruto;
                 const aplicadoMoneda = codigo === 'USD' ? aplicadoUsd : aplicadoUsd * tasaValor;
                 const vuelto = esEfectivo ? Math.max(0, montoNumber - aplicadoMoneda) : 0;
+                const tieneDistribucion = pago.vuelto_usd !== undefined || pago.vuelto_bs !== undefined;
+                let vueltoUsd = esEfectivo
+                    ? tieneDistribucion
+                        ? formatearPrecio(pago.vuelto_usd || 0)
+                        : codigo === 'USD' ? vuelto : tasaValor > 0 ? vuelto / tasaValor : 0
+                    : 0;
+                let vueltoBs = esEfectivo
+                    ? tieneDistribucion ? formatearPrecio(pago.vuelto_bs || 0) : 0
+                    : 0;
+                const vueltoUsdCalculado = codigo === 'USD' ? vuelto : tasaValor > 0 ? vuelto / tasaValor : 0;
+                if (esEfectivo && vuelto > 0) {
+                    if (vueltoUsdCalculado < 1) {
+                        vueltoUsd = 0;
+                        vueltoBs = redondear(vueltoUsdCalculado * tasaValor);
+                    } else if (
+                        redondear(vueltoUsd + (tasaValor > 0 ? vueltoBs / tasaValor : 0)) !== redondear(vuelto)
+                    ) {
+                        await t.rollback();
+                        return res.status(400).json({ message: 'La distribución del vuelto no coincide con el vuelto calculado' });
+                    }
+                    if (vueltoUsd < 0 || vueltoBs < 0) {
+                        await t.rollback();
+                        return res.status(400).json({ message: 'La distribución del vuelto no puede ser negativa' });
+                    }
+                }
 
                 // ==== REGISTRO DEL PAGO ====
                 const nuevoPago = await models.Pago.create(
@@ -248,26 +283,54 @@ class PagoController {
                         moneda_id: monedaId,
                         monto_usd: aplicadoUsd.toFixed(2),
                         monto_recibido: montoNumber.toFixed(2),
-                        vuelto: vuelto.toFixed(2),
+                        vuelto: (codigo === 'USD' ? vueltoUsd : vueltoBs).toFixed(2),
+                        vuelto_usd: vueltoUsd.toFixed(2),
+                        vuelto_bs: vueltoBs.toFixed(2),
                         referencia_pago: pago.referencia_pago ?? 'N/A',
                     },
                     { transaction: t },
                 );
 
-                // ==== SI ES EFECTIVO → REGISTRAR MOVIMIENTO EN CAJA ====
-                if (esEfectivo) {
-                    const detalleVuelto =
-                        vuelto > 0
-                            ? ` (recibido ${montoNumber.toFixed(2)} ${codigo}, vuelto ${vuelto.toFixed(2)} ${codigo})`
-                            : '';
+                const detalleVuelto =
+                    vuelto > 0
+                        ? ` (recibido ${montoNumber.toFixed(2)} ${codigo}, vuelto ${vuelto.toFixed(2)} ${codigo})`
+                        : '';
+                const cajaMovimiento = esEfectivo
+                    ? {}
+                    : {
+                          caja_id: (await cajaService.obtenerCajaActivaPorUsuario(usuario_id, t)).caja.id,
+                          medio_pago: 'digital',
+                          metodo_pago_id: metodo.id,
+                          referencia: pago.referencia_pago ?? `Pago #${nuevoPago.id}`,
+                      };
 
+                await cajaService.realizarMovimiento({
+                    usuario_id,
+                    monto: aplicadoMoneda.toFixed(2),
+                    moneda: codigo,
+                    tasa: tasaValor,
+                    descripcion: `Pago de pedido #${pedido.id} (${metodo.nombre}) [pago #${nuevoPago.id}]${detalleVuelto}`,
+                    tipo: 'ingreso',
+                    ...cajaMovimiento,
+                    transaction: t,
+                });
+                if (vueltoUsd > 0) {
                     await cajaService.realizarMovimiento({
                         usuario_id,
-                        monto: aplicadoMoneda.toFixed(2),
-                        moneda: codigo,
-                        tasa: tasaValor,
-                        descripcion: `Pago de pedido #${pedido.id} (${metodo.nombre}) [pago #${nuevoPago.id}]${detalleVuelto}`,
-                        tipo: 'ingreso',
+                        monto: vueltoUsd.toFixed(2),
+                        moneda: 'USD',
+                        descripcion: `Vuelto de pedido #${pedido.id}`,
+                        tipo: 'egreso',
+                        transaction: t,
+                    });
+                }
+                if (vueltoBs > 0) {
+                    await cajaService.realizarMovimiento({
+                        usuario_id,
+                        monto: vueltoBs.toFixed(2),
+                        moneda: 'VES',
+                        descripcion: `Vuelto de pedido #${pedido.id}`,
+                        tipo: 'egreso',
                         transaction: t,
                     });
                 }
@@ -410,22 +473,28 @@ class PagoController {
                 { transaction: t },
             );
 
-            // Registrar el nuevo movimiento si el método actualizado es efectivo
-            if (esEfectivo) {
-                const detalleVuelto =
-                    vuelto > 0
-                        ? ` (recibido ${montoNumber.toFixed(2)} ${codigo}, vuelto ${vuelto.toFixed(2)} ${codigo})`
-                        : '';
-                await cajaService.realizarMovimiento({
-                    usuario_id: req.user.id,
-                    monto: aplicadoMoneda.toFixed(2),
-                    moneda: codigo,
-                    tasa: tasaValor,
-                    descripcion: `Pago de pedido #${pago.pedido_id} (${newMetodo.nombre}) [pago #${pago.id}]${detalleVuelto}`,
-                    tipo: 'ingreso',
-                    transaction: t,
-                });
-            }
+            const detalleVuelto =
+                vuelto > 0
+                    ? ` (recibido ${montoNumber.toFixed(2)} ${codigo}, vuelto ${vuelto.toFixed(2)} ${codigo})`
+                    : '';
+            const cajaMovimiento = esEfectivo
+                ? {}
+                : {
+                      caja_id: (await cajaService.obtenerCajaActivaPorUsuario(req.user.id, t)).caja.id,
+                      medio_pago: 'digital',
+                      metodo_pago_id: newMetodo.id,
+                      referencia: data.referencia_pago ?? `Pago #${pago.id}`,
+                  };
+            await cajaService.realizarMovimiento({
+                usuario_id: req.user.id,
+                monto: aplicadoMoneda.toFixed(2),
+                moneda: codigo,
+                tasa: tasaValor,
+                descripcion: `Pago de pedido #${pago.pedido_id} (${newMetodo.nombre}) [pago #${pago.id}]${detalleVuelto}`,
+                tipo: 'ingreso',
+                ...cajaMovimiento,
+                transaction: t,
+            });
 
             if (otrosUsd + aplicadoUsd >= totalMasIVA - TOLERANCIA) {
                 await pedido.update({ estado: 'procesado' }, { transaction: t });

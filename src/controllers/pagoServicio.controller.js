@@ -4,11 +4,16 @@ import { z } from 'zod';
 import { NotFoundError } from '../errors/NotFoundError.js';
 import { formatearPrecio } from '../helpers/format.js';
 import { getMonedaId } from '../services/monedaService.js';
+import cajaService from '../services/cajaService.js';
 
 const schemaPago = z.object({
     periodo_id: z.number(),
     monto: z.number().positive(),
     descripcion: z.string().optional(),
+    caja_id: z.number().int().positive().optional(),
+    medio_pago: z.enum(['efectivo', 'digital']).optional(),
+    referencia: z.string().max(120).optional().nullable(),
+    cuenta_receptora: z.string().max(160).optional().nullable(),
 });
 
 class PagoServicioController {
@@ -94,6 +99,21 @@ class PagoServicioController {
             }
             const nuevoBalance = Math.max(0, balance - data.monto);
             const nuevoEstado = nuevoBalance <= 0 ? 'paid' : 'partial';
+
+            if (data.caja_id) {
+                await cajaService.realizarMovimiento({
+                    usuario_id,
+                    caja_id: data.caja_id,
+                    monto: data.monto,
+                    moneda: 'USD',
+                    descripcion: data.descripcion || `Pago de servicio #${periodo.id}`,
+                    tipo: 'egreso',
+                    medio_pago: data.medio_pago,
+                    referencia: data.referencia,
+                    cuenta_receptora: data.cuenta_receptora,
+                    transaction: t,
+                });
+            }
 
             await models.PagoServicio.create(
                 {

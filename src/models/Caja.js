@@ -11,6 +11,15 @@ Caja.init(
         nombre: DataTypes.STRING,
         ubicacion: DataTypes.TEXT,
         activo: DataTypes.BOOLEAN,
+        tipo: {
+            type: DataTypes.ENUM('fisica', 'digital'),
+            allowNull: false,
+            defaultValue: 'fisica',
+        },
+        cuenta_receptora: {
+            type: DataTypes.STRING(160),
+            allowNull: true,
+        },
         monto: {
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false,

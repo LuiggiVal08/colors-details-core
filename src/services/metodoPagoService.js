@@ -3,6 +3,7 @@ import { normalizarCodigoMoneda } from './monedaService.js';
 const TIPOS_EFECTIVO = ['efectivo'];
 
 const tipoMetodo = (metodo) => String(metodo?.tipo ?? '').trim().toLowerCase();
+const esMetodoSoloBs = (metodo) => ['tarjeta', 'transferencia'].includes(tipoMetodo(metodo));
 
 /**
  * Solo el efectivo se considera pago en dinero en efectivo:
@@ -13,14 +14,12 @@ export function esMetodoEfectivo(metodo) {
 }
 
 /**
- * Moneda admitida por el método de pago.
- * El efectivo admite USD y VES; el resto de métodos solo admite bolívares.
+ * Todos los métodos pueden registrar el monto recibido en USD o VES.
  */
 export function monedaPermitida(metodo, monedaSolicitada) {
-    if (esMetodoEfectivo(metodo)) {
-        return normalizarCodigoMoneda(monedaSolicitada || 'USD');
-    }
-    return 'VES';
+    return esMetodoSoloBs(metodo)
+        ? 'VES'
+        : normalizarCodigoMoneda(monedaSolicitada || 'VES');
 }
 
 /**
@@ -28,11 +27,9 @@ export function monedaPermitida(metodo, monedaSolicitada) {
  * Devuelve un mensaje de error o null cuando la combinación es válida.
  */
 export function validarMonedaMetodo(metodo, monedaSolicitada) {
-    if (esMetodoEfectivo(metodo)) return null;
-
     const solicitada = normalizarCodigoMoneda(monedaSolicitada || 'VES');
-    if (solicitada === 'USD') {
-        return `El método de pago "${metodo?.nombre ?? metodo?.tipo}" solo admite pagos en bolívares (Bs).`;
+    if (esMetodoSoloBs(metodo) && solicitada !== 'VES') {
+        return `El método de pago "${metodo?.nombre ?? tipoMetodo(metodo)}" solo admite pagos en bolívares (Bs).`;
     }
     return null;
 }

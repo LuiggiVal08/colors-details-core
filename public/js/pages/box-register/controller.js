@@ -20,7 +20,9 @@ const getTasa = () => {
         });
 };
 
-document.getElementById('btnControlCaja').addEventListener('click', async (e) => {
+const btnControlCaja = document.getElementById('btnControlCaja');
+
+btnControlCaja?.addEventListener('click', async (e) => {
     const cajaId = e.currentTarget.getAttribute('data-idmodel');
     const modal = document.getElementById('modal-control-caja');
     const form = document.getElementById('form-control-caja');
@@ -30,7 +32,7 @@ document.getElementById('btnControlCaja').addEventListener('click', async (e) =>
     const response = await httpClient.get(`/box-register-control/actual/${cajaId}`);
 
     // ESTA ERA LA FALLA
-    const { error, message, data: control } = response.data;
+    const { error, message, data: control, resumen } = response.data;
 
     if (error) {
         showToast({
@@ -74,6 +76,20 @@ document.getElementById('btnControlCaja').addEventListener('click', async (e) =>
         const montoCajaBs = parseFloat(control?.caja?.monto ?? 0).toFixed(2);
         const montoCajaUsd = parseFloat(control?.caja?.monto_usd ?? 0).toFixed(2);
         document.getElementById('controlCajaMonto').textContent = `${montoCajaBs} Bs · $${montoCajaUsd}`;
+        const formatResumen = (grupo, medio, moneda) =>
+            Number((medio ? resumen?.[grupo]?.[medio]?.[moneda] : resumen?.[grupo]?.[moneda]) ?? 0).toFixed(2);
+        const totalEgresosBs =
+            Number(resumen?.egresos?.efectivo?.VES ?? 0) + Number(resumen?.egresos?.digital?.VES ?? 0);
+        const totalEgresosUsd =
+            Number(resumen?.egresos?.efectivo?.USD ?? 0) + Number(resumen?.egresos?.digital?.USD ?? 0);
+        document.getElementById('controlCajaIngresosEfectivo').textContent =
+            `${formatResumen('ingresos', 'efectivo', 'VES')} Bs · $${formatResumen('ingresos', 'efectivo', 'USD')}`;
+        document.getElementById('controlCajaIngresosDigital').textContent =
+            `${formatResumen('ingresos', 'digital', 'VES')} Bs · $${formatResumen('ingresos', 'digital', 'USD')}`;
+        document.getElementById('controlCajaEgresos').textContent =
+            `${totalEgresosBs.toFixed(2)} Bs · $${totalEgresosUsd.toFixed(2)}`;
+        document.getElementById('controlCajaVueltos').textContent =
+            `${formatResumen('vueltos', null, 'VES')} Bs · $${formatResumen('vueltos', null, 'USD')}`;
 
         document.getElementById('aperturaCountContainer')?.classList.add('hidden');
         infoControl.classList.remove('hidden');

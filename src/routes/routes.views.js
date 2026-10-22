@@ -160,14 +160,18 @@ router.get('/box-register/:id', isAuthenticatedView, validRole([]), async (req, 
     });
 
     const tasaDolar = await models.TasaDolar.findOne({ where: { activa: true } });
+    const methodsPayment = await models.MetodoPago.findAll({ order: [['nombre', 'ASC']] });
 
     res.render(basePath('box-register'), {
         title: 'Registro de Caja',
         tasaDolar: tasaDolar ? tasaDolar.toJSON() : null,
+        methodsPayment: methodsPayment.map((metodo) => metodo.toJSON()),
         caja: {
             ...(caja ? caja.toJSON() : null),
 
             monto_usd: caja ? Number(caja.monto_usd ?? 0).toFixed(2) : null,
+            es_digital: caja?.tipo === 'digital',
+            tipo_label: caja?.tipo === 'digital' ? 'Digital / Banco' : 'Efectivo físico',
 
             ultimo_control: cajaUltimoControl
                 ? {

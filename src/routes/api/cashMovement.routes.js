@@ -10,6 +10,7 @@ router.use(isAuthenticated);
 // POST /api/cash-movements
 // ==============================================
 router.post('/', CashMovementController.createMovement);
+router.get('/global-balance', CashMovementController.getGlobalBalance);
 
 // ==============================================
 // Get movements by control ID

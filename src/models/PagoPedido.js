@@ -28,6 +28,8 @@ PagoPedido.init(
         monto_usd: DataTypes.DECIMAL(10, 2),
         monto_recibido: DataTypes.DECIMAL(10, 2),
         vuelto: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
+        vuelto_usd: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
+        vuelto_bs: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
         referencia_pago: DataTypes.STRING,
     },
     {

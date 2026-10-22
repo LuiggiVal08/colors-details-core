@@ -1,5 +1,7 @@
 <div
     id='modal-create-cash-movement'
+    data-caja-tipo='{{caja.tipo}}'
+    data-empresa-id='{{caja.empresa_id}}'
     class='fixed top-0 left-0 h-screen w-full bg-black/50 z-20 content-center hidden'
     inert
 >
@@ -45,7 +47,52 @@
                 </select>
             </div>
 
-            <!-- Moneda -->
+            <!-- Método de pago -->
+            <div>
+                <label for='metodo_pago_id' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                    Método de pago
+                </label>
+                <select
+                    name='metodo_pago_id'
+                    id='metodo_pago_id'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    required
+                >
+                    <option disabled selected value=''>Seleccione</option>
+                    {{#each methodsPayment}}
+                        <option value='{{id}}' data-tipo='{{tipo}}'>{{nombre}}</option>
+                    {{/each}}
+                </select>
+            </div>
+
+            <div id='campos-digital-movimiento' class='hidden space-y-4 rounded-lg border border-blue-200 bg-blue-50 p-4'>
+                <div>
+                    <label for='referencia_movimiento' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                        Referencia de la operación
+                    </label>
+                    <input
+                        type='text'
+                        name='referencia'
+                        id='referencia_movimiento'
+                        class='bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-400 focus:border-blue-400 block w-full p-2 outline-none'
+                        placeholder='Número de referencia, confirmación o comprobante'
+                    />
+                </div>
+                <div>
+                    <label for='cuenta_receptora_movimiento_visible' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
+                        Cuenta receptora
+                    </label>
+                    <input
+                        type='text'
+                        id='cuenta_receptora_movimiento_visible'
+                        name='cuenta_receptora'
+                        value='{{caja.cuenta_receptora}}'
+                        class='bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-400 focus:border-blue-400 block w-full p-2 outline-none'
+                        placeholder='Cuenta o teléfono que recibió el dinero'
+                    />
+                </div>
+            </div>
+
             <div>
                 <label for='moneda' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
                     Moneda
@@ -54,7 +101,7 @@
                     name='moneda'
                     id='moneda'
                     data-valid='text'
-                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    class='flex bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
                     required
                 >
                     <option value='VES' selected>Bolívares (Bs)</option>
