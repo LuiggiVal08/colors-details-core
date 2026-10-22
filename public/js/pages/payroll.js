@@ -1,6 +1,8 @@
 import { httpClient, socket } from '../index.js';
 import showToast from '../helpers/Toast.js';
 import { setupModalLifecycle } from '../helpers/handleModalEvents.js';
+import { closeModal } from '../helpers/handleModal.js';
+import { Format } from '../helpers/Format.js';
 
 function fmt(val) {
     const n = parseFloat(val) || 0;
@@ -9,7 +11,7 @@ function fmt(val) {
 
 async function renderSummary(nominas) {
     document.getElementById('total-nominas').textContent = nominas?.length || '0';
-    const totalPaidBs = (nominas || []).reduce((s, n) => s + (parseFloat(n.total_monto) || 0), 0);
+    const totalPaidBs = (nominas || []).reduce((s, n) => s + (parseFloat(n.total_pagado) || 0), 0);
     const latestTasa = nominas?.[0]?.tasa?.tasa ? parseFloat(nominas[0].tasa.tasa) : 0;
     const totalPaidUsd = latestTasa > 0 ? totalPaidBs / latestTasa : 0;
     document.getElementById('total-paid-all').textContent = `$${fmt(totalPaidUsd)}`;
@@ -27,16 +29,88 @@ async function renderSummary(nominas) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const form = document.getElementById('form-generar-nomina');
-    const tbody = document.getElementById('table-nomina');
-    const template = document.getElementById('fila-nomina');
+const modalPagarNomina = document.getElementById('modal-pagar-nomina');
+const formPagarNomina = document.getElementById('form-pagar-nomina');
 
-    async function renderNominas(nominas) {
+const abrirModalPagarNomina = (nomina) => {
+    if (!modalPagarNomina || !formPagarNomina) return console.error('Modal de pago de nómina no encontrado');
+
+    const totalBs = Number(nomina.total_monto) || 0;
+    const pagadoBs = Number(nomina.total_pagado) || 0;
+    const pendienteBs = Math.max(0, totalBs - pagadoBs);
+
+    modalPagarNomina.querySelector('[data-nomina-periodo]').textContent = `${nomina.periodo_inicio} - ${nomina.periodo_fin}`;
+    modalPagarNomina.querySelector('[data-nomina-total]').textContent = `${fmt(totalBs)} Bs`;
+    modalPagarNomina.querySelector('[data-nomina-pagado]').textContent = `${fmt(pagadoBs)} Bs`;
+    modalPagarNomina.querySelector('[data-nomina-pendiente]').textContent = `${fmt(pendienteBs)} Bs`;
+
+    formPagarNomina.querySelector('[name="nomina_id"]').value = nomina.id;
+    const montoInput = formPagarNomina.querySelector('[name="monto"]');
+    if (montoInput) montoInput.value = Format.float(pendienteBs.toFixed(2));
+
+    setupModalLifecycle(modalPagarNomina);
+};
+
+if (formPagarNomina) {
+    formPagarNomina.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const nominaId = formPagarNomina.querySelector('[name="nomina_id"]').value;
+        const monto = formPagarNomina.querySelector('[name="monto"]').value;
+        const btn = formPagarNomina.querySelector('[type="submit"]');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Procesando...';
+        }
+
+        try {
+            const response = await httpClient.post(`/nomina/${nominaId}/pagar`, { monto });
+
+            if (response.error) {
+                showToast({
+                    title: 'Error',
+                    message: response.error.error || response.message || 'No se pudo pagar la nómina',
+                    type: 'error',
+                    duration: 5000,
+                });
+                return;
+            }
+
+            showToast({
+                title: 'Nómina pagada',
+                message: response.message || 'El pago se registró correctamente',
+                type: 'success',
+                duration: 5000,
+            });
+
+            closeModal(modalPagarNomina);
+            await loadNominas();
+        } catch (err) {
+            showToast({
+                title: 'Error',
+                message: 'Ocurrió un error inesperado al pagar la nómina',
+                type: 'error',
+                duration: 5000,
+            });
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Confirmar Pago';
+            }
+        }
+    });
+}
+
+const tbody = document.getElementById('table-nomina');
+const template = document.getElementById('fila-nomina');
+const esAdmin = document.getElementById('table-nomina-container')?.dataset.esAdmin === 'true';
+
+async function renderNominas(nominas) {
         await renderSummary(nominas);
         tbody.innerHTML = '';
         if (!nominas || nominas.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center p-3 text-gray-500">No hay nóminas registradas</td></tr>';
+            tbody.innerHTML =
+                '<tr><td colspan="10" class="text-center p-3 text-gray-500">No hay nóminas registradas</td></tr>';
             return;
         }
         nominas.forEach((nom) => {
@@ -69,6 +143,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                         badge.textContent = `$${fmt(pendienteUsd)}`;
                     }
                     cell.appendChild(badge);
+                } else if (key === 'estado_pago') {
+                    const estadoPago = nom.estado_pago || 'pendiente';
+                    const configPago = {
+                        pagada: { texto: 'Pagada', clase: 'bg-green-500' },
+                        parcial: { texto: 'Parcial', clase: 'bg-amber-500' },
+                        pendiente: { texto: 'Pendiente', clase: 'bg-gray-400' },
+                    }[estadoPago] || { texto: estadoPago, clase: 'bg-gray-400' };
+                    const badgePago = document.createElement('span');
+                    badgePago.className = `px-2 py-0.5 text-xs text-white rounded-full ${configPago.clase}`;
+                    badgePago.textContent = configPago.texto;
+                    cell.appendChild(badgePago);
                 } else if (key === 'estado') {
                     const badge = document.createElement('span');
                     const colores = { completed: 'bg-green-500', processing: 'bg-yellow-500', failed: 'bg-red-500' };
@@ -77,21 +162,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                     cell.appendChild(badge);
                 } else if (key === 'usuario') {
                     cell.textContent = nom.usuario?.username || '-';
+                } else if (key === 'acciones') {
+                    if (esAdmin && nom.estado === 'completed' && nom.estado_pago !== 'pagada') {
+                        const btnPagar = document.createElement('button');
+                        btnPagar.type = 'button';
+                        btnPagar.className =
+                            'inline-flex items-center gap-1 bg-pink-500 hover:bg-pink-600 text-white text-xs font-medium rounded-md px-3 py-1.5 cursor-pointer';
+                        btnPagar.textContent = 'Pagar';
+                        btnPagar.addEventListener('click', () => abrirModalPagarNomina(nom));
+                        cell.appendChild(btnPagar);
+                    }
                 }
             });
             tbody.appendChild(row);
         });
-    }
+}
 
-    async function loadNominas() {
-        try {
-            const response = await httpClient.get('/nomina');
-            renderNominas(response.data);
-        } catch (err) {
-            console.error('Error cargando nóminas:', err);
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center p-3 text-red-500">Error al cargar nóminas</td></tr>';
-        }
+async function loadNominas() {
+    try {
+        const response = await httpClient.get('/nomina');
+        await renderNominas(response.data);
+    } catch (err) {
+        console.error('Error cargando nóminas:', err);
+        tbody.innerHTML =
+            '<tr><td colspan="10" class="text-center p-3 text-red-500">Error al cargar nóminas</td></tr>';
     }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const form = document.getElementById('form-generar-nomina');
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();

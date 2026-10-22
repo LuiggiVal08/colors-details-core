@@ -4,7 +4,12 @@ import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 import { formatearPrecio } from '../helpers/format.js';
 import cajaService from '../services/cajaService.js';
-import { getMonedaId, normalizarCodigoMoneda } from '../services/monedaService.js';
+import { getMonedaId } from '../services/monedaService.js';
+import {
+    esMetodoEfectivo,
+    monedaPermitida,
+    validarMonedaMetodo,
+} from '../services/metodoPagoService.js';
 import { queue } from '../config/queueConfig.js';
 
 const detalleSchema = z.object({
@@ -231,7 +236,13 @@ class VentaController {
                     return res.status(400).json({ message: 'La venta ya está completamente pagada' });
                 }
 
-                const codigo = pago.moneda ? normalizarCodigoMoneda(pago.moneda) : 'USD';
+                const errorMoneda = validarMonedaMetodo(metodo, pago.moneda);
+                if (errorMoneda) {
+                    await t.rollback();
+                    return res.status(400).json({ message: errorMoneda });
+                }
+
+                const codigo = monedaPermitida(metodo, pago.moneda);
                 const monedaId = await getMonedaId(codigo, t);
                 if (!monedaId) {
                     await t.rollback();
@@ -249,7 +260,7 @@ class VentaController {
 
                 const montoUsdBruto =
                     codigo === 'USD' ? montoRecibido : tasaValor > 0 ? montoRecibido / tasaValor : 0;
-                const esEfectivo = metodo.tipo === 'efectivo';
+                const esEfectivo = esMetodoEfectivo(metodo);
 
                 if (!esEfectivo && montoUsdBruto > pendiente + TOLERANCIA) {
                     await t.rollback();

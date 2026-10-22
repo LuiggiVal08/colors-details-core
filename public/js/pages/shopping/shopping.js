@@ -138,13 +138,13 @@ const viewPurchase = async (id) => {
                      fecha: (p) => new Date(p.fecha).toLocaleDateString('es-ES'),
                      tipo: (p) => p.metodo_pago.nombre,
                      referencia: (p) => p.referencia_pago,
-                     monto: (p) => '$' + Format.float(p.monto),
-                     monto_bs: (p) => '$' + Format.float((Number(p.monto) * Number(tasa)).toFixed(2)),
+                     monto: (p) => '$' + Format.float(Number(p.monto_usd ?? p.monto ?? 0).toFixed(2)),
+                     monto_bs: (p) => Format.float((Number(p.monto_usd ?? p.monto ?? 0) * Number(tasa)).toFixed(2)) + ' Bs',
                  },
                 },
             });
 
-            const totalPagos = pagos.reduce((acc, p) => acc + Number(p.monto), 0);
+            const totalPagos = pagos.reduce((acc, p) => acc + Number(p.monto_usd ?? p.monto ?? 0), 0);
 
             modalViewPurchase.querySelector('[data-purchase-pago-total]').textContent =
                 '$' + Format.float(totalPagos.toFixed(2));
@@ -264,8 +264,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const montoInput = root.querySelector('input[name="pagos[][monto]"]');
         const referenciaContainer = root.querySelector('[data-referencia-container]');
         const referenciaInput = root.querySelector('input[name="pagos[][referencia_pago]"]');
+        const monedaContainer = root.querySelector('[data-moneda-container]');
+        const vueltoContainer = root.querySelector('[data-vuelto-container]');
+        const montoLabel = root.querySelector('[data-monto-label]');
 
         Format.formatEventInput({ elements: root.querySelectorAll('input, select') });
+
+        const esEfectivo = () => {
+            const opcion = methodPaymentSelect?.options?.[methodPaymentSelect.selectedIndex];
+            return String(opcion?.dataset?.tipo || '')
+                .toLowerCase()
+                .trim() === 'efectivo';
+        };
 
         const toggleReferencia = () => {
             const methodsAccep = ['transferencia', 'digital'];
@@ -285,14 +295,37 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
+        // Solo el efectivo permite elegir moneda (USD/VES) y genera vuelto
+        const toggleMoneda = () => {
+            const efectivo = esEfectivo();
+
+            if (monedaContainer) monedaContainer.classList.toggle('hidden', !efectivo);
+            if (vueltoContainer) vueltoContainer.classList.toggle('hidden', !efectivo);
+
+            if (!efectivo && monedaSelect) {
+                monedaSelect.value = 'VES';
+            }
+
+            if (montoLabel) {
+                if (!efectivo) {
+                    montoLabel.textContent = 'Monto a pagar (Bs.)';
+                } else {
+                    const codigo = monedaSelect?.value === 'VES' ? 'Bs.' : '$';
+                    montoLabel.textContent = `Monto recibido (${codigo})`;
+                }
+            }
+        };
+
         methodPaymentSelect.addEventListener('change', () => {
             toggleReferencia();
+            toggleMoneda();
             calcularTotales();
         });
         monedaSelect?.addEventListener('change', calcularTotales);
         montoInput?.addEventListener('input', calcularTotales);
 
         toggleReferencia();
+        toggleMoneda();
         calcularTotales();
     };
 
@@ -489,20 +522,27 @@ const calcularTotales = () => {
         const montoInput = item.querySelector('input[name="pagos[][monto]"]');
         const vueltoInput = item.querySelector('[data-role="vuelto"]');
 
-        const codigo = monedaSelect?.value === 'VES' ? 'VES' : 'USD';
-        const recibido = parseMoneyInput(montoInput?.value);
-        const recibidoUsd = codigo === 'USD' ? recibido : tasa > 0 ? recibido / tasa : 0;
-        const pendiente = Math.max(0, totalConIva - totalPagosUsd);
-        const aplicadoUsd = Math.min(recibidoUsd, pendiente);
-
         const opcionMetodo = metodoSelect?.options?.[metodoSelect.selectedIndex];
         const esEfectivo = String(opcionMetodo?.dataset?.tipo || '')
             .toLowerCase()
-            .includes('efectivo');
+            .trim() === 'efectivo';
+
+        // Los métodos que no son efectivo solo se pagan en bolívares
+        const codigo = esEfectivo && monedaSelect?.value === 'VES' ? 'VES' : esEfectivo ? 'USD' : 'VES';
+        const recibido = parseMoneyInput(montoInput?.value);
+        const recibidoUsd = codigo === 'USD' ? recibido : tasa > 0 ? recibido / tasa : 0;
+        const pendiente = Math.max(0, totalConIva - totalPagosUsd);
+        // El efectivo se recorta al pendiente (admite vuelto); el resto no admite excedente
+        const aplicadoUsd = esEfectivo ? Math.min(recibidoUsd, pendiente) : recibidoUsd;
         const aplicadoMoneda = codigo === 'USD' ? aplicadoUsd : aplicadoUsd * tasa;
         const vuelto = esEfectivo ? Math.max(0, recibido - aplicadoMoneda) : 0;
 
         if (vueltoInput) vueltoInput.value = Format.float(vuelto.toFixed(2));
+        if (montoInput && !esEfectivo && recibidoUsd > pendiente + 0.01) {
+            montoInput.classList.add('inputError');
+        } else if (montoInput) {
+            montoInput.classList.remove('inputError');
+        }
         totalPagosUsd += aplicadoUsd;
     });
 

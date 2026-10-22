@@ -32,6 +32,16 @@ Nomina.init(
         },
         total_empleados: { type: DataTypes.INTEGER, defaultValue: 0 },
         total_monto: { type: DataTypes.DECIMAL(12, 2), defaultValue: 0 },
+        total_pagado: { type: DataTypes.DECIMAL(12, 2), defaultValue: 0 },
+        estado_pago: {
+            type: DataTypes.STRING,
+            defaultValue: 'pendiente',
+        },
+        pagada_en: DataTypes.DATE,
+        pagada_por_id: {
+            type: DataTypes.INTEGER,
+            references: { model: Usuario, key: 'id' },
+        },
     },
     {
         sequelize,
@@ -45,6 +55,8 @@ Empresa.hasMany(Nomina, { foreignKey: 'empresa_id', as: 'nominas_lote' });
 
 Nomina.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 Usuario.hasMany(Nomina, { foreignKey: 'usuario_id', as: 'nominas_lote' });
+
+Nomina.belongsTo(Usuario, { foreignKey: 'pagada_por_id', as: 'pagada_por' });
 
 Nomina.belongsTo(TasaDolar, { foreignKey: 'tasa_id', as: 'tasa' });
 TasaDolar.hasMany(Nomina, { foreignKey: 'tasa_id', as: 'nominas_lote' });

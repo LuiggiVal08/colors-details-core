@@ -8,5 +8,11 @@ const router = Router();
 router.get('/', isAuthenticated, NominaController.getAll);
 router.get('/:id', isAuthenticated, NominaController.getById);
 router.post('/generate', isAuthenticated, requireRole(['admin', 'superadmin']), NominaController.generate);
+router.post(
+    '/:id/pagar',
+    isAuthenticated,
+    requireRole(['admin', 'superadmin']),
+    NominaController.pagar,
+);
 
 export default router;

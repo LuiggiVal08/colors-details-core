@@ -57,73 +57,6 @@
             </div>
             <input type='hidden' name='pedido_id' data-valid='text' />
 
-             <div class='w-full'>
-                 <label for='metodo_pago_id' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
-                     Método de Pago
-                 </label>
-                 <Select
-                     type='text'
-                     name='metodo_pago_id'
-                     data-valid='text'
-                     id='metodo_pago_id'
-                     class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 w-full p-2 outline-none'
-                     required
-                 >
-                     <option value='' selected>Seleccione un método de pago</option>
-                     {{#each methodsPayment}}
-                         <option value='{{id}}' data-tipo='{{tipo}}'>
-                             {{tipo}}
-                             -
-                             {{nombre}}
-                         </option>
-                     {{/each}}
-                     {{#unless methodsPayment.length}}
-                         <option value=''>No hay métodos de pago disponibles</option>
-                     {{/unless}}
-                 </Select>
-             </div>
-            <div class='flex flex-col md:flex-row gap-4 items-center w-full'>
-                <div class='w-full'>
-                    <label for='moneda' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Moneda</label>
-                    <select
-                        name='moneda'
-                        data-valid='text'
-                        id='moneda'
-                        class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-                        required
-                    >
-                        <option value='USD' selected>$ · USD</option>
-                        <option value='VES'>Bs · VES</option>
-                    </select>
-                </div>
-                <div class='w-full'>
-                    <label for='monto' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
-                        Monto recibido
-                    </label>
-                    <input
-                        type='text'
-                        name='monto'
-                        data-valid='float'
-                        id='monto'
-                        class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
-                        placeholder='0,00'
-                        value='0,00'
-                        required
-                    />
-                </div>
-                <div class='w-full'>
-                    <label for='vuelto' class='block mb-2 text-sm font-medium text-gray-900 text-start'>Vuelto</label>
-                    <input
-                        type='text'
-                        id='vuelto'
-                        data-role='vuelto'
-                        readonly
-                        class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
-                        placeholder='0,00'
-                        value='0,00'
-                    />
-                </div>
-            </div>
             <div class='w-full'>
                 <label for='fecha' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
                     Fecha de pago
@@ -137,19 +70,30 @@
                     required
                 />
             </div>
-            <div class='w-full parent referencia-container hidden' data-referencia-container>
-                <label for='referencia_pago' class='block mb-2 text-sm font-medium text-gray-900 text-start'>
-                    Referencia
-                </label>
-                <input
-                    type='text'
-                    name='referencia_pago'
-                    data-valid='text'
-                    id='referencia_pago'
-                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
-                    placeholder='Ingrese la referencia'
-                    autocomplete='off'
-                />
+
+            <div class='w-full'>
+                <div class='flex items-center justify-between mb-2'>
+                    <span class='text-sm font-medium text-gray-900'>Pagos</span>
+                    <button
+                        type='button'
+                        id='btn-add-pago-pedido'
+                        class='inline-flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md px-3 py-1.5 cursor-pointer'
+                    >
+                        <span class='material-symbols-rounded md-18' data-ico='add'></span>
+                        Agregar pago
+                    </button>
+                </div>
+                <div id='pagos-pedido' class='flex flex-col gap-3'></div>
+                <div class='flex items-center justify-between text-xs text-gray-600 mt-2'>
+                    <span>
+                        Total a aplicar:
+                        <span data-pagos-aplicado class='font-semibold'>$ 0,00</span>
+                    </span>
+                    <span>
+                        Restante:
+                        <span data-pagos-restante class='font-semibold'>$ 0,00</span>
+                    </span>
+                </div>
             </div>
 
             <div class='bg-yellow-50 border border-yellow-200 rounded-lg p-3'>
@@ -161,7 +105,10 @@
                             <span data-info-tasa-cambio class='font-semibold'></span>
                         </li>
                         <li data-caja-status></li>
-                        <li>El pago se registrará en la moneda seleccionada. Solo el efectivo mueve la caja.</li>
+                        <li>
+                            Solo el efectivo admite dólares y mueve la caja; los demás métodos solo se pagan en
+            bolívares.
+                        </li>
                         <li>Esta acción no se puede deshacer</li>
                     </ul>
                 </div>
@@ -179,3 +126,88 @@
         </div>
     </form>
 </div>
+
+<template id='template-pago-pedido'>
+    <div
+        class='pago-item flex flex-col gap-3 border border-dashed border-blue-500 bg-blue-400/10 rounded-md p-4'
+    >
+        <div class='flex flex-col md:flex-row gap-4 items-center w-full'>
+            <div class='w-full parent'>
+                <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Método de Pago</label>
+                <select
+                    type='text'
+                    name='pagos[][metodo_pago_id]'
+                    data-valid='text'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 w-full p-2 outline-none'
+                    required
+                >
+                    <option value='' selected>Seleccione un método de pago</option>
+                    {{#each methodsPayment}}
+                        <option value='{{id}}' data-tipo='{{tipo}}'>
+                            {{tipo}}
+                            -
+                            {{nombre}}
+                        </option>
+                    {{/each}}
+                    {{#unless methodsPayment.length}}
+                        <option value=''>No hay métodos de pago disponibles</option>
+                    {{/unless}}
+                </select>
+            </div>
+            <div class='w-full parent' data-moneda-container>
+                <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Moneda</label>
+                <select
+                    name='pagos[][moneda]'
+                    data-valid='text'
+                    class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                    required
+                >
+                    <option value='USD' selected>$ · USD</option>
+                    <option value='VES'>Bs · VES</option>
+                </select>
+            </div>
+            <div class='w-full parent'>
+                <label class='block mb-2 text-sm font-medium text-gray-900 text-start' data-monto-label>
+                    Monto recibido
+                </label>
+                <input
+                    type='text'
+                    name='pagos[][monto]'
+                    data-valid='float'
+                    class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
+                    placeholder='0,00'
+                    value='0,00'
+                    required
+                />
+            </div>
+            <div class='w-full parent' data-vuelto-container>
+                <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Vuelto</label>
+                <input
+                    type='text'
+                    data-role='vuelto'
+                    readonly
+                    class='w-full bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg p-2 outline-none'
+                    placeholder='0,00'
+                    value='0,00'
+                />
+            </div>
+            <button
+                data-ico='delete'
+                type='button'
+                class='remove-pago text-red-500 text-lg material-symbols-rounded cursor-pointer self-start md:self-center'
+                title='Eliminar'
+            ></button>
+        </div>
+        <div class='w-full parent referencia-container hidden' data-referencia-container>
+            <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Referencia</label>
+            <input
+                type='text'
+                name='pagos[][referencia_pago]'
+                data-valid='text'
+                class='bg-red-100/50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-400 focus:border-red-400 block w-full p-2 outline-none'
+                placeholder='Ingrese la referencia'
+                autocomplete='off'
+            />
+        </div>
+    </div>
+</template>

@@ -299,7 +299,7 @@
                 >
                     <option value='' selected=''>Seleccione un método de pago</option>
                     {{#each methodsPayment}}
-                        <option value='{{id}}' data-comision='{{comision}}' data-tipo='{{tipo}}'>
+                        <option value='{{id}}' data-tipo='{{tipo}}'>
                             {{tipo}}
                             -
                             {{nombre}}
@@ -312,7 +312,7 @@
             </div>
 
             <div class='flex flex-col md:flex-row gap-4 items-center w-full'>
-                <div class='w-full parent'>
+                <div class='w-full parent' data-moneda-container>
                     <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Moneda</label>
                     <select
                         name='pagos[][moneda]'
@@ -325,7 +325,9 @@
                     </select>
                 </div>
                 <div class='w-full parent'>
-                    <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Monto recibido</label>
+                    <label class='block mb-2 text-sm font-medium text-gray-900 text-start' data-monto-label>
+                        Monto recibido
+                    </label>
                     <input
                         type='text'
                         name='pagos[][monto]'
@@ -336,7 +338,7 @@
                         required=''
                     />
                 </div>
-                <div class='w-full parent'>
+                <div class='w-full parent' data-vuelto-container>
                     <label class='block mb-2 text-sm font-medium text-gray-900 text-start'>Vuelto</label>
                     <input
                         type='text'

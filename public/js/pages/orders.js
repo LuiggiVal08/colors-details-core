@@ -163,15 +163,12 @@ const addOrderPayment = async (id) => {
         const fechaInput = modalOrder.querySelector('input[name="fecha"]');
         if (fechaInput && !fechaInput.value) fechaInput.value = new Date().toISOString().slice(0, 10);
 
-         // 🧩 Elementos del formulario
-         const methodPaymentSelect = modalOrder.querySelector('select[name="metodo_pago_id"]');
-         const monedaSelect = modalOrder.querySelector('select[name="moneda"]');
-         const montoInput = modalOrder.querySelector('input[name="monto"]');
-         const vueltoInput = modalOrder.querySelector('[data-role="vuelto"]');
-         const referenciaContainer = modalOrder.querySelector('[data-referencia-container]');
-         const referenciaInput = modalOrder.querySelector('input[name="referencia_pago"]');
-         const lblPendienteUSD = modalOrder.querySelector('[data-pedido-pendiente]');
-         const lblPendienteBS = modalOrder.querySelector('[data-pedido-pendiente-bs]');
+        // 🧩 Elementos del formulario
+        const containerPagos = modalOrder.querySelector('#pagos-pedido');
+        const templatePago = document.getElementById('template-pago-pedido');
+        const btnAddPago = modalOrder.querySelector('#btn-add-pago-pedido');
+        const lblAplicado = modalOrder.querySelector('[data-pagos-aplicado]');
+        const lblRestante = modalOrder.querySelector('[data-pagos-restante]');
 
         const parseMonto = (valor) => {
             const str = String(valor ?? '').trim();
@@ -180,70 +177,153 @@ const addOrderPayment = async (id) => {
             return Number(str.replace(/\./g, '').replace(',', '.')) || 0;
         };
 
-        const esMetodoEfectivo = () => {
-            const opcion = methodPaymentSelect?.options?.[methodPaymentSelect.selectedIndex];
+        const esEfectivoMetodo = (select) => {
+            const opcion = select?.options?.[select.selectedIndex];
             return String(opcion?.dataset?.tipo || '')
                 .toLowerCase()
-                .includes('efectivo');
+                .trim() === 'efectivo';
         };
 
-        const toggleReferencia = () => {
-            const methodsAccep = ['transferencia', 'digital'];
-            const metodoSeleccionado = methodPaymentSelect.options[methodPaymentSelect.selectedIndex];
-            const metodoTexto = metodoSeleccionado?.dataset?.tipo?.toLowerCase() || '';
-            const requiereReferencia = methodsAccep.some((m) => metodoTexto.includes(m));
+        // 🔢 Calcular valores de todas las filas de pago
+        const calcularValores = () => {
+            let acumuladoUsd = 0;
 
-            if (referenciaContainer) referenciaContainer.classList.toggle('hidden', !requiereReferencia);
-            if (referenciaInput) {
-                referenciaInput.required = requiereReferencia;
-                referenciaInput.readOnly = !requiereReferencia;
-                referenciaInput.value = requiereReferencia
-                    ? referenciaInput.value === 'N/A'
-                        ? ''
-                        : referenciaInput.value
-                    : 'N/A';
+            containerPagos?.querySelectorAll('.pago-item').forEach((item) => {
+                const metodoSelect = item.querySelector('select[name="pagos[][metodo_pago_id]"]');
+                const monedaSelect = item.querySelector('select[name="pagos[][moneda]"]');
+                const montoInput = item.querySelector('input[name="pagos[][monto]"]');
+                const vueltoInput = item.querySelector('[data-role="vuelto"]');
+
+                const esEfectivo = esEfectivoMetodo(metodoSelect);
+                const codigo = esEfectivo ? (monedaSelect?.value === 'VES' ? 'VES' : 'USD') : 'VES';
+                const recibido = parseMonto(montoInput?.value);
+                const recibidoUsd = codigo === 'USD' ? recibido : tasa > 0 ? recibido / tasa : 0;
+                const pendiente = Math.max(0, totalPendiente - acumuladoUsd);
+                const aplicadoUsd = esEfectivo ? Math.min(recibidoUsd, pendiente) : recibidoUsd;
+                const aplicadoMoneda = codigo === 'USD' ? aplicadoUsd : aplicadoUsd * tasa;
+                const vuelto = esEfectivo ? Math.max(0, recibido - aplicadoMoneda) : 0;
+
+                if (vueltoInput) vueltoInput.value = Format.float(vuelto.toFixed(2));
+                if (montoInput) {
+                    const excede = !esEfectivo && recibidoUsd > pendiente + 0.01;
+                    montoInput.classList.toggle('inputError', excede);
+                }
+
+                acumuladoUsd += aplicadoUsd;
+            });
+
+            if (lblAplicado) lblAplicado.textContent = '$ ' + Format.float(acumuladoUsd.toFixed(2));
+            if (lblRestante) {
+                const restante = Math.max(0, totalPendiente - acumuladoUsd);
+                lblRestante.textContent = '$ ' + Format.float(restante.toFixed(2));
+                lblRestante.classList.toggle('text-red-500', restante > 0);
+                lblRestante.classList.toggle('text-green-600', restante <= 0);
             }
         };
 
-         // 🧹 Limpieza inicial
-         montoInput.value = '0,00';
-         if (vueltoInput) vueltoInput.value = '0,00';
+        const agregarLogicaPago = (root) => {
+            const methodPaymentSelect = root.querySelector('select[name="pagos[][metodo_pago_id]"]');
+            const monedaSelect = root.querySelector('select[name="pagos[][moneda]"]');
+            const montoInput = root.querySelector('input[name="pagos[][monto]"]');
+            const referenciaContainer = root.querySelector('[data-referencia-container]');
+            const referenciaInput = root.querySelector('input[name="pagos[][referencia_pago]"]');
+            const monedaContainer = root.querySelector('[data-moneda-container]');
+            const vueltoContainer = root.querySelector('[data-vuelto-container]');
+            const montoLabel = root.querySelector('[data-monto-label]');
 
-        Format.formatEventInput({ elements: modalOrder.querySelectorAll('input, select') });
+            Format.formatEventInput({ elements: root.querySelectorAll('input, select') });
 
-        // 🔢 Calcular valores según la moneda elegida
-        const calcularValores = () => {
-            const codigo = monedaSelect?.value === 'VES' ? 'VES' : 'USD';
-            const recibido = parseMonto(montoInput.value);
-            const recibidoUsd = codigo === 'USD' ? recibido : tasa > 0 ? recibido / tasa : 0;
-            const pendiente = Math.max(0, totalPendiente - 0);
-            const aplicadoUsd = Math.min(recibidoUsd, pendiente);
-            const aplicadoMoneda = codigo === 'USD' ? aplicadoUsd : aplicadoUsd * tasa;
-            const vuelto = esMetodoEfectivo() ? Math.max(0, recibido - aplicadoMoneda) : 0;
+            const toggleReferencia = () => {
+                const methodsAccep = ['transferencia', 'digital'];
+                const metodoSeleccionado = methodPaymentSelect.options[methodPaymentSelect.selectedIndex];
+                const metodoTexto = metodoSeleccionado?.dataset?.tipo?.toLowerCase() || '';
+                const requiereReferencia = methodsAccep.some((m) => metodoTexto.includes(m));
 
-            if (vueltoInput) vueltoInput.value = Format.float(vuelto.toFixed(2));
+                if (referenciaContainer) referenciaContainer.classList.toggle('hidden', !requiereReferencia);
+                if (referenciaInput) {
+                    referenciaInput.required = requiereReferencia;
+                    referenciaInput.readOnly = !requiereReferencia;
+                    referenciaInput.value = requiereReferencia
+                        ? referenciaInput.value === 'N/A'
+                            ? ''
+                            : referenciaInput.value
+                        : 'N/A';
+                }
+            };
 
-            const nuevoPendiente = pendiente - aplicadoUsd;
-            const nuevoPendienteBs = nuevoPendiente * tasa;
-            lblPendienteUSD.textContent = '$ ' + Format.float(nuevoPendiente.toFixed(2));
-            lblPendienteBS.textContent = Format.float(nuevoPendienteBs.toFixed(2)) + ' Bs';
+            // Solo el efectivo permite elegir moneda (USD/VES) y genera vuelto
+            const toggleMoneda = () => {
+                const efectivo = esEfectivoMetodo(methodPaymentSelect);
 
-            lblPendienteUSD.classList.toggle('text-red-500', nuevoPendiente > 0);
-            lblPendienteUSD.classList.toggle('text-green-600', nuevoPendiente <= 0);
-            lblPendienteBS.classList.toggle('text-red-500', nuevoPendienteBs > 0);
-            lblPendienteBS.classList.toggle('text-green-600', nuevoPendienteBs <= 0);
-        };
+                if (monedaContainer) monedaContainer.classList.toggle('hidden', !efectivo);
+                if (vueltoContainer) vueltoContainer.classList.toggle('hidden', !efectivo);
 
-        // 📌 Eventos (on* para no duplicar listeners al reabrir el modal)
-        methodPaymentSelect.onchange = () => {
+                if (!efectivo && monedaSelect) monedaSelect.value = 'VES';
+
+                if (montoLabel) {
+                    if (!efectivo) {
+                        montoLabel.textContent = 'Monto a pagar (Bs.)';
+                    } else {
+                        const codigo = monedaSelect?.value === 'VES' ? 'Bs.' : '$';
+                        montoLabel.textContent = `Monto recibido (${codigo})`;
+                    }
+                }
+            };
+
+            methodPaymentSelect.addEventListener('change', () => {
+                toggleReferencia();
+                toggleMoneda();
+                calcularValores();
+            });
+            monedaSelect?.addEventListener('change', calcularValores);
+            montoInput?.addEventListener('input', calcularValores);
+
             toggleReferencia();
+            toggleMoneda();
             calcularValores();
         };
-        if (monedaSelect) monedaSelect.onchange = calcularValores;
-        montoInput.oninput = calcularValores;
 
-        toggleReferencia();
-        calcularValores();
+        const agregarPago = () => {
+            if (!templatePago || !containerPagos) return;
+
+            const clone = templatePago.content.cloneNode(true);
+            const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+            clone.querySelectorAll('input, select').forEach((el) => {
+                const name = el.getAttribute('name');
+                el.setAttribute('id', `${name}-${unique}`);
+                const parent = el.closest('.parent');
+                parent?.setAttribute('data-id', `${name}-${unique}`);
+                const label = parent?.querySelector('label');
+                label?.setAttribute('for', `${name}-${unique}`);
+            });
+
+            containerPagos.appendChild(clone);
+            agregarLogicaPago(containerPagos.lastElementChild);
+            calcularValores();
+        };
+
+        // 🧹 Reiniciar el modal y listeners (se reasignan en cada apertura)
+        if (btnAddPago) btnAddPago.onclick = agregarPago;
+        if (containerPagos) {
+            containerPagos.onclick = (e) => {
+                if (e.target.classList.contains('remove-pago')) {
+                    const item = e.target.closest('.pago-item');
+                    if (containerPagos.querySelectorAll('.pago-item').length > 1) {
+                        item?.remove();
+                    } else {
+                        const select = item?.querySelector('select[name="pagos[][metodo_pago_id]"]');
+                        if (select) select.value = '';
+                        const monto = item?.querySelector('input[name="pagos[][monto]"]');
+                        if (monto) monto.value = '0,00';
+                    }
+                    calcularValores();
+                }
+            };
+            containerPagos.innerHTML = '';
+        }
+
+        agregarPago();
     }
 
     setupModalLifecycle(modalOrder);
@@ -376,13 +456,13 @@ const viewOrder = async (id) => {
                      fecha: (p) => new Date(p.fecha).toLocaleDateString('es-ES'),
                      tipo: (p) => p.metodo.nombre,
                      referencia: (p) => p.referencia_pago,
-                     monto: (p) => '$' + Format.float(p.monto),
-                     monto_bs: (p) => '$' + Format.float((Number(p.monto) * Number(tasa)).toFixed(2)),
+                     monto: (p) => '$' + Format.float(Number(p.monto_usd ?? p.monto ?? 0).toFixed(2)),
+                     monto_bs: (p) => Format.float((Number(p.monto_usd ?? p.monto ?? 0) * Number(tasa)).toFixed(2)) + ' Bs',
                  },
             },
         });
 
-        const totalPagos = pagos.reduce((a, p) => a + Number(p.monto), 0);
+        const totalPagos = pagos.reduce((a, p) => a + Number(p.monto_usd ?? p.monto ?? 0), 0);
         modal.querySelector('[data-pedido-pago-total]').textContent = '$' + Format.float(totalPagos.toFixed(2));
 
         // ================================

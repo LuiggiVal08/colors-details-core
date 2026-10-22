@@ -1,6 +1,5 @@
 import { httpClient } from '../../index.js';
 import fillTable from '../../helpers/fillTable.js';
-import { Format } from '../../helpers/Format.js';
 import { setupModalLifecycle } from '../../helpers/handleModalEvents.js';
 import { setupFilteredTable } from '../../helpers/setupFilteredTable.js';
 import badge from '../../helpers/badge.js';
@@ -53,7 +52,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     span.appendChild(text);
                     return span;
                 },
-                comision: (dato) => `${Format.float(dato.comision)}%`,
                 estado: (dato) => {
                     const activo = dato.activo ? 'Activo' : 'Inactivo';
                     return badge(activo, {
@@ -88,7 +86,6 @@ const editPaymentMethod = async (id) => {
         form.action = `/payment-method/${id}`;
         form.querySelector('[name="nombre"]').value = data.nombre;
         form.querySelector('[name="tipo"]').value = data.tipo;
-        form.querySelector('[name="comision"]').value = Format.float(data.comision);
         form.querySelector('[name="descripcion"]').value = data.descripcion;
         form.querySelector('[name="activo"]').checked = data.activo;
     }

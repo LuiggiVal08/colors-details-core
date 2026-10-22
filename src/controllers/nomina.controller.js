@@ -1,12 +1,18 @@
 import { Op } from 'sequelize';
 import { models } from '../models/index.js';
-import handleErrorsController from '../helpers/handdleErrorsController.js';
+import handleErrorsController from '../helpers/handlleErrorsController.js';
 import { z } from 'zod';
 import { nominaQueue } from '../config/nominaQueue.js';
+import cajaService from '../services/cajaService.js';
+import { formatearPrecio } from '../helpers/format.js';
 
 const generateSchema = z.object({
     periodo_inicio: z.string().min(1, 'Fecha inicio requerida'),
     periodo_fin: z.string().min(1, 'Fecha fin requerida'),
+});
+
+const pagarSchema = z.object({
+    monto: z.string().optional(),
 });
 
 class NominaController {
@@ -91,6 +97,104 @@ class NominaController {
 
             res.json({ message: 'Nómina en proceso', jobId: job.id });
         } catch (error) {
+            handleErrorsController(error, res, req);
+        }
+    }
+
+    /**
+     * Registra el pago de una nómina: genera el egreso en la caja abierta del usuario
+     * y actualiza el estado de pago de la nómina.
+     */
+    static async pagar(req, res) {
+        const t = await models.sequelize.transaction();
+        try {
+            const isAdmin = ['admin', 'superadmin'].includes(req.user.tipo_usuario_name);
+            if (!isAdmin) {
+                await t.rollback();
+                return res.status(403).json({ message: 'No tienes permisos para pagar la nómina' });
+            }
+
+            const { id } = req.params;
+            const data = pagarSchema.parse(req.body ?? {});
+
+            const nomina = await models.Nomina.findByPk(id, {
+                include: [{ model: models.TasaDolar, as: 'tasa' }],
+                transaction: t,
+            });
+
+            if (!nomina) {
+                await t.rollback();
+                return res.status(404).json({ message: 'Nómina no encontrada' });
+            }
+
+            if (nomina.estado !== 'completed') {
+                await t.rollback();
+                return res.status(400).json({ message: 'La nómina aún no está lista para pagarse' });
+            }
+
+            const totalBs = formatearPrecio(nomina.total_monto);
+            const pagadoBs = formatearPrecio(nomina.total_pagado);
+            const pendienteBs = Math.round((totalBs - pagadoBs) * 100) / 100;
+
+            if (pendienteBs <= 0.01) {
+                await t.rollback();
+                return res.status(400).json({ message: 'La nómina ya está completamente pagada' });
+            }
+
+            const montoPago = data.monto !== undefined ? formatearPrecio(data.monto) : pendienteBs;
+
+            if (montoPago <= 0) {
+                await t.rollback();
+                return res.status(400).json({ message: 'El monto a pagar debe ser mayor a 0' });
+            }
+
+            if (montoPago > pendienteBs + 0.01) {
+                await t.rollback();
+                return res.status(400).json({ message: 'El monto a pagar excede el saldo pendiente de la nómina' });
+            }
+
+            const tasaValor = Number(nomina.tasa?.tasa) || 0;
+
+            const movimiento = await cajaService.realizarMovimiento({
+                usuario_id: req.user.id,
+                monto: montoPago.toFixed(2),
+                moneda: 'VES',
+                tasa: tasaValor > 0 ? tasaValor : null,
+                descripcion: `Pago de nómina #${nomina.id} (${nomina.periodo_inicio} - ${nomina.periodo_fin})`,
+                tipo: 'egreso',
+                transaction: t,
+            });
+
+            const nuevoPagado = Math.round((pagadoBs + montoPago) * 100) / 100;
+            const nuevoPendiente = Math.round((totalBs - nuevoPagado) * 100) / 100;
+
+            await nomina.update(
+                {
+                    total_pagado: nuevoPagado.toFixed(2),
+                    estado_pago: nuevoPendiente <= 0.01 ? 'pagada' : 'parcial',
+                    pagada_en: nuevoPendiente <= 0.01 ? new Date() : null,
+                    pagada_por_id: req.user.id,
+                },
+                { transaction: t },
+            );
+
+            await t.commit();
+
+            return res.json({
+                message:
+                    nuevoPendiente <= 0.01
+                        ? 'Nómina pagada exitosamente'
+                        : 'Pago parcial registrado exitosamente',
+                data: {
+                    nomina_id: nomina.id,
+                    total_pagado: nuevoPagado,
+                    pendiente: nuevoPendiente,
+                    estado_pago: nuevoPendiente <= 0.01 ? 'pagada' : 'parcial',
+                    movimiento_id: movimiento.id,
+                },
+            });
+        } catch (error) {
+            await t.rollback();
             handleErrorsController(error, res, req);
         }
     }
