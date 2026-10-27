@@ -46,13 +46,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     return `$${Format.float((Number(sale.total) + porcentajeIva).toFixed(2))}`;
                 },
                 total_bs: (sale) => {
-                    const totalBs = sale.pagos.reduce((acum, pago) => {
-                        const monto = parseFloat(pago.monto || 0);
-                        const tasa = parseFloat(pago?.tasa?.tasa || 0);
-                        return acum + monto * tasa;
-                    }, 0);
-                    const porcentajeIva = (Number(sale.iva.porcentaje) * Number(totalBs)) / 100;
-                    return `${Format.float((Number(totalBs) + porcentajeIva).toFixed(2))}BS.s`;
+                    const totalConIva = Number(sale.total) * (1 + Number(sale.iva?.porcentaje || 0) / 100);
+                    const totalBs = totalConIva * Number(tasaDolar?.tasa || 0);
+                    return `${Format.float(totalBs.toFixed(2))} Bs.`;
                 },
                 observaciones: (sale) => sale.observaciones,
             },

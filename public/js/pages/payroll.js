@@ -31,6 +31,15 @@ async function renderSummary(nominas) {
 
 const modalPagarNomina = document.getElementById('modal-pagar-nomina');
 const formPagarNomina = document.getElementById('form-pagar-nomina');
+const medioPagoNomina = document.getElementById('medio_pago_nomina');
+const datosPagoDigitalNomina = document.getElementById('datos-pago-digital-nomina');
+
+medioPagoNomina?.addEventListener('change', () => {
+    const esDigital = medioPagoNomina.value === 'digital';
+    datosPagoDigitalNomina?.classList.toggle('hidden', !esDigital);
+    const referenciaInput = formPagarNomina?.querySelector('[name="referencia"]');
+    if (referenciaInput) referenciaInput.required = esDigital;
+});
 
 const abrirModalPagarNomina = (nomina) => {
     if (!modalPagarNomina || !formPagarNomina) return console.error('Modal de pago de nómina no encontrado');
@@ -47,6 +56,15 @@ const abrirModalPagarNomina = (nomina) => {
     formPagarNomina.querySelector('[name="nomina_id"]').value = nomina.id;
     const montoInput = formPagarNomina.querySelector('[name="monto"]');
     if (montoInput) montoInput.value = Format.float(pendienteBs.toFixed(2));
+    if (medioPagoNomina) medioPagoNomina.value = 'efectivo';
+    datosPagoDigitalNomina?.classList.add('hidden');
+    const referenciaInput = formPagarNomina.querySelector('[name="referencia"]');
+    if (referenciaInput) {
+        referenciaInput.value = '';
+        referenciaInput.required = false;
+    }
+    const cuentaInput = formPagarNomina.querySelector('[name="cuenta_receptora"]');
+    if (cuentaInput) cuentaInput.value = '';
 
     setupModalLifecycle(modalPagarNomina);
 };
@@ -64,7 +82,12 @@ if (formPagarNomina) {
         }
 
         try {
-            const response = await httpClient.post(`/nomina/${nominaId}/pagar`, { monto });
+            const response = await httpClient.post(`/nomina/${nominaId}/pagar`, {
+                monto,
+                medio_pago: medioPagoNomina?.value || 'efectivo',
+                referencia: formPagarNomina.querySelector('[name="referencia"]')?.value || undefined,
+                cuenta_receptora: formPagarNomina.querySelector('[name="cuenta_receptora"]')?.value || undefined,
+            });
 
             if (response.error) {
                 showToast({

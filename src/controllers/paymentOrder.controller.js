@@ -13,11 +13,16 @@ import {
 
 const TOLERANCIA = 0.01;
 const redondear = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+const fechaPagoSchema = z
+    .union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.coerce.date()])
+    .optional();
+const normalizarFechaPago = (fecha) =>
+    typeof fecha === 'string' ? `${fecha} 00:00:00` : fecha || new Date();
 
 const schemaPago = z.object({
     pedido_id: z.string().optional(),
     metodo_pago_id: z.string(),
-    fecha: z.coerce.date().optional(),
+    fecha: fechaPagoSchema,
     monto: z.string(),
     moneda: z.string().optional(),
     monto_recibido: z.string().optional(),
@@ -28,7 +33,7 @@ const schemaPago = z.object({
 
 const schemaPagos = z.object({
     pedido_id: z.string(),
-    fecha: z.coerce.date().optional(),
+    fecha: fechaPagoSchema,
     pagos: z.array(schemaPago).min(1, 'Debe registrar al menos un pago'),
 });
 
@@ -84,6 +89,8 @@ class PagoController {
                 include: [
                     { model: models.Pedido, as: 'pedido' },
                     { model: models.MetodoPago, as: 'metodo' },
+                    { model: models.TasaDolar, as: 'tasa' },
+                    { model: models.Moneda, as: 'moneda' },
                 ],
             });
             res.json(pagos);
@@ -99,6 +106,8 @@ class PagoController {
                 include: [
                     { model: models.Pedido, as: 'pedido' },
                     { model: models.MetodoPago, as: 'metodo' },
+                    { model: models.TasaDolar, as: 'tasa' },
+                    { model: models.Moneda, as: 'moneda' },
                 ],
             });
             if (!pago) return res.status(404).json({ message: 'Pago no encontrado' });
@@ -278,7 +287,7 @@ class PagoController {
                         pedido_id: pedido.id,
                         metodo_pago_id: metodo.id,
                         tasa_id: tasa.id,
-                        fecha: fechaPago ?? new Date(),
+                        fecha: normalizarFechaPago(fechaPago),
                         monto: aplicadoMoneda.toFixed(2),
                         moneda_id: monedaId,
                         monto_usd: aplicadoUsd.toFixed(2),
@@ -462,7 +471,7 @@ class PagoController {
                 {
                     metodo_pago_id: newMetodo.id,
                     tasa_id: tasa?.id ?? pago.tasa_id,
-                    fecha: data.fecha ?? pago.fecha,
+                    fecha: data.fecha ? normalizarFechaPago(data.fecha) : pago.fecha,
                     monto: aplicadoMoneda.toFixed(2),
                     moneda_id: monedaId,
                     monto_usd: aplicadoUsd.toFixed(2),

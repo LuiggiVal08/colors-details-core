@@ -32,7 +32,7 @@ btnControlCaja?.addEventListener('click', async (e) => {
     const response = await httpClient.get(`/box-register-control/actual/${cajaId}`);
 
     // ESTA ERA LA FALLA
-    const { error, message, data: control, resumen } = response.data;
+    const { error, message, data: control, caja, resumen } = response.data;
 
     if (error) {
         showToast({
@@ -118,8 +118,8 @@ btnControlCaja?.addEventListener('click', async (e) => {
             aperturaContainer.classList.remove('hidden');
             const apBs = document.getElementById('monto_apertura');
             const apUsd = document.getElementById('monto_apertura_usd');
-            if (apBs) apBs.value = Number(control?.caja?.monto ?? 0).toFixed(2).replace('.', ',');
-            if (apUsd) apUsd.value = Number(control?.caja?.monto_usd ?? 0).toFixed(2).replace('.', ',');
+            if (apBs) apBs.value = Number(caja?.monto ?? 0).toFixed(2).replace('.', ',');
+            if (apUsd) apUsd.value = Number(caja?.monto_usd ?? 0).toFixed(2).replace('.', ',');
         }
 
         mensaje.innerHTML = `

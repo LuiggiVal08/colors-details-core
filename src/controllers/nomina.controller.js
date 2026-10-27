@@ -157,6 +157,11 @@ class NominaController {
                 return res.status(400).json({ message: 'El monto a pagar excede el saldo pendiente de la nómina' });
             }
 
+            if (data.medio_pago === 'digital' && !data.referencia?.trim()) {
+                await t.rollback();
+                return res.status(400).json({ message: 'La referencia es obligatoria para pagos digitales' });
+            }
+
             const tasaValor = Number(nomina.tasa?.tasa) || 0;
 
             const movimiento = await cajaService.realizarMovimiento({
@@ -172,6 +177,47 @@ class NominaController {
                 cuenta_receptora: data.cuenta_receptora,
                 transaction: t,
             });
+
+            const detallesNomina = await models.NominaDetalle.findAll({
+                where: { nomina_id: nomina.id },
+                attributes: ['id', 'empleado_id', 'monto_total'],
+                order: [['id', 'ASC']],
+                transaction: t,
+            });
+            const totalDetalles = detallesNomina.reduce((sum, detalle) => sum + Number(detalle.monto_total || 0), 0);
+            if (totalDetalles <= 0) {
+                await t.rollback();
+                return res.status(400).json({ message: 'La nómina no tiene montos asignados a sus empleados' });
+            }
+            let montoAsignado = 0;
+            const distribucion = detallesNomina.map((detalle, index) => {
+                const monto = index === detallesNomina.length - 1
+                    ? Math.round((montoPago - montoAsignado) * 100) / 100
+                    : Math.floor((montoPago * Number(detalle.monto_total) / totalDetalles + Number.EPSILON) * 100) / 100;
+                montoAsignado += monto;
+                return { nomina_detalle_id: detalle.id, empleado_id: detalle.empleado_id, monto };
+            });
+
+            const pagoNomina = await models.NominaPago.create(
+                {
+                    nomina_id: nomina.id,
+                    movimiento_caja_id: movimiento.id,
+                    usuario_id: req.user.id,
+                    monto: montoPago.toFixed(2),
+                    medio_pago: data.medio_pago || 'efectivo',
+                    referencia: data.referencia || null,
+                    cuenta_receptora: data.cuenta_receptora || null,
+                },
+                { transaction: t },
+            );
+            await models.NominaPagoDetalle.bulkCreate(
+                distribucion.map((detalle) => ({
+                    nomina_pago_id: pagoNomina.id,
+                    nomina_detalle_id: detalle.nomina_detalle_id,
+                    monto: detalle.monto.toFixed(2),
+                })),
+                { transaction: t },
+            );
 
             const nuevoPagado = Math.round((pagadoBs + montoPago) * 100) / 100;
             const nuevoPendiente = Math.round((totalBs - nuevoPagado) * 100) / 100;

@@ -129,10 +129,12 @@ class ControlCajaController {
                 });
             }
 
+            const caja = control?.caja || (await models.Caja.findByPk(caja_id));
             return res.json({
                 error: false,
                 message: control ? 'Estado de la caja obtenido' : 'Esta caja aún no tiene controles creados',
                 data: control,
+                caja,
                 resumen: control ? await ControlCajaController.obtenerResumenControl(control.id) : null,
             });
         } catch (error) {
@@ -206,18 +208,8 @@ class ControlCajaController {
                 });
             }
 
-            const tieneValor = (valor) => valor !== undefined && valor !== null && String(valor).trim() !== '';
-            const { monto_apertura, monto_apertura_usd } = req.body || {};
-
-            let saldoBs = formatearPrecio(caja.monto ?? 0);
-            let saldoUsd = formatearPrecio(caja.monto_usd ?? 0);
-
-            // Si el usuario indica el conteo físico inicial, ese pasa a ser el saldo del turno.
-            if (tieneValor(monto_apertura) || tieneValor(monto_apertura_usd)) {
-                if (tieneValor(monto_apertura)) saldoBs = formatearPrecio(monto_apertura);
-                if (tieneValor(monto_apertura_usd)) saldoUsd = formatearPrecio(monto_apertura_usd);
-                await caja.update({ monto: saldoBs.toFixed(2), monto_usd: saldoUsd.toFixed(2) }, { transaction });
-            }
+            const saldoBs = formatearPrecio(caja.monto ?? 0);
+            const saldoUsd = formatearPrecio(caja.monto_usd ?? 0);
 
             const control = await models.ControlCaja.create({
                 caja_id,

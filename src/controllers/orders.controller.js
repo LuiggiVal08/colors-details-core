@@ -67,7 +67,15 @@ class PedidoController {
                 include: [
                     { model: models.Cliente, as: 'cliente' },
                     { model: models.Usuario, as: 'usuario', include: [{ model: models.Empleado, as: 'empleado' }] },
-                    { model: models.Pago, as: 'pagos', include: [{ model: models.MetodoPago, as: 'metodo' }] },
+                    {
+                        model: models.Pago,
+                        as: 'pagos',
+                        include: [
+                            { model: models.MetodoPago, as: 'metodo' },
+                            { model: models.TasaDolar, as: 'tasa' },
+                            { model: models.Moneda, as: 'moneda' },
+                        ],
+                    },
                     { model: models.Iva, as: 'iva' },
                     {
                         model: models.PedidoDetalle,
@@ -90,7 +98,15 @@ class PedidoController {
                 include: [
                     { model: models.Cliente, as: 'cliente' },
                     { model: models.Usuario, as: 'usuario', include: [{ model: models.Empleado, as: 'empleado' }] },
-                    { model: models.Pago, as: 'pagos', include: [{ model: models.MetodoPago, as: 'metodo' }] },
+                    {
+                        model: models.Pago,
+                        as: 'pagos',
+                        include: [
+                            { model: models.MetodoPago, as: 'metodo' },
+                            { model: models.TasaDolar, as: 'tasa' },
+                            { model: models.Moneda, as: 'moneda' },
+                        ],
+                    },
                     { model: models.Iva, as: 'iva' },
                     {
                         model: models.PedidoDetalle,

@@ -8,6 +8,19 @@ import { setupFilteredTable } from '../helpers/setupFilteredTable.js';
 import intoIcon from '../helpers/intoIcon.js';
 import badge from '../helpers/badge.js';
 import { generarPDF } from '../helpers/generatePdf.js';
+
+const fechaLocalActual = () => {
+    const fecha = new Date();
+    const dosDigitos = (valor) => String(valor).padStart(2, '0');
+    return `${fecha.getFullYear()}-${dosDigitos(fecha.getMonth() + 1)}-${dosDigitos(fecha.getDate())}`;
+};
+
+const formatoFechaPago = (valor) => {
+    if (!valor) return '—';
+    const [year, month, day] = String(valor).slice(0, 10).split('-').map(Number);
+    if (!year || !month || !day) return new Date(valor).toLocaleDateString('es-ES');
+    return new Date(year, month - 1, day).toLocaleDateString('es-ES');
+};
 import { initStatusBar } from '../components/statusBar.js';
 import setupImageDropzone from '../helpers/imageDropzone.js';
 
@@ -105,7 +118,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const ivaPorcentaje = Number(order.iva.porcentaje);
                     const total = Number(order.total);
                     const totalMasIVA = total + (total * ivaPorcentaje) / 100;
-                    const totalPagos = order.pagos.reduce((acum, pago) => acum + Number(pago.monto), 0);
+                    const totalPagos = order.pagos.reduce(
+                        (acum, pago) => acum + Number(pago.monto_usd ?? pago.monto ?? 0),
+                        0,
+                    );
                     const porcentajePago = (totalPagos / totalMasIVA) * 100;
 
                     return badge(`${Format.float(porcentajePago.toFixed(2))}%`, {
@@ -161,7 +177,7 @@ const addOrderPayment = async (id) => {
 
         modalOrder.querySelector('input[name="pedido_id"]').value = pedido.id;
         const fechaInput = modalOrder.querySelector('input[name="fecha"]');
-        if (fechaInput && !fechaInput.value) fechaInput.value = new Date().toISOString().slice(0, 10);
+        if (fechaInput && !fechaInput.value) fechaInput.value = fechaLocalActual();
 
         // 🧩 Elementos del formulario
         const containerPagos = modalOrder.querySelector('#pagos-pedido');
@@ -508,11 +524,18 @@ const viewOrder = async (id) => {
                 templateId: 'fila-ejemplo-pago',
                 tableSelector: '#pedido-pagos',
                  formatters: {
-                     fecha: (p) => new Date(p.fecha).toLocaleDateString('es-ES'),
+                     fecha: (p) => formatoFechaPago(p.fecha),
                      tipo: (p) => p.metodo.nombre,
                      referencia: (p) => p.referencia_pago,
                      monto: (p) => '$' + Format.float(Number(p.monto_usd ?? p.monto ?? 0).toFixed(2)),
-                     monto_bs: (p) => Format.float((Number(p.monto_usd ?? p.monto ?? 0) * Number(tasa)).toFixed(2)) + ' Bs',
+                     monto_bs: (p) => {
+                         const codigoMoneda = String(p.moneda?.codigo || '').toUpperCase();
+                         const tasaPago = Number(p.tasa?.tasa) || Number(tasa) || 0;
+                         const montoBs = codigoMoneda === 'VES'
+                             ? Number(p.monto || 0)
+                             : Number(p.monto_usd ?? p.monto ?? 0) * tasaPago;
+                         return `${Format.float(montoBs.toFixed(2))} Bs`;
+                     },
                  },
             },
         });

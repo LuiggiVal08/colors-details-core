@@ -64,7 +64,99 @@ class EmpleadoController {
                 ],
             });
             if (!empleado) return res.status(404).json({ message: 'Empleado no encontrado' });
-            res.json(empleado);
+
+            const nominaDetalles = await models.NominaDetalle.findAll({
+                where: { empleado_id: id },
+                include: [
+                    {
+                        model: models.Nomina,
+                        as: 'nomina',
+                        include: [
+                            { model: models.TasaDolar, as: 'tasa' },
+                            {
+                                model: models.NominaDetalle,
+                                as: 'detalles',
+                                attributes: ['id', 'empleado_id', 'monto_total'],
+                            },
+                        ],
+                    },
+                ],
+            });
+            const nominasPorId = new Map(
+                nominaDetalles
+                    .map((detalle) => detalle.nomina)
+                    .filter(Boolean)
+                    .map((nomina) => [nomina.id, nomina]),
+            );
+            const nominaIds = [...nominasPorId.keys()];
+            const movimientosPago = nominaIds.length
+                ? await models.MovimientoCaja.findAll({
+                      where: {
+                          [Op.or]: nominaIds.map((nominaId) => ({
+                              descripcion: { [Op.like]: `Pago de nómina #${nominaId} %` },
+                          })),
+                      },
+                      order: [['fecha', 'ASC'], ['id', 'ASC']],
+                  })
+                : [];
+            const pagosNomina = nominaIds.length
+                ? await models.NominaPago.findAll({
+                      where: { nomina_id: nominaIds },
+                      include: [{ model: models.NominaPagoDetalle, as: 'detalles' }],
+                  })
+                : [];
+            const pagosPorMovimiento = new Map(pagosNomina.map((pago) => [pago.movimiento_caja_id, pago]));
+            const detallesPorNomina = new Map();
+            for (const detalle of nominaDetalles) {
+                if (!detalle.nomina) continue;
+                const detalles = detallesPorNomina.get(detalle.nomina.id) || detalle.nomina.detalles || [];
+                detallesPorNomina.set(detalle.nomina.id, detalles);
+            }
+
+            const historialNominaGeneral = [];
+            for (const movimiento of movimientosPago) {
+                const nominaId = Number(movimiento.descripcion.match(/Pago de nómina #(\d+)/)?.[1]);
+                const nomina = nominasPorId.get(nominaId);
+                const detalles = [...(detallesPorNomina.get(nominaId) || [])].sort((a, b) => a.id - b.id);
+                const totalNomina = detalles.reduce((sum, detalle) => sum + Number(detalle.monto_total || 0), 0);
+                if (!nomina || totalNomina <= 0) continue;
+
+                const pagoNomina = pagosPorMovimiento.get(movimiento.id);
+                const detalleEmpleado = nominaDetalles.find(
+                    (detalle) => detalle.nomina?.id === nominaId && detalle.empleado_id === Number(id),
+                );
+                let montoEmpleado = pagoNomina
+                    ?.detalles?.find((detalle) => detalle.nomina_detalle_id === detalleEmpleado?.id)?.monto;
+
+                if (montoEmpleado === undefined) {
+                    const montoPago = Number(movimiento.monto || 0);
+                    let montoAsignado = 0;
+                    const asignaciones = detalles.map((detalle, index) => {
+                        const monto = index === detalles.length - 1
+                            ? Math.round((montoPago - montoAsignado) * 100) / 100
+                            : Math.floor((montoPago * Number(detalle.monto_total) / totalNomina + Number.EPSILON) * 100) / 100;
+                        montoAsignado += monto;
+                        return { empleado_id: detalle.empleado_id, monto };
+                    });
+                    montoEmpleado = asignaciones.find((asignacion) => asignacion.empleado_id === Number(id))?.monto;
+                }
+                if (!detalleEmpleado || Number(montoEmpleado) <= 0) continue;
+
+                const tasa = Number(nomina.tasa?.tasa) || 0;
+                historialNominaGeneral.push({
+                    nomina_id: nomina.id,
+                    periodo_inicio: nomina.periodo_inicio,
+                    periodo_fin: nomina.periodo_fin,
+                    fecha_pago: movimiento.fecha,
+                    monto_bs: Number(montoEmpleado),
+                    monto_usd: tasa > 0 ? Math.round((Number(montoEmpleado) / tasa) * 100) / 100 : 0,
+                    tasa: nomina.tasa,
+                    medio_pago: movimiento.medio_pago,
+                    referencia: movimiento.referencia,
+                });
+            }
+
+            res.json({ ...empleado.toJSON(), historial_nomina_general: historialNominaGeneral });
         } catch (error) {
             handleErrorsController(error, res, req);
         }

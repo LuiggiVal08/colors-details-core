@@ -1,6 +1,7 @@
 import { models } from '../models/index.js';
 import handleErrorsController from '../helpers/handdleErrorsController.js';
 import { z } from 'zod';
+import { formatearPrecio } from '../helpers/format.js';
 
 export const nominaEmpleadoSchema = z.object({
     empleado_id: z.string(),
@@ -52,17 +53,23 @@ class NominaEmpleadoController {
         try {
             const exchangeRate = await models.TasaDolar.findOne({
                 where: { activa: true },
-            });
-            if (!exchangeRate) return res.status(404).json({ message: 'No se encontró la tasa actual del dólar' });
+                order: [['fecha', 'DESC'], ['id', 'DESC']],
+            }) || await models.TasaDolar.findOne({ order: [['fecha', 'DESC'], ['id', 'DESC']] });
+            if (!exchangeRate) {
+                return res.status(400).json({ message: 'Registra una tasa de cambio antes de crear la nómina' });
+            }
 
             const parsed = nominaEmpleadoSchema.parse({ ...req.body, tasa_id: exchangeRate.id });
 
-            const parseNum = (v) => Number(String(v || '0').replace(/\./g, '').replace(',', '.'));
+            const parseNum = (v) => formatearPrecio(String(v ?? '0'));
             const montoNum = parseNum(parsed.monto);
             const bonoNum = parseNum(parsed.bono);
             const deduccionNum = parseNum(parsed.deduccion);
             const montoTotal = montoNum + bonoNum - deduccionNum;
             const tasaNum = parseNum(exchangeRate.tasa);
+            if (tasaNum <= 0) {
+                return res.status(400).json({ message: 'La tasa de cambio debe ser mayor que cero' });
+            }
             const montoUsd = parsed.monto_usd
                 ? parseNum(parsed.monto_usd)
                 : Math.round((montoTotal / tasaNum) * 100) / 100;
@@ -104,8 +111,14 @@ class NominaEmpleadoController {
 
             const data = nominaEmpleadoSchema.parse(req.body);
 
-            const parseNum = (v) => Number(String(v ?? '0').replace(/\./g, '').replace(',', '.'));
-            const exchangeRate = await models.TasaDolar.findOne({ where: { activa: true } });
+            const parseNum = (v) => formatearPrecio(String(v ?? '0'));
+            const exchangeRate =
+                (await models.TasaDolar.findOne({
+                    where: { activa: true },
+                    order: [['fecha', 'DESC'], ['id', 'DESC']],
+                })) ||
+                (await models.TasaDolar.findByPk(nomina.tasa_id)) ||
+                (await models.TasaDolar.findOne({ order: [['fecha', 'DESC'], ['id', 'DESC']] }));
             const tasaNum = exchangeRate ? parseNum(exchangeRate.tasa) : 0;
 
             const montoNum = parseNum(data.monto);

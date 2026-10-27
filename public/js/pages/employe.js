@@ -119,10 +119,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch { /* rate unavailable */ }
     }
 
-    const nominasEnriched = (employe.nominas || []).map((n) => ({
-        ...n,
-        retrasado: computeRetrasado(n),
-    }));
+    const nominasEnriched = [
+        ...(employe.nominas || []).map((n) => ({
+            ...n,
+            retrasado: computeRetrasado(n),
+        })),
+        ...(employe.historial_nomina_general || []).map((pago) => ({
+            fecha_inicio: pago.periodo_inicio,
+            fecha_fin: pago.periodo_fin,
+            creado_en: pago.fecha_pago,
+            monto: pago.monto_bs,
+            monto_usd: pago.monto_usd,
+            tasa: pago.tasa,
+            descripcion: `Pago general #${pago.nomina_id} · ${pago.medio_pago === 'digital' ? 'Digital' : 'Efectivo'}${pago.referencia ? ` · Ref. ${pago.referencia}` : ''}`,
+            retrasado: false,
+            tipo_historial: 'pago_general',
+        })),
+    ];
 
     setupFilteredTable({
         data: nominasEnriched,
@@ -186,6 +199,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 },
                 monto_usd: (dato) => `${Format.float(dato.monto)} Bs.`,
                 status: (dato) => {
+                    if (dato.tipo_historial === 'pago_general') {
+                        return `<span class='px-2 py-0.5 text-xs text-white rounded-full bg-green-500'>Pagado</span>`;
+                    }
                     if (dato.retrasado) {
                         return `<span class='px-2 py-0.5 text-xs text-white rounded-full bg-red-500'>Con retraso</span>`;
                     }

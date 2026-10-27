@@ -30,6 +30,8 @@ import ServicioPeriodo from './ServicioPeriodo.js';
 import Notificacion from './Notificacion.js';
 import Nomina from './Nomina.js';
 import NominaDetalle from './NominaDetalle.js';
+import NominaPago from './NominaPago.js';
+import NominaPagoDetalle from './NominaPagoDetalle.js';
 
 const models = {
     Empresa,
@@ -63,6 +65,8 @@ const models = {
     MovimientoCaja,
     Nomina,
     NominaDetalle,
+    NominaPago,
+    NominaPagoDetalle,
 
     sequelize,
 };
