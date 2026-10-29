@@ -14,7 +14,7 @@ import { queue } from '../config/queueConfig.js';
 
 const detalleSchema = z.object({
     producto_id: z.string(),
-    cantidad: z.string(),
+    cantidad: z.string().regex(/^[1-9]\d*$/, 'La cantidad debe ser un entero mayor que cero'),
     precio_unitario: z.string(),
     subtotal: z.string(),
 });

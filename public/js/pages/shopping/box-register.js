@@ -30,7 +30,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             },
             formatters: {
                 nombre: (dato) => dato.nombre,
-                tipo: (dato) => dato.tipo === 'digital' ? 'Digital / Banco' : 'Efectivo físico',
+                tipo: (dato) => {
+                    const esDigital = dato.tipo === 'digital';
+                    return badge(esDigital ? 'Digital / Banco' : 'Efectivo físico', {
+                        classes: [
+                            esDigital ? 'text-blue-600' : 'text-amber-800',
+                            esDigital ? 'bg-blue-400/10' : 'bg-amber-50',
+                        ],
+                    });
+                },
                 saldo: (dato) => `${Number(dato.monto ?? 0).toFixed(2)} Bs · $${Number(dato.monto_usd ?? 0).toFixed(2)}`,
                 estado: (dato) => {
                     const activo = dato.activo ? 'Activo' : 'Inactivo';

@@ -8,6 +8,7 @@ import { setupFilteredTable } from '../helpers/setupFilteredTable.js';
 import intoIcon from '../helpers/intoIcon.js';
 import badge from '../helpers/badge.js';
 import { generarPDF } from '../helpers/generatePdf.js';
+import { availableProductStock, refreshStockLimits } from '../helpers/productStock.js';
 
 const fechaLocalActual = () => {
     const fecha = new Date();
@@ -527,15 +528,26 @@ const viewOrder = async (id) => {
                      fecha: (p) => formatoFechaPago(p.fecha),
                      tipo: (p) => p.metodo.nombre,
                      referencia: (p) => p.referencia_pago,
-                     monto: (p) => '$' + Format.float(Number(p.monto_usd ?? p.monto ?? 0).toFixed(2)),
-                     monto_bs: (p) => {
-                         const codigoMoneda = String(p.moneda?.codigo || '').toUpperCase();
-                         const tasaPago = Number(p.tasa?.tasa) || Number(tasa) || 0;
-                         const montoBs = codigoMoneda === 'VES'
-                             ? Number(p.monto || 0)
-                             : Number(p.monto_usd ?? p.monto ?? 0) * tasaPago;
-                         return `${Format.float(montoBs.toFixed(2))} Bs`;
-                     },
+                    monto: (p) => {
+                        const codigoMoneda = String(p.moneda?.codigo || '').toUpperCase();
+                        const tasaPago = Number(p.tasa?.tasa) || Number(tasa) || 0;
+                        const montoRecibido = p.monto_recibido == null ? null : Number(p.monto_recibido);
+                        const montoUsd =
+                            codigoMoneda === 'VES' && tasaPago > 0
+                                ? (montoRecibido ?? Number(p.monto || 0)) / tasaPago
+                                : (montoRecibido ?? Number(p.monto_usd ?? p.monto ?? 0));
+                        return '$' + Format.float(montoUsd.toFixed(2));
+                    },
+                    monto_bs: (p) => {
+                        const codigoMoneda = String(p.moneda?.codigo || '').toUpperCase();
+                        const tasaPago = Number(p.tasa?.tasa) || Number(tasa) || 0;
+                        const montoRecibido = p.monto_recibido == null ? null : Number(p.monto_recibido);
+                        const montoBs =
+                            codigoMoneda === 'VES'
+                                ? (montoRecibido ?? Number(p.monto || 0))
+                                : (montoRecibido ?? Number(p.monto_usd ?? p.monto ?? 0)) * tasaPago;
+                        return `${Format.float(montoBs.toFixed(2))} Bs`;
+                    },
                  },
             },
         });
@@ -704,6 +716,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const hiddenProductoId = clone.querySelector('.producto-id-hidden');
                 const dataProducto = clone.querySelector('[data-producto]');
                 const precioInput = clone.querySelector('input[name*="[precio_unitario]"]');
+                const cantidadInput = clone.querySelector('input[name*="[cantidad]"]');
                 const rowTokenInput = clone.querySelector('.row-token-input');
                 const dropzoneInput = clone.querySelector('[data-dropzone-input]');
 
@@ -731,6 +744,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                         dataProducto.classList.add('hidden');
                         precioInput.value = '';
                         hiddenProductoId.value = '';
+                        hiddenProductoId.dataset.stock = '';
+                        cantidadInput.value = '';
+                        item.querySelector('input[name*="[precio_pedido_producto]"]').value = '';
+                        item.querySelector('input[name*="[subtotal]"]').value = '';
+                        refreshStockLimits(containerDetalles);
+                        calcularTotales();
 
                         if (!valor) return;
 
@@ -749,9 +768,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
 
                         resultadosLimitados.forEach((p) => {
+                            const stockDisponible = availableProductStock(
+                                containerDetalles,
+                                p.id,
+                                p.stock,
+                                item,
+                            );
                             const itemRes = document.createElement('div');
-                            itemRes.className =
-                                'px-4 py-2 hover:bg-red-100 cursor-pointer text-sm text-gray-800 transition-colors duration-200';
+                            itemRes.className = `px-4 py-2 text-sm text-gray-800 transition-colors duration-200 ${
+                                stockDisponible > 0
+                                    ? 'hover:bg-red-100 cursor-pointer'
+                                    : 'bg-gray-50 text-gray-500 cursor-not-allowed'
+                            }`;
                             itemRes.innerHTML = `
                                 <div class="flex flex-col">
                                     <span class="font-semibold text-gray-900">${p.nombre}</span>
@@ -760,17 +788,32 @@ document.addEventListener('DOMContentLoaded', async () => {
                                         p.categoria?.nombre || 'N/A'
                                     }</span>
                                     <span class="text-xs text-gray-600">Precio: $${p.precio}</span>
-                                    <span class="text-xs text-gray-600">Stock: ${p.stock}</span>
+                                    <span class="text-xs text-gray-600">Disponible: ${stockDisponible}</span>
                                 </div>
                             `;
 
+                            if (stockDisponible < 1) {
+                                resultadosDiv.appendChild(itemRes);
+                                return;
+                            }
+
                             itemRes.addEventListener('click', () => {
                                 try {
+                                    const stockDisponibleActual = availableProductStock(
+                                        containerDetalles,
+                                        p.id,
+                                        p.stock,
+                                        item,
+                                    );
+                                    if (stockDisponibleActual < 1) return;
+
                                     inputCodigo.value = `${p.codigo} - ${p.nombre}`;
                                     hiddenProductoId.value = p.id;
+                                    hiddenProductoId.dataset.stock = String(Number(p.stock) || 0);
                                     precioInput.value = Format.float(p.precio);
                                     resultadosDiv.classList.add('hidden');
                                     dataProducto.classList.remove('hidden');
+                                    refreshStockLimits(containerDetalles, item);
                                     calcularTotales();
                                 } catch (err) {
                                     console.error('⚠️ Error al seleccionar producto:', err);
@@ -818,6 +861,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const precioExtraInput = item.querySelector('input[name*="[precio_pedido_producto]"]');
                 const subtotalInput = item.querySelector('input[name*="[subtotal]"]');
 
+                if (e.target.name?.includes('[cantidad]')) {
+                    refreshStockLimits(containerDetalles, item);
+                }
+
                 const cantidad = parseFloat(cantidadInput?.value) || 0;
                 const precio = parseFloat(precioInput?.value.replace(',', '.')) || 0;
                 const precioExtra = parseFloat(precioExtraInput?.value.replace(',', '.')) || 0;
@@ -841,6 +888,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 if (e.target.classList.contains('remove-detalle')) {
                     e.target.closest('.detalle-item').remove();
+                    refreshStockLimits(containerDetalles);
                     calcularTotales();
                 }
             } catch (err) {

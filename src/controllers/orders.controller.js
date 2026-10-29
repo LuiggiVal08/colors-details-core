@@ -9,7 +9,7 @@ import handleErrorsController from '../helpers/handdleErrorsController.js';
 const detalleSchema = z.object({
     producto_id: z.string(),
     detalle_pedido_producto: z.string(),
-    cantidad: z.string(),
+    cantidad: z.string().regex(/^[1-9]\d*$/, 'La cantidad debe ser un entero mayor que cero'),
     precio_unitario: z.string(),
     precio_pedido_producto: z.string(),
     subtotal: z.string(),

@@ -6,6 +6,7 @@ import { setupFilteredTable } from '../../helpers/setupFilteredTable.js';
 import { Format } from '../../helpers/Format.js';
 import uniqueId from '../../helpers/uniqueId.js';
 import { generarPDF } from '../../helpers/generatePdf.js';
+import { availableProductStock, refreshStockLimits } from '../../helpers/productStock.js';
 // llenado de tabla de compras
 document.addEventListener('DOMContentLoaded', async () => {
     const [ventas, tasaDolar] = await Promise.all([
@@ -125,18 +126,41 @@ const viewPurchase = async (id) => {
 
         // --- Pagos ---
         if (pagos) {
+            const obtenerMontosRecibidos = (pago) => {
+                const codigoMoneda = String(pago.moneda?.codigo || '').toUpperCase();
+                const tasaPago = Number(pago.tasa?.tasa) || Number(tasa) || 0;
+                const tieneMontoRecibido = pago.monto_recibido != null;
+                const montoRecibido = tieneMontoRecibido
+                    ? Number(pago.monto_recibido)
+                    : Number(pago.monto ?? pago.monto_usd ?? 0);
+
+                if (codigoMoneda === 'VES') {
+                    return {
+                        usd: tieneMontoRecibido && tasaPago > 0
+                            ? montoRecibido / tasaPago
+                            : Number(pago.monto_usd ?? (tasaPago > 0 ? montoRecibido / tasaPago : 0)),
+                        bs: montoRecibido,
+                    };
+                }
+
+                return {
+                    usd: montoRecibido,
+                    bs: montoRecibido * tasaPago,
+                };
+            };
+
             setupFilteredTable({
                 data: pagos,
                 fillTableOptions: {
                     templateId: 'fila-ejemplo-pago-purchase',
                     tableSelector: '#purchase-pagos',
-                 formatters: {
-                     fecha: (p) => new Date(p.fecha).toLocaleDateString('es-ES'),
-                     tipo: (p) => p.metodo_pago.nombre,
-                     referencia: (p) => p.referencia_pago,
-                     monto: (p) => '$' + Format.float(Number(p.monto_usd ?? p.monto ?? 0).toFixed(2)),
-                     monto_bs: (p) => Format.float((Number(p.monto_usd ?? p.monto ?? 0) * Number(tasa)).toFixed(2)) + ' Bs',
-                 },
+                    formatters: {
+                        fecha: (p) => new Date(p.fecha).toLocaleDateString('es-ES'),
+                        tipo: (p) => p.metodo_pago.nombre,
+                        referencia: (p) => p.referencia_pago,
+                        monto: (p) => '$' + Format.float(obtenerMontosRecibidos(p).usd.toFixed(2)),
+                        monto_bs: (p) => Format.float(obtenerMontosRecibidos(p).bs.toFixed(2)) + ' Bs',
+                    },
                 },
             });
 
@@ -407,6 +431,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const hiddenProductoId = clone.querySelector('.producto-id-hidden');
         const dataProducto = clone.querySelector('[data-producto]');
         const precioInput = clone.querySelector('input[name*="[precio_unitario]"]');
+        const cantidadInput = clone.querySelector('input[name*="[cantidad]"]');
+        const subtotalInput = clone.querySelector('input[name*="[subtotal]"]');
 
         // Inicialmente ocultar el bloque de datos del producto
         dataProducto.classList.add('hidden');
@@ -424,7 +450,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             resultadosDiv.classList.add('hidden');
             dataProducto.classList.add('hidden');
             precioInput.value = '';
-            hiddenProductoId.value = ''; // 🔴 Limpia el ID si se borra el texto
+            hiddenProductoId.value = '';
+            hiddenProductoId.dataset.stock = '';
+            cantidadInput.value = '';
+            subtotalInput.value = '';
+            refreshStockLimits(containerDetalles);
+            calcularTotales();
 
             if (!valor) return;
 
@@ -446,25 +477,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Renderizar resultados
             resultadosLimitados.forEach((p) => {
+                const stockDisponible = availableProductStock(
+                    containerDetalles,
+                    p.id,
+                    p.stock,
+                    item,
+                );
                 const itemRes = document.createElement('div');
-                itemRes.className =
-                    'px-4 py-2 hover:bg-red-100 cursor-pointer text-sm text-gray-800 transition-colors duration-200';
+                itemRes.className = `px-4 py-2 text-sm text-gray-800 transition-colors duration-200 ${
+                    stockDisponible > 0
+                        ? 'hover:bg-red-100 cursor-pointer'
+                        : 'bg-gray-50 text-gray-500 cursor-not-allowed'
+                }`;
                 itemRes.innerHTML = `
                     <div class="flex flex-col">
                         <span class="font-semibold text-gray-900">${p.nombre}</span>
                         <span class="text-xs text-gray-600">Código: ${p.codigo}</span>
                         <span class="text-xs text-gray-600">Categoría: ${p.categoria?.nombre || 'N/A'}</span>
                         <span class="text-xs text-gray-600">Precio: $${p.precio}</span>
-                        <span class="text-xs text-gray-600">Stock: ${p.stock}</span>
+                        <span class="text-xs text-gray-600">Disponible: ${stockDisponible}</span>
                     </div>
                 `;
 
+                if (stockDisponible < 1) {
+                    resultadosDiv.appendChild(itemRes);
+                    return;
+                }
+
                 itemRes.addEventListener('click', () => {
+                    const stockDisponibleActual = availableProductStock(
+                        containerDetalles,
+                        p.id,
+                        p.stock,
+                        item,
+                    );
+                    if (stockDisponibleActual < 1) return;
+
                     inputCodigo.value = `${p.codigo} - ${p.nombre}`;
-                    hiddenProductoId.value = p.id; // ✅ Guardar el ID en el input hidden
+                    hiddenProductoId.value = p.id;
+                    hiddenProductoId.dataset.stock = String(Number(p.stock) || 0);
                     precioInput.value = Format.float(p.precio);
                     resultadosDiv.classList.add('hidden');
                     dataProducto.classList.remove('hidden');
+                    refreshStockLimits(containerDetalles, item);
                     calcularTotales();
                 });
 
@@ -494,6 +549,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const subtotalInput = item.querySelector('input[name*="[subtotal]"]');
 
         if (e.target.name?.includes('[cantidad]') || e.target.name?.includes('[precio_unitario]')) {
+            if (e.target.name?.includes('[cantidad]')) {
+                refreshStockLimits(containerDetalles, item);
+            }
             const cantidad = parseFloat(cantidadInput.value) || 0;
             const precio = parseFloat(precioInput.value.replace(',', '.')) || 0;
             subtotalInput.value = Format.float((cantidad * precio).toFixed(2));
@@ -505,6 +563,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     containerDetalles.addEventListener('click', (e) => {
         if (e.target.classList.contains('remove-detalle')) {
             e.target.closest('.detalle-item').remove();
+            refreshStockLimits(containerDetalles);
             calcularTotales();
         }
     });
