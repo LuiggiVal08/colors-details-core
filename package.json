@@ -8,7 +8,8 @@
         "dev": "node --watch src/index.js ",
         "build:css": "npx @tailwindcss/cli -i ./public/css/tailwind.css -o ./public/css/index.css && node scripts/fix-css-colors.mjs public/css/index.css",
         "build:css:watch": "npx @tailwindcss/cli -i ./public/css/tailwind.css -o ./public/css/index.css --watch",
-        "fix:css": "node scripts/fix-css-colors.mjs public/css/index.css"
+        "fix:css": "node scripts/fix-css-colors.mjs public/css/index.css",
+        "build:manual": "node scripts/generate-manual.mjs"
     },
     "keywords": [],
     "author": "",

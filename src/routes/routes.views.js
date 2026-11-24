@@ -136,7 +136,7 @@ router.get('/orders', isAuthenticatedView, async (req, res) => {
 });
 router.get('/help', (req, res) => {
     res.render(basePath('help'), {
-        title: 'Recuperación de Contraseña',
+        title: 'Manual y Soporte',
     });
 });
 router.get('/rescue', (req, res) => {
